@@ -1,0 +1,1607 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Adiel Vásquez — Brand Designer</title>
+<meta name="description" content="Adiel Vásquez is a designer focused on brand identity, currently a brand designer at Hex.">
+<meta property="og:title" content="Adiel Vásquez — Brand Designer">
+<meta property="og:description" content="Adiel Vásquez is a designer focused on brand identity, currently a brand designer at Hex.">
+<meta property="og:url" content="https://adiel.design/">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:site" content="@adieldesign">
+<meta name="theme-color" content="#ffffff">
+<link rel="canonical" href="https://adiel.design/">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath fill='%23fff' d='M6 4h4v1H6zM5 5h2v6H5zM9 5h2v6H9zM7 7h2v1H7z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
+
+<script>
+  /* Pick the theme before first paint so there's no flash. */
+  (function () {
+    var d = document.documentElement, t;
+    var ok = ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'];
+    d.classList.add('js');
+    try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
+    if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'negative' : 'paper';
+    d.dataset.theme = t;
+  })();
+</script>
+
+<style>
+  /* ------------------------------------------------------------
+     Themes. Each one is a small system: paper + ink for windows,
+     a desk colour, a menu bar, one graphite and one accent.
+     The retro ones also change chrome: title bars, borders,
+     shadows, buttons, type and a screen effect.
+  ------------------------------------------------------------ */
+  :root {
+    --paper: #ffffff;
+    --ink: #000000;
+    --graphite: #6f6f6f;
+    --accent: #0000ee;          /* the web's original link blue */
+    --on-accent: #ffffff;
+    --desk-color: var(--paper);
+    --desk-ink: var(--ink);
+    --bar-bg: var(--paper);
+    --bar-ink: var(--ink);
+    --bar-dim: var(--graphite);
+    --menu-bg: var(--paper);
+    --menu-ink: var(--ink);
+    --hl: var(--ink);
+    --on-hl: var(--paper);
+    --shadow: var(--ink);
+    --win-bw: 1px;
+    --win-bs: solid;
+    --win-shadow: 2px 2px 0 var(--shadow);
+    --pop-shadow: 2px 2px 0 var(--shadow);
+    --glow: none;
+    --desk: none;
+    --fx: none;
+    --bar: 24px;
+    --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --font: var(--sans);
+    color-scheme: light;
+  }
+  :root[data-theme="negative"] {
+    --paper: #000000; --ink: #ffffff; --graphite: #909090;
+    --accent: #ffff11; --on-accent: #000000;   /* true inverse of link blue */
+    color-scheme: dark;
+  }
+  /* Amber monochrome monitor */
+  :root[data-theme="amber"] {
+    --paper: #140b00; --ink: #ffb000; --graphite: #b37b1c;
+    --accent: #fff4d6; --on-accent: #140b00;
+    --glow: 0 0 .4em rgb(255 176 0 / .38);
+    --fx:
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / .26) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 90% at 50% 50%, transparent 58%, rgb(0 0 0 / .5) 100%);
+    color-scheme: dark;
+  }
+  /* Handheld LCD */
+  :root[data-theme="pocket"] {
+    --paper: #c4cfa1; --ink: #1f1f1f; --graphite: #4d533c;
+    --accent: #4d533c; --on-accent: #c4cfa1;
+    --fx:
+      linear-gradient(90deg, rgb(0 0 0 / .05) 1px, transparent 1px) 0 0 / 3px 3px,
+      linear-gradient(rgb(0 0 0 / .05) 1px, transparent 1px) 0 0 / 3px 3px;
+    color-scheme: light;
+  }
+  /* EGA, after the first tiled-window desktops of 1985 */
+  :root[data-theme="ega"] {
+    --paper: #ffffff; --ink: #000000; --graphite: #555555;
+    --accent: #0000aa; --on-accent: #ffffff;
+    --desk-color: #00aaaa; --desk-ink: #000000;
+    --hl: #0000aa; --on-hl: #ffffff;
+    --win-bw: 2px;
+    --win-shadow: 0 0 0 transparent;
+    --pop-shadow: 0 0 0 transparent;
+    color-scheme: light;
+  }
+  /* DOS-era text mode */
+  :root[data-theme="textmode"] {
+    --paper: #0000aa; --ink: #ffffff; --graphite: #aaaaaa;
+    --accent: #ffff55; --on-accent: #0000aa;
+    --bar-bg: #aaaaaa; --bar-ink: #000000; --bar-dim: #555555;
+    --menu-bg: #aaaaaa; --menu-ink: #000000;
+    --hl: #000000; --on-hl: #ffffff;
+    --win-bw: 3px; --win-bs: double;
+    --win-shadow: 8px 8px 0 #000000;
+    --pop-shadow: 6px 6px 0 #000000;
+    --font: var(--mono);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--desk), var(--desk-color);
+    color: var(--ink);
+    font-family: var(--font);
+    font-size: 13px;
+    line-height: 1.4;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-synthesis: none;
+    overflow-x: hidden;
+  }
+  h1, h2, h3, p, dl, dd { margin: 0; }
+  a { color: inherit; }
+  button {
+    font: inherit; color: inherit; background: none;
+    border: 0; margin: 0; padding: 0; border-radius: 0;
+    -webkit-tap-highlight-color: transparent;
+  }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+  :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+
+  /* Rounded screen corners + per-theme screen effect */
+  .bezel {
+    position: fixed; inset: 0; z-index: 100; pointer-events: none;
+    border-radius: 8px;
+    box-shadow: 0 0 0 40px #000;
+  }
+  .fx { position: fixed; inset: 0; z-index: 99; pointer-events: none; background: var(--fx); }
+
+  /* ------------------------------------------------------------
+     Menu bar
+  ------------------------------------------------------------ */
+  .menubar {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
+    height: calc(var(--bar) + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) max(8px, env(safe-area-inset-right, 0px)) 0 max(8px, env(safe-area-inset-left, 0px));
+    display: flex; justify-content: space-between; align-items: stretch;
+    background: var(--bar-bg);
+    color: var(--bar-ink);
+    border-bottom: 1px solid var(--bar-ink);
+    font-size: 13px; font-weight: 600; font-stretch: 92%;
+    user-select: none; -webkit-user-select: none;
+  }
+  .menubar.is-flash { filter: invert(1); }
+  .mb-left, .mb-right { display: flex; align-items: stretch; }
+  .mb-menu { position: relative; display: flex; }
+  .mb-title {
+    --under: var(--bar-bg);
+    display: flex; align-items: center; gap: 7px;
+    height: 100%; padding: 0 10px;
+    cursor: default; text-decoration: none; white-space: nowrap;
+  }
+  .mb-title[aria-expanded="true"], button.mb-title:active, a.mb-title:active {
+    background: var(--hl); color: var(--on-hl); --under: var(--hl);
+  }
+  .mb-title .name { font-weight: 700; }
+  .mb-title.is-disabled { color: var(--bar-dim); font-weight: 500; }
+  .glyph { display: block; width: 12px; height: 12px; }
+  .glyph .g-ink { fill: currentColor; }
+  .glyph .g-paper { fill: var(--under); }
+  .mb-right { align-items: center; gap: 12px; padding-right: 4px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .sfx { display: grid; place-items: center; width: 26px; height: calc(var(--bar) - 1px); cursor: default; }
+  .sfx svg { width: 13px; height: 12px; fill: currentColor; }
+  .sfx:active { background: var(--hl); color: var(--on-hl); }
+
+  /* Display toggle: a little keycap that cycles themes */
+  .theme-btn {
+    align-self: center;
+    display: flex; align-items: center; gap: 6px;
+    height: 17px; margin-top: -2px; padding: 0 7px 0 5px;
+    border: 1px solid var(--bar-ink); border-radius: 3px;
+    background: var(--bar-bg); color: var(--bar-ink);
+    box-shadow: 0 2px 0 var(--bar-ink);
+    font-size: 12px; font-weight: 600; line-height: 1;
+    cursor: default;
+    transition: transform .04s linear, box-shadow .04s linear;
+  }
+  .theme-btn:active { transform: translateY(2px); box-shadow: 0 0 0 var(--bar-ink); }
+  .theme-btn svg { display: block; width: 13px; height: 11px; }
+  .theme-btn .m-frame { fill: currentColor; }
+  .theme-btn .m-screen { fill: var(--paper); }
+  .theme-btn .m-text { fill: var(--ink); }
+  .theme-btn .m-cursor { fill: var(--accent); }
+  .theme-name { min-width: 4.6em; text-align: left; }
+  .sfx[aria-pressed="true"] .off, .sfx[aria-pressed="false"] .on { display: none; }
+
+  /* Pull-down menus */
+  .menu {
+    position: absolute; top: 100%; left: 0; z-index: 1;
+    min-width: 212px; margin: 0; padding: 4px 0; list-style: none;
+    background: var(--menu-bg); color: var(--menu-ink);
+    border: 1px solid var(--menu-ink);
+    box-shadow: var(--pop-shadow);
+    font-weight: 500;
+  }
+  .mi {
+    position: relative;
+    display: flex; align-items: center; justify-content: space-between; gap: 28px;
+    width: 100%; height: 22px; padding: 0 14px 0 24px;
+    text-align: left; text-decoration: none; white-space: nowrap;
+    cursor: default; outline: none;
+  }
+  .mi:hover, .mi:focus-visible, .mi.is-lit { background: var(--hl); color: var(--on-hl); }
+  .menu.is-blinking .mi:not(.is-lit) { background: transparent; color: var(--menu-ink); }
+  .mi[aria-disabled="true"] { color: var(--bar-dim) !important; background: transparent !important; pointer-events: none; }
+  .sep { height: 1px; margin: 4px 0; background: repeating-linear-gradient(90deg, var(--bar-dim) 0 1px, transparent 1px 2px); }
+
+  /* ------------------------------------------------------------
+     Desk + statement
+  ------------------------------------------------------------ */
+  .desk {
+    position: relative;
+    min-height: 100vh;
+    min-height: 100dvh;
+    padding:
+      calc(var(--bar) + env(safe-area-inset-top, 0px) + clamp(96px, 25vh, 260px))
+      clamp(22px, 7.5vw, 128px)
+      80px;
+  }
+  .statement {
+    max-width: 13.2em;
+    font-size: clamp(30px, 1rem + 3.3vw, 60px);
+    font-weight: 500;
+    line-height: 1.06;
+    letter-spacing: -0.034em;
+    color: var(--desk-ink);
+    text-shadow: var(--glow);
+  }
+  [data-theme="textmode"] .statement { max-width: 16em; font-size: clamp(26px, .9rem + 2.7vw, 50px); letter-spacing: -0.03em; line-height: 1.12; }
+  [data-theme="textmode"] .caret { width: 0.6em; height: 0.12em; vertical-align: -0.1em; margin-left: 0.05em; }
+  .statement .line { display: block; text-wrap: balance; }
+  .nowrap { white-space: nowrap; }
+
+  .chip {
+    position: relative;
+    text-decoration-line: underline;
+    text-decoration-thickness: 0.045em;
+    text-underline-offset: 0.11em;
+    text-decoration-color: currentColor;
+    transition: text-decoration-color .18s ease;
+  }
+  .chip:hover, .chip:focus-visible { text-decoration-color: var(--accent); outline-offset: 6px; }
+  .chip::after {
+    content: attr(data-tip);
+    position: absolute; left: 0; top: calc(100% + 10px);
+    padding: 4px 7px 5px;
+    font-size: 12px; font-weight: 600; font-stretch: 92%;
+    line-height: 1; letter-spacing: 0; white-space: nowrap;
+    text-shadow: none;
+    color: var(--ink); background: var(--paper);
+    border: 1px solid var(--ink); box-shadow: var(--pop-shadow);
+    opacity: 0; transform: translateY(3px); pointer-events: none;
+    transition: opacity .12s ease, transform .12s ease;
+  }
+  @media (hover: hover) {
+    .chip:hover::after { opacity: 1; transform: none; transition-delay: .3s; }
+  }
+  .caret {
+    display: inline-block;
+    width: 0.07em; min-width: 2px; height: 0.84em;
+    margin-left: 0.07em; vertical-align: -0.1em;
+    background: var(--accent);
+    animation: blink 1.1s steps(1, end) infinite;
+  }
+  @keyframes blink { 50% { visibility: hidden; } }
+
+  /* ------------------------------------------------------------
+     Desktop icons
+  ------------------------------------------------------------ */
+  .icons {
+    position: fixed; z-index: 10;
+    top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 16px);
+    right: max(14px, env(safe-area-inset-right, 0px));
+    display: grid; gap: 10px;
+  }
+  .icon {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    width: 76px; padding: 2px 0;
+    cursor: default; outline: none;
+  }
+  .icon svg { display: block; width: 32px; height: 32px; }
+  .icon-label {
+    padding: 0 4px;
+    font-size: 12px; font-weight: 500; font-stretch: 92%; line-height: 16px;
+    white-space: nowrap;
+    background: var(--paper); color: var(--ink);
+  }
+  .i-fill { fill: var(--paper); }
+  .i-ink { fill: var(--ink); }
+  .icon.is-selected .i-fill { fill: var(--ink); }
+  .icon.is-selected .i-ink { fill: var(--paper); }
+  .icon.is-selected .icon-label { background: var(--ink); color: var(--paper); }
+  .icon:focus-visible .icon-label { outline: 1px solid var(--accent); outline-offset: 1px; }
+
+  /* ------------------------------------------------------------
+     Windows
+  ------------------------------------------------------------ */
+  .window {
+    position: fixed; z-index: 20;
+    display: flex; flex-direction: column;
+    background: var(--paper); color: var(--ink);
+    border: var(--win-bw) var(--win-bs) var(--ink);
+    box-shadow: var(--win-shadow);
+  }
+  .js .window[data-boot] { display: none; }
+  #readme { right: clamp(24px, 9vw, 160px); bottom: clamp(28px, 13vh, 150px); width: 304px; }
+  #about {
+    top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 36px);
+    right: clamp(108px, 11vw, 220px);
+    width: 452px;
+    max-height: calc(100vh - var(--bar) - 72px);
+    max-height: calc(100dvh - var(--bar) - 72px);
+  }
+  #piano { left: clamp(22px, 7.5vw, 128px); bottom: clamp(24px, 5vh, 64px); }
+
+  .titlebar {
+    position: relative; flex: none;
+    display: flex; justify-content: center;
+    height: 20px;
+    border-bottom: 1px solid var(--ink);
+    cursor: default; touch-action: none;
+    user-select: none; -webkit-user-select: none;
+  }
+  .window.is-active .titlebar::before {
+    content: ""; position: absolute; inset: 4px 2px;
+    background: repeating-linear-gradient(to bottom, var(--ink) 0 1px, transparent 1px 2px);
+  }
+  .wtitle {
+    position: relative; padding: 0 8px;
+    background: var(--paper);
+    font-size: 12px; font-weight: 700; font-stretch: 92%; line-height: 19px;
+  }
+  .window:not(.is-active) .wtitle { color: var(--graphite); font-weight: 600; }
+  .closebox {
+    position: absolute; left: 8px; top: 3px;
+    display: grid; place-items: center;
+    width: 13px; height: 13px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    box-shadow: 0 0 0 1px var(--paper);
+    cursor: default;
+  }
+  .closebox::after { content: ""; position: absolute; inset: -9px; }
+  .closebox svg { display: block; width: 11px; height: 11px; fill: currentColor; visibility: hidden; }
+  .closebox:active svg { visibility: visible; }
+  .window:not(.is-active) .closebox { visibility: hidden; }
+
+  /* EGA: solid blue caption bar, like the first tiled-window desktops */
+  [data-theme="ega"] .window.is-active .titlebar { background: var(--hl); }
+  [data-theme="ega"] .window.is-active .titlebar::before { display: none; }
+  [data-theme="ega"] .window.is-active .wtitle { background: transparent; color: var(--on-hl); }
+  [data-theme="ega"] .titlebar { height: 22px; border-bottom-width: 2px; }
+  [data-theme="ega"] .wtitle { line-height: 20px; }
+  [data-theme="ega"] .closebox { top: 4px; }
+  /* Text mode: a double rule through the title, ═══ Read Me ═══ */
+  [data-theme="textmode"] .window.is-active .titlebar::before {
+    inset: 7px 8px auto; height: 5px;
+    border-top: 1px solid var(--ink); border-bottom: 1px solid var(--ink);
+    background: none;
+  }
+  [data-theme="textmode"] .closebox { left: 12px; background: var(--paper); box-shadow: 0 0 0 4px var(--paper); }
+  [data-theme="textmode"] .wtitle { padding: 0 10px; font-weight: 600; }
+
+  .wbody { padding: 16px; }
+  .wbody a { text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  .wbody a:hover { text-decoration-color: var(--accent); }
+  .scroll { overflow-y: auto; overscroll-behavior: contain; min-height: 0; }
+  .scroll::-webkit-scrollbar { width: 16px; }
+  .scroll::-webkit-scrollbar-track {
+    border-left: 1px solid var(--ink);
+    background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px;
+  }
+  .scroll::-webkit-scrollbar-thumb { background: var(--paper); border: 1px solid var(--ink); border-right: 0; }
+  @supports not selector(::-webkit-scrollbar) {
+    .scroll { scrollbar-color: var(--ink) var(--paper); scrollbar-width: thin; }
+  }
+
+  .inline-link { color: var(--ink); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 2px; cursor: default; }
+  .inline-link:hover { text-decoration-color: var(--accent); }
+
+  /* Read Me */
+  .w-lead { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; }
+  .w-sub { margin-top: 2px; color: var(--graphite); }
+  .progress { display: flex; align-items: center; gap: 10px; margin-top: 16px; }
+  .track { flex: 1; height: 12px; padding: 1px; border: 1px solid var(--ink); }
+  .fill, .dither {
+    background:
+      conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px;
+  }
+  .fill { width: 0; height: 100%; }
+  .pct { min-width: 3.2ch; text-align: right; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .task { margin-top: 8px; min-height: 17px; font-size: 12px; color: var(--graphite); }
+  .wactions { display: flex; justify-content: flex-end; margin-top: 14px; }
+
+  .btn {
+    min-width: 68px; height: 22px; padding: 0 14px;
+    border: 1px solid var(--ink); border-radius: 7px;
+    background: var(--paper); color: var(--ink);
+    font-size: 12px; font-weight: 600; font-stretch: 92%;
+    cursor: default;
+  }
+  .btn:active { background: var(--ink); color: var(--paper); }
+  .btn.is-default { margin: 5px; box-shadow: 0 0 0 2px var(--paper), 0 0 0 5px var(--ink); }
+  .btn:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+  [data-theme="textmode"] .btn { border: 0; border-radius: 0; background: #00aa00; color: #000; box-shadow: 4px 4px 0 #000; }
+  [data-theme="textmode"] .btn.is-default { margin: 0 4px 4px 0; box-shadow: 4px 4px 0 #000; color: #fff; }
+  [data-theme="textmode"] .btn:active { transform: translate(4px, 4px); box-shadow: none; background: #00aa00; color: #000; }
+  [data-theme="ega"] .btn.is-default { box-shadow: 0 0 0 1px var(--ink); margin: 1px; }
+  .btn-sm { min-width: 0; height: 18px; padding: 0 8px; border-radius: 5px; font-size: 11px; }
+
+  /* About Me — laid out like a Get Info window */
+  .about { padding: 18px 18px 22px; }
+  .info-head { display: flex; align-items: center; gap: 14px; }
+  .portrait {
+    position: relative; flex: none;
+    display: grid; place-items: center;
+    width: 74px; height: 74px;
+    border: 1px solid var(--ink);
+    background: var(--paper);
+    overflow: hidden;
+  }
+  .portrait .avatar { width: 64px; height: 64px; }
+  .portrait canvas { display: block; width: 72px; height: 72px; image-rendering: pixelated; }
+  .portrait img { width: 72px; height: 72px; object-fit: cover; filter: grayscale(1) contrast(1.15); }
+  .portrait.has-photo .avatar { display: none; }
+  .info-name { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
+  .info-kind { margin-top: 3px; color: var(--graphite); }
+  .rule { height: 1px; margin: 16px 0; border: 0; background: repeating-linear-gradient(90deg, var(--graphite) 0 1px, transparent 1px 2px); }
+  .info { display: grid; grid-template-columns: 58px 1fr; column-gap: 12px; row-gap: 7px; }
+  .info dt { text-align: right; color: var(--graphite); font-weight: 500; }
+  .info .with-btn { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .info-label { margin-bottom: 7px; color: var(--graphite); font-weight: 500; }
+  .comments { padding: 12px 14px; border: 1px solid var(--ink); font-size: 13.5px; line-height: 1.55; }
+  .comments p + p { margin-top: .8em; }
+
+  /* Piano desk accessory */
+  .piano-body { width: calc(var(--kbw, 392px) + 28px); padding: 12px 14px 12px; }
+  .piano-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: 500; }
+  .octave { display: flex; align-items: center; gap: 8px; }
+  .range { min-width: 5.4em; text-align: center; font-weight: 600; font-variant-numeric: tabular-nums; }
+  .mini {
+    display: grid; place-items: center;
+    width: 20px; height: 18px;
+    border: 1px solid var(--ink); border-radius: 4px;
+    background: var(--paper); cursor: default;
+  }
+  .mini svg { width: 4px; height: 7px; fill: currentColor; }
+  .mini:active { background: var(--ink); color: var(--paper); }
+  .checkbox { position: relative; display: flex; align-items: center; gap: 7px; cursor: default; user-select: none; -webkit-user-select: none; }
+  .checkbox input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .checkbox .box { display: grid; place-items: center; width: 12px; height: 12px; border: 1px solid var(--ink); background: var(--paper); }
+  .checkbox .box svg { width: 8px; height: 8px; fill: currentColor; visibility: hidden; }
+  .checkbox input:checked + .box svg { visibility: visible; }
+  .checkbox input:focus-visible + .box { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .keys {
+    position: relative; display: flex;
+    width: calc(var(--kw, 26px) * 15 + 2px); height: 124px; margin: 0 auto;
+    border: 1px solid var(--ink);
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  .key { cursor: default; }
+  .wk { position: relative; flex: none; width: var(--kw, 26px); border-right: 1px solid var(--ink); background: var(--paper); }
+  .wk.is-last { border-right: 0; }
+  .bk { position: absolute; top: 0; z-index: 2; width: var(--bw, 15px); height: 62%; background: var(--ink); border: 1px solid var(--ink); }
+  .key.is-down { background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px; }
+  .key-label { position: absolute; left: 0; right: 0; bottom: 6px; text-align: center; font-size: 10px; font-weight: 600; color: var(--graphite); pointer-events: none; }
+  .bk .key-label { bottom: 4px; font-size: 9px; color: var(--paper); }
+  .key.is-down .key-label { color: var(--ink); background: var(--paper); }
+  .piano-status { margin-top: 10px; font-size: 12px; }
+  .piano-credit { margin-top: 2px; font-size: 11px; color: var(--graphite); }
+
+  /* Docked Read Me: in the page flow on small screens, or when it would cover the text */
+  .is-docked #readme {
+    position: relative; left: auto !important; top: auto !important; right: auto; bottom: auto;
+    width: auto; max-width: 340px; margin-top: 48px;
+  }
+  .is-docked #readme .titlebar { touch-action: auto; }
+
+  /* ------------------------------------------------------------
+     Alert
+  ------------------------------------------------------------ */
+  .scrim { position: fixed; inset: 0; z-index: 55; }
+  .alert {
+    position: fixed; z-index: 60;
+    left: 0; right: 0; top: max(96px, 30vh);
+    width: min(392px, calc(100vw - 32px)); margin: 0 auto;
+    display: grid; grid-template-columns: 32px 1fr; column-gap: 16px;
+    padding: 20px 20px 16px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--ink), var(--pop-shadow);
+  }
+  .alert svg { display: block; width: 32px; height: 32px; }
+  .alert h2 { font-size: 14px; font-weight: 700; font-stretch: 92%; }
+  .alert p { margin-top: 4px; color: var(--graphite); }
+  .alert .wactions { grid-column: 1 / -1; margin-top: 12px; }
+
+  /* Zoom rectangles */
+  .zoom { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
+  .zoom i { position: absolute; border: 1px solid var(--ink); }
+
+  /* ------------------------------------------------------------
+     Responsive + motion preferences
+  ------------------------------------------------------------ */
+  @media (max-width: 720px) {
+    .icons { display: none; }
+    .desk { padding-top: calc(var(--bar) + env(safe-area-inset-top, 0px) + clamp(72px, 17vh, 160px)); }
+    .window.is-float {
+      left: 10px !important; right: 10px !important; bottom: auto !important;
+      top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 10px) !important;
+      width: auto !important;
+      max-height: calc(100dvh - var(--bar) - env(safe-area-inset-top, 0px) - 20px);
+    }
+    .window.is-float .titlebar { touch-action: auto; }
+    .piano-body { width: auto; }
+  }
+  @media (max-width: 520px) {
+    .theme-name { display: none; }
+    .theme-btn { padding: 0 5px; }
+    .mb-title { padding: 0 8px; }
+  }
+  @media (max-width: 400px) {
+    .mb-work { display: none; }
+  }
+  /* Theme switch: the new screen redraws top to bottom in steps */
+  ::view-transition-old(root) { animation: none; }
+  ::view-transition-new(root) { animation: redraw .42s steps(14, end) both; }
+  @keyframes redraw { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .caret { animation: none; }
+    .chip, .chip::after { transition: none; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <symbol id="i-burst" viewBox="0 0 11 11"><path d="M5 0h1v4H5zM5 7h1v4H5zM0 5h4v1H0zM7 5h4v1H7zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM7 7h1v1H7zM8 8h1v1H8zM9 9h1v1H9zM9 1h1v1H9zM8 2h1v1H8zM7 3h1v1H7zM3 7h1v1H3zM2 8h1v1H2zM1 9h1v1H1z"/></symbol>
+</svg>
+
+<header class="menubar">
+  <nav class="mb-left" aria-label="Menu bar">
+    <div class="mb-menu">
+      <button class="mb-title" id="menu-adiel" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-adiel">
+        <svg class="glyph" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true">
+          <rect class="g-ink" width="12" height="12"/>
+          <path class="g-paper" d="M4 2h4v1H4zM3 3h2v6H3zM7 3h2v6H7zM5 5h2v1H5z"/>
+        </svg>
+        <span class="name">Adiel</span>
+      </button>
+      <ul class="menu" id="m-adiel" role="menu" aria-labelledby="menu-adiel" hidden>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="about">About Me</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="readme">Read Me</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="piano">Piano</button></li>
+        <li role="separator" class="sep"></li>
+        <li role="none"><a class="mi" role="menuitem" href="https://hex.inc" target="_blank" rel="noopener">Visit hex.inc</a></li>
+        <li role="separator" class="sep"></li>
+        <li role="none"><span class="mi" role="menuitem" aria-disabled="true"><span>© <span id="year">2026</span> Adiel Vásquez</span></span></li>
+      </ul>
+    </div>
+    <span class="mb-title is-disabled mb-work" aria-disabled="true" title="Coming soon">Work</span>
+    <a class="mb-title" href="mailto:hello@adiel.design">Contact</a>
+  </nav>
+  <div class="mb-right">
+    <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
+      <svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true">
+        <path class="m-frame" d="M0 0h13v9H0zM5 9h3v1H5zM3 10h7v1H3z"/>
+        <path class="m-screen" d="M1 1h11v7H1z"/>
+        <path class="m-text" d="M3 3h5v1H3zM3 5h3v1H3z"/>
+        <path class="m-cursor" d="M9 3h1v1H9z"/>
+      </svg>
+      <span class="theme-name" id="theme-name">Paper</span>
+    </button>
+    <button class="sfx" id="sfx" type="button" aria-pressed="true" aria-label="Sound effects">
+      <svg viewBox="0 0 13 12" shape-rendering="crispEdges" aria-hidden="true">
+        <path d="M1 4h3v4H1zM4 3h1v6H4zM5 2h1v8H5zM6 1h1v10H6z"/>
+        <path class="on" d="M8 4h1v4H8zM10 2h1v1h-1zM11 3h1v6h-1zM10 9h1v1h-1z"/>
+        <path class="off" d="M9 4h1v1H9zM12 4h1v1h-1zM10 5h2v2h-2zM9 7h1v1H9zM12 7h1v1h-1z"/>
+      </svg>
+    </button>
+    <time id="clock"></time>
+  </div>
+</header>
+
+<main class="desk">
+  <h1 class="statement" id="statement">
+    <span class="line">Adiel Vásquez is a designer focused on brand identity.</span>
+    <span class="line">Currently a brand designer at <span class="nowrap"><a class="chip" href="https://hex.inc" target="_blank" rel="noopener" data-tip="hex.inc">Hex</a>.<span class="caret" aria-hidden="true"></span></span></span>
+  </h1>
+
+  <!-- Read Me -->
+  <section class="window is-active" id="readme" data-icon="icon-readme" data-boot tabindex="-1" aria-labelledby="readme-title">
+    <header class="titlebar">
+      <button class="closebox" type="button" aria-label="Close Read Me"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+      <h2 class="wtitle" id="readme-title">Read Me</h2>
+    </header>
+    <div class="wbody">
+      <p class="w-lead">A new portfolio is in progress.</p>
+      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button> or play the <button class="inline-link" type="button" data-win="piano">Piano</button>.</p>
+      <div class="progress">
+        <div class="track" role="progressbar" aria-label="Portfolio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61"><div class="fill" id="fill"></div></div>
+        <span class="pct" id="pct" aria-hidden="true">61%</span>
+      </div>
+      <p class="task" id="task">Setting the type…</p>
+      <div class="wactions"><button class="btn is-default" type="button" data-close>OK</button></div>
+    </div>
+  </section>
+</main>
+
+<!-- About Me -->
+<section class="window is-float" id="about" data-icon="icon-about" tabindex="-1" aria-labelledby="about-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close About Me"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="about-title">About Me</h2>
+  </header>
+  <div class="wbody about scroll">
+    <div class="info-head">
+      <div class="portrait" id="portrait">
+        <svg class="avatar" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+          <path class="i-fill" d="M4 8h24v18H4z"/>
+          <path class="i-ink" d="M4 7h24v1H4zM4 26h24v1H4zM3 8h1v18H3zM28 8h1v18h-1zM5 10h11v1H5zM5 22h11v1H5zM5 11h1v11H5zM15 11h1v11h-1zM9 12h3v1H9zM8 13h5v3H8zM9 16h3v1H9zM8 18h5v1H8zM7 19h7v3H7zM18 12h7v1h-7zM18 15h8v1h-8zM18 18h6v1h-6zM18 21h8v1h-8z"/>
+        </svg>
+        <canvas width="72" height="72" role="img" aria-label="Portrait of Adiel" hidden></canvas>
+      </div>
+      <div>
+        <h3 class="info-name">Adiel Vásquez</h3>
+        <p class="info-kind">Designer, brand and web</p>
+      </div>
+    </div>
+
+    <hr class="rule">
+
+    <dl class="info">
+      <dt>Now:</dt><dd>Brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">Hex</a></dd>
+      <dt>Focus:</dt><dd>Brand identity, web design, art direction, naming</dd>
+      <dt>Honors:</dt><dd>Awwwards Young Jury member. Featured on A1 Gallery, Landbook and Framer Gallery.</dd>
+      <dt>Offline:</dt><dd>Reading, climbing volcanoes, basketball</dd>
+    </dl>
+
+    <hr class="rule">
+
+    <p class="info-label">Comments:</p>
+    <div class="comments">
+      <p>I’m a designer working with startups and studios on brand identities and websites, currently as a brand designer at Hex.</p>
+      <p>I care about work that has its own character. A lot of design today feels generic, so I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.</p>
+      <p>What I’m after is the balance between useful and distinctive. Brands and websites that do their job well, and that people remember not just for what they do, but for how they look and feel.</p>
+      <p>I also build my own generative tools and AI workflows, because sometimes the right tool for a brand doesn’t exist yet.</p>
+    </div>
+
+    <hr class="rule">
+
+    <dl class="info">
+      <dt>Email:</dt><dd class="with-btn"><a href="mailto:hello@adiel.design">hello@adiel.design</a><button class="btn btn-sm" type="button" id="copy-email">Copy</button></dd>
+      <dt>X:</dt><dd><a href="https://x.com/adieldesign" target="_blank" rel="noopener">@adieldesign</a></dd>
+      <dt>Cosmos:</dt><dd><a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">cosmos.so/adiell</a></dd>
+      <dt>Savee:</dt><dd><a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">savee.com/theadielv_</a></dd>
+    </dl>
+  </div>
+</section>
+
+<!-- Piano -->
+<section class="window is-float" id="piano" data-icon="icon-piano" tabindex="-1" aria-labelledby="piano-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Piano"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="piano-title">Piano</h2>
+  </header>
+  <div class="wbody piano-body">
+    <div class="piano-bar">
+      <div class="octave">
+        <button class="mini" type="button" data-oct="-1" aria-label="Octave down" title="Octave down (Z)"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
+        <span class="range" id="range" aria-live="polite">C4–C6</span>
+        <button class="mini" type="button" data-oct="1" aria-label="Octave up" title="Octave up (X)"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+      </div>
+      <label class="checkbox"><input type="checkbox" id="sustain"><span class="box" aria-hidden="true"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 4h1v1H4zM5 5h1v1H5zM6 6h1v1H6zM7 7h1v1H7zM7 0h1v1H7zM6 1h1v1H6zM5 2h1v1H5zM4 3h1v1H4zM3 4h1v1H3zM2 5h1v1H2zM1 6h1v1H1zM0 7h1v1H0z"/></svg></span>Sustain</label>
+    </div>
+    <div class="keys" id="keys" aria-label="Piano keyboard"></div>
+    <p class="piano-status" id="piano-status">Click the keys, or play A to ; on your keyboard.</p>
+    <p class="piano-credit">Salamander Grand Piano samples by Alexander Holm, CC BY 3.0.</p>
+  </div>
+</section>
+
+<nav class="icons" aria-label="Desktop">
+  <button class="icon" id="icon-about" type="button" data-open="about" aria-label="About Me">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M4 8h24v18H4z"/>
+      <path class="i-ink" d="M4 7h24v1H4zM4 26h24v1H4zM3 8h1v18H3zM28 8h1v18h-1zM5 10h11v1H5zM5 22h11v1H5zM5 11h1v11H5zM15 11h1v11h-1zM9 12h3v1H9zM8 13h5v3H8zM9 16h3v1H9zM8 18h5v1H8zM7 19h7v3H7zM18 12h7v1h-7zM18 15h8v1h-8zM18 18h6v1h-6zM18 21h8v1h-8z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">About Me</span>
+  </button>
+  <button class="icon" id="icon-readme" type="button" data-open="readme" aria-label="Read Me">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M7 3h13v26H7zM20 9h6v20h-6zM21 4h1v4h-1zM22 5h1v3h-1zM23 6h1v2h-1zM24 7h1v1h-1z"/>
+      <path class="i-ink" d="M6 2h15v1H6zM6 3h1v27H6zM7 29h20v1H7zM26 8h1v21h-1zM21 3h1v1h-1zM22 4h1v1h-1zM23 5h1v1h-1zM24 6h1v1h-1zM25 7h1v1h-1zM20 3h1v6h-1zM21 8h5v1h-5zM10 13h12v1H10zM10 16h12v1H10zM10 19h12v1H10zM10 22h8v1h-8z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Read Me</span>
+  </button>
+  <button class="icon" id="icon-piano" type="button" data-open="piano" aria-label="Piano">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M3 10h27v14H3z"/>
+      <path class="i-ink" d="M3 9h27v1H3zM3 24h27v1H3zM2 10h1v14H2zM30 10h1v14h-1zM3 12h27v1H3zM6 13h1v11H6zM10 13h1v11h-1zM14 13h1v11h-1zM18 13h1v11h-1zM22 13h1v11h-1zM26 13h1v11h-1zM5 13h3v7H5zM9 13h3v7H9zM17 13h3v7h-3zM21 13h3v7h-3zM25 13h3v7h-3z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Piano</span>
+  </button>
+  <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M4 7h8v20H4zM12 8h2v19h-2zM14 9h14v18H14z"/>
+      <path class="i-ink" d="M4 6h8v1H4zM12 7h1v1h-1zM13 8h1v1h-1zM14 8h14v1H14zM3 7h1v21H3zM28 9h1v19h-1zM4 27h24v1H4zM4 11h24v1H4z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Work</span>
+  </button>
+</nav>
+
+<div class="scrim" id="scrim" hidden></div>
+<section class="alert" id="alert" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-text" hidden>
+  <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <defs>
+      <pattern id="stripes" width="8" height="8" patternUnits="userSpaceOnUse">
+        <path class="i-ink" d="M0 0h4v1H0zM0 1h3v1H0zM7 1h1v1H7zM0 2h2v1H0zM6 2h2v1H6zM0 3h1v1H0zM5 3h3v1H5zM4 4h4v1H4zM3 5h4v1H3zM2 6h4v1H2zM1 7h4v1H1z"/>
+      </pattern>
+    </defs>
+    <path class="i-fill" d="M3 3h26v26H3z"/>
+    <path class="i-ink" d="M2 2h28v1H2zM2 29h28v1H2zM2 3h1v26H2zM29 3h1v26h-1z"/>
+    <rect x="4" y="4" width="24" height="24" fill="url(#stripes)"/>
+  </svg>
+  <div>
+    <h2 id="alert-title">Work isn’t ready yet.</h2>
+    <p id="alert-text">Selected projects are being arranged for the new portfolio. Check back soon.</p>
+  </div>
+  <div class="wactions"><button class="btn is-default" type="button">OK</button></div>
+</section>
+
+<div class="fx" aria-hidden="true"></div>
+<div class="bezel" aria-hidden="true"></div>
+
+<script>
+(() => {
+  'use strict';
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const root = document.documentElement;
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  const narrow = matchMedia('(max-width: 720px)');
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  };
+  const menubar = $('.menubar');
+
+  $('#year').textContent = new Date().getFullYear();
+
+  /* ==========================================================
+     Sound — everything is synthesised with Web Audio except the
+     piano, which streams real grand piano samples and falls back
+     to a synth if they can't load.
+  ========================================================== */
+  const Sound = (() => {
+    let ctx = null, sfxBus = null, pianoBus = null, noise = null;
+    let sfxOn = store.get('adiel-sfx') !== 'off';
+    const SAMPLE_URL = 'https://tonejs.github.io/audio/salamander/';
+    const NAMES = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B'];
+    const SAMPLED = [];
+    for (let m = 21; m <= 108; m += 3) SAMPLED.push(m); // A0, C1, D#1, F#1 … C8
+    const buffers = new Map();
+    const pending = new Map();
+    const live = [];
+
+    function unlock() {
+      if (!ctx) {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        ctx = new AC();
+        const limiter = ctx.createDynamicsCompressor();
+        limiter.threshold.value = -8; limiter.knee.value = 6; limiter.ratio.value = 6;
+        limiter.connect(ctx.destination);
+        sfxBus = ctx.createGain(); sfxBus.gain.value = 0.8; sfxBus.connect(limiter);
+        pianoBus = ctx.createGain(); pianoBus.gain.value = 0.85; pianoBus.connect(limiter);
+        const verb = ctx.createConvolver(); verb.buffer = impulse(1.8, 2.6);
+        const wet = ctx.createGain(); wet.gain.value = 0.18;
+        pianoBus.connect(verb); verb.connect(wet); wet.connect(limiter);
+        noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
+        const d = noise.getChannelData(0);
+        for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+      }
+      if (ctx.state === 'suspended') ctx.resume();
+      return ctx;
+    }
+
+    function impulse(seconds, decay) {
+      const len = Math.floor(ctx.sampleRate * seconds);
+      const b = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (let c = 0; c < 2; c++) {
+        const d = b.getChannelData(c);
+        for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, decay);
+      }
+      return b;
+    }
+
+    function hit({ f = 3000, q = 1, gain = 0.1, dur = 0.02, type = 'bandpass', at = 0 }) {
+      const t = ctx.currentTime + at;
+      const src = ctx.createBufferSource(); src.buffer = noise;
+      const fl = ctx.createBiquadFilter(); fl.type = type; fl.frequency.value = f; fl.Q.value = q;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(gain, t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      src.connect(fl); fl.connect(g); g.connect(sfxBus);
+      src.start(t); src.stop(t + dur + 0.02);
+    }
+    function tone({ f = 800, f2 = 0, type = 'sine', gain = 0.05, dur = 0.08, at = 0 }) {
+      const t = ctx.currentTime + at;
+      const o = ctx.createOscillator(); o.type = type;
+      o.frequency.setValueAtTime(f, t);
+      if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g); g.connect(sfxBus);
+      o.start(t); o.stop(t + dur + 0.02);
+    }
+
+    const FX = {
+      down() { hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 }); },
+      up() { hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
+      open() { tone({ f: 660, type: 'triangle', gain: 0.035, dur: 0.09 }); tone({ f: 990, type: 'triangle', gain: 0.03, dur: 0.12, at: 0.045 }); },
+      close() { tone({ f: 880, type: 'triangle', gain: 0.03, dur: 0.08 }); tone({ f: 587, type: 'triangle', gain: 0.028, dur: 0.11, at: 0.04 }); },
+      alert() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 784, type: 'square', gain: 0.022, dur: 0.11, at: 0.09 }); },
+      // Each display has its own switch-on sound.
+      paper() { tone({ f: 523, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
+      negative() { tone({ f: 784, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 523, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
+      amber() { // CRT degauss: a thunk and a short mains hum
+        tone({ f: 95, f2: 38, gain: 0.14, dur: 0.24 });
+        tone({ f: 60, type: 'sawtooth', gain: 0.018, dur: 0.38 });
+        hit({ f: 700, type: 'lowpass', q: 0.7, gain: 0.06, dur: 0.18 });
+        hit({ f: 5200, q: 2, gain: 0.03, dur: 0.05, at: 0.02 });
+      },
+      pocket() { tone({ f: 1047, type: 'square', gain: 0.022, dur: 0.06 }); tone({ f: 2093, type: 'square', gain: 0.02, dur: 0.22, at: 0.07 }); },
+      ega() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1175, type: 'square', gain: 0.02, dur: 0.1, at: 0.1 }); },
+      textmode() { tone({ f: 1000, type: 'square', gain: 0.028, dur: 0.15 }); }, // PC speaker POST beep
+    };
+    function play(name) { if (sfxOn && ctx && FX[name]) FX[name](); }
+
+    /* Piano */
+    const fileFor = (m) => NAMES[m % 12] + (Math.floor(m / 12) - 1) + '.mp3';
+    const nearest = (m) => SAMPLED.reduce((a, b) => (Math.abs(b - m) < Math.abs(a - m) ? b : a));
+    function load(m) {
+      if (buffers.has(m)) return Promise.resolve(buffers.get(m));
+      if (pending.has(m)) return pending.get(m);
+      const p = fetch(SAMPLE_URL + fileFor(m))
+        .then((r) => { if (!r.ok) throw new Error(String(r.status)); return r.arrayBuffer(); })
+        .then((ab) => new Promise((res, rej) => ctx.decodeAudioData(ab, res, rej)))
+        .then((b) => { buffers.set(m, b); return b; })
+        .finally(() => pending.delete(m));
+      pending.set(m, p);
+      return p;
+    }
+    function preload(lo, hi) {
+      if (!unlock()) return Promise.resolve(false);
+      const need = new Set();
+      for (let m = lo; m <= hi; m++) need.add(nearest(m));
+      return Promise.allSettled(Array.from(need, load)).then((rs) => rs.some((r) => r.status === 'fulfilled'));
+    }
+    function note(midi, vel = 0.8) {
+      if (!unlock()) return null;
+      const t = ctx.currentTime;
+      const s = nearest(midi);
+      const buf = buffers.get(s);
+      const g = ctx.createGain();
+      g.connect(pianoBus);
+      let src = null;
+      const oscs = [];
+      if (buf) {
+        src = ctx.createBufferSource();
+        src.buffer = buf;
+        src.playbackRate.value = Math.pow(2, (midi - s) / 12);
+        g.gain.value = vel;
+        src.connect(g);
+        src.start(t);
+      } else {
+        // Fallback: a soft additive tone with a piano-ish envelope.
+        const f = 440 * Math.pow(2, (midi - 69) / 12);
+        const lp = ctx.createBiquadFilter(); lp.type = 'lowpass';
+        lp.frequency.setValueAtTime(Math.min(9000, f * 10), t);
+        lp.frequency.exponentialRampToValueAtTime(Math.max(500, f * 2.5), t + 1.5);
+        lp.connect(g);
+        [[1, 1], [2, 0.45], [3, 0.22], [4, 0.12], [5, 0.06]].forEach(([h, a]) => {
+          const o = ctx.createOscillator(); o.type = 'sine';
+          o.frequency.value = f * h * (1 + (h - 1) * 0.0008);
+          const og = ctx.createGain(); og.gain.value = a;
+          o.connect(og); og.connect(lp); o.start(t); o.stop(t + 3.4);
+          oscs.push(o);
+        });
+        g.gain.setValueAtTime(0.0001, t);
+        g.gain.exponentialRampToValueAtTime(vel * 0.28, t + 0.006);
+        g.gain.exponentialRampToValueAtTime(vel * 0.1, t + 0.35);
+        g.gain.exponentialRampToValueAtTime(0.0001, t + 3.2);
+      }
+      let stopped = false;
+      const voice = {
+        stop(release = 0.3) {
+          if (stopped) return;
+          stopped = true;
+          const n = ctx.currentTime;
+          g.gain.cancelScheduledValues(n);
+          g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), n);
+          g.gain.setTargetAtTime(0.0001, n, release / 4);
+          const end = n + release + 0.25;
+          try { if (src) src.stop(end); oscs.forEach((o) => o.stop(end)); } catch (e) {}
+          const i = live.indexOf(voice); if (i > -1) live.splice(i, 1);
+        },
+      };
+      live.push(voice);
+      if (live.length > 32) live[0].stop(0.1);
+      return voice;
+    }
+
+    return {
+      unlock, play, preload, note,
+      get sfxOn() { return sfxOn; },
+      setSfx(on) { sfxOn = on; store.set('adiel-sfx', on ? 'on' : 'off'); },
+    };
+  })();
+
+  /* ==========================================================
+     Themes
+  ========================================================== */
+  const THEMES = [
+    ['paper', 'Paper'],
+    ['negative', 'Negative'],
+    ['amber', 'Amber'],
+    ['pocket', 'Pocket'],
+    ['ega', 'EGA'],
+    ['textmode', 'Text Mode'],
+  ];
+  const ids = THEMES.map((t) => t[0]);
+  const themeMeta = $('meta[name="theme-color"]');
+  const themeBtn = $('#theme-btn');
+  const themeName = $('#theme-name');
+  function syncTheme() {
+    const i = Math.max(0, ids.indexOf(root.dataset.theme));
+    const next = THEMES[(i + 1) % THEMES.length][1];
+    themeName.textContent = THEMES[i][1];
+    themeBtn.setAttribute('aria-label', 'Display: ' + THEMES[i][1] + '. Switch to ' + next);
+    themeMeta.content = getComputedStyle(root).getPropertyValue('--bar-bg').trim() || '#ffffff';
+  }
+  function applyTheme(id) {
+    root.dataset.theme = id;
+    store.set('adiel-theme', id);
+    syncTheme();
+    Portrait.render();
+    updateDock();
+  }
+  function setTheme(id) {
+    if (!ids.includes(id) || id === root.dataset.theme) return;
+    Sound.play(id);
+    if (document.startViewTransition && !reduced.matches) document.startViewTransition(() => applyTheme(id));
+    else applyTheme(id);
+  }
+  function cycleTheme() {
+    const i = ids.indexOf(root.dataset.theme);
+    setTheme(ids[(i + 1) % ids.length]);
+  }
+  themeBtn.addEventListener('click', cycleTheme);
+  syncTheme();
+
+  /* ==========================================================
+     Clock
+  ========================================================== */
+  const clock = $('#clock');
+  const shortFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+  const longFmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'short' });
+  function tick() {
+    const now = new Date();
+    clock.textContent = shortFmt.format(now).replace(',', '');
+    clock.dateTime = now.toISOString();
+    clock.title = longFmt.format(now);
+  }
+  tick();
+  setInterval(tick, 15000);
+
+  /* ==========================================================
+     Menus
+  ========================================================== */
+  const menus = $$('.mb-menu').map((el) => ({ el, btn: $('.mb-title', el), list: $('.menu', el) }));
+  let openRec = null;
+  const itemsOf = (rec) => $$('.mi:not([aria-disabled="true"])', rec.list);
+  function openMenu(rec, focusFirst) {
+    if (openRec && openRec !== rec) closeMenu();
+    rec.list.hidden = false;
+    rec.btn.setAttribute('aria-expanded', 'true');
+    openRec = rec;
+    if (focusFirst) itemsOf(rec)[0].focus();
+  }
+  function closeMenu(refocus) {
+    if (!openRec) return;
+    const rec = openRec;
+    rec.list.hidden = true;
+    rec.list.classList.remove('is-blinking');
+    rec.btn.setAttribute('aria-expanded', 'false');
+    openRec = null;
+    if (refocus) rec.btn.focus();
+  }
+  function blinkThen(rec, item, done) {
+    if (reduced.matches) { done(); return; }
+    rec.list.classList.add('is-blinking');
+    item.classList.add('is-lit');
+    let n = 0;
+    const iv = setInterval(() => {
+      item.classList.toggle('is-lit');
+      if (++n === 3) { clearInterval(iv); item.classList.remove('is-lit'); done(); }
+    }, 55);
+  }
+  menus.forEach((rec, idx) => {
+    rec.btn.addEventListener('click', (e) => { openRec === rec ? closeMenu() : openMenu(rec, e.detail === 0); });
+    // Classic behaviour: with one menu open, sliding across the bar opens the next.
+    rec.btn.addEventListener('pointerenter', () => { if (openRec && openRec !== rec) openMenu(rec); });
+    rec.btn.addEventListener('keydown', (e) => { if (e.key === 'ArrowDown') { e.preventDefault(); openMenu(rec, true); } });
+    rec.list.addEventListener('keydown', (e) => {
+      const list = itemsOf(rec);
+      const i = list.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        list[(i + (e.key === 'ArrowDown' ? 1 : -1) + list.length) % list.length].focus();
+      } else if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+        e.preventDefault();
+        openMenu(menus[(idx + (e.key === 'ArrowRight' ? 1 : -1) + menus.length) % menus.length], true);
+      } else if (e.key === 'Escape') {
+        e.preventDefault(); closeMenu(true);
+      } else if (e.key === 'Tab') {
+        closeMenu();
+      }
+    });
+    rec.list.addEventListener('click', (e) => {
+      const item = e.target.closest('.mi');
+      if (!item) return;
+      const { win } = item.dataset;
+      if (!win) { closeMenu(); return; } // links navigate normally
+      blinkThen(rec, item, () => {
+        closeMenu();
+        openWin(W[win], { scroll: true });
+      });
+    });
+  });
+
+  const sfxBtn = $('#sfx');
+  function syncSfx() {
+    sfxBtn.setAttribute('aria-pressed', String(Sound.sfxOn));
+    sfxBtn.title = Sound.sfxOn ? 'Sound effects on' : 'Sound effects off';
+  }
+  sfxBtn.addEventListener('click', () => {
+    Sound.setSfx(!Sound.sfxOn);
+    syncSfx();
+    Sound.play('open');
+  });
+  syncSfx();
+
+  /* ==========================================================
+     Windows
+  ========================================================== */
+  const W = { readme: $('#readme'), about: $('#about'), piano: $('#piano') };
+  const stack = [];
+  const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
+  const visibleBox = (el) => (el && el.getClientRects().length ? box(el) : null);
+  const iconSvg = (win) => $('#' + win.dataset.icon + ' svg');
+  const isDocked = (win) => win === W.readme && root.classList.contains('is-docked');
+  const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot])');
+
+  function setActive(win) {
+    $$('.window').forEach((w) => w.classList.toggle('is-active', w === win));
+    if (win !== W.piano) Piano.releaseAll();
+  }
+  function raise(win) {
+    const i = stack.indexOf(win);
+    if (i > -1) stack.splice(i, 1);
+    stack.push(win);
+    stack.forEach((w, k) => { w.style.zIndex = String(20 + k); });
+    setActive(win);
+  }
+
+  // The zoom rectangles the old Finder drew when a window opened or closed.
+  function zoom(from, to, done) {
+    if (!from || !to || reduced.matches) { done(); return; }
+    const layer = document.createElement('div');
+    layer.className = 'zoom';
+    const N = 10, TRAIL = 4, frames = [];
+    for (let i = 1; i <= N; i++) {
+      const t = i / N, e = t * t * (3 - 2 * t);
+      const b = document.createElement('i');
+      b.style.left = Math.round(from.x + (to.x - from.x) * e) + 'px';
+      b.style.top = Math.round(from.y + (to.y - from.y) * e) + 'px';
+      b.style.width = Math.round(from.w + (to.w - from.w) * e) + 'px';
+      b.style.height = Math.round(from.h + (to.h - from.h) * e) + 'px';
+      b.style.visibility = 'hidden';
+      layer.append(b);
+      frames.push(b);
+    }
+    document.body.append(layer);
+    let step = 0;
+    const iv = setInterval(() => {
+      if (step >= N) { clearInterval(iv); layer.remove(); done(); return; }
+      frames.forEach((b, i) => { b.style.visibility = i <= step && i > step - TRAIL ? 'visible' : 'hidden'; });
+      step++;
+    }, 16);
+  }
+
+  // Read Me docks into the page flow on small screens, or when its
+  // default spot would cover the statement.
+  function updateDock() {
+    const rm = W.readme;
+    if (narrow.matches) { root.classList.add('is-docked'); return; }
+    root.classList.remove('is-docked');
+    if (rm.style.left || rm.hidden || rm.hasAttribute('data-boot')) return;
+    const range = document.createRange();
+    range.selectNodeContents($('#statement'));
+    const a = range.getBoundingClientRect();
+    const b = rm.getBoundingClientRect();
+    const pad = 24;
+    const overlap = !(a.right + pad <= b.left || b.right + pad <= a.left || a.bottom + pad <= b.top || b.bottom + pad <= a.top);
+    root.classList.toggle('is-docked', overlap);
+  }
+
+  const hooks = {
+    readme: { after: () => startProgress(), close: () => stopProgress() },
+    about: { before: () => Portrait.load() },
+    piano: { before: () => Piano.layout(), after: () => Piano.warm(), close: () => Piano.releaseAll() },
+  };
+
+  function openWin(win, opts = {}) {
+    const booting = win.hasAttribute('data-boot');
+    if (!win.hidden && !booting) {
+      raise(win);
+      if (opts.focus !== false) win.focus({ preventScroll: true });
+      return;
+    }
+    win.removeAttribute('data-boot');
+    win.hidden = false;
+    win.style.visibility = 'hidden';
+    if (win === W.readme) updateDock();
+    const h = hooks[win.id] || {};
+    if (h.before) h.before();
+    raise(win);
+    const to = box(win);
+    Sound.play('open');
+    zoom(visibleBox(iconSvg(win)), to, () => {
+      win.style.visibility = '';
+      if (h.after) h.after();
+      if (opts.focus !== false) win.focus({ preventScroll: true });
+      if (opts.scroll && isDocked(win)) win.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'nearest' });
+    });
+  }
+  function closeWin(win) {
+    if (win.hidden) return;
+    if (win.contains(document.activeElement)) {
+      const icon = $('#' + win.dataset.icon);
+      (visibleBox(icon) ? icon : $('#menu-adiel')).focus({ preventScroll: true });
+    }
+    const from = box(win);
+    win.hidden = true;
+    const h = hooks[win.id] || {};
+    if (h.close) h.close();
+    const i = stack.indexOf(win);
+    if (i > -1) stack.splice(i, 1);
+    setActive(stack[stack.length - 1] || null);
+    Sound.play('close');
+    zoom(from, visibleBox(iconSvg(win)), () => {});
+  }
+
+  function placeWin(win, x, y) {
+    const w = win.offsetWidth;
+    win.style.left = Math.round(clamp(x, 56 - w, innerWidth - 56)) + 'px';
+    win.style.top = Math.round(clamp(y, menubar.offsetHeight, innerHeight - 28)) + 'px';
+  }
+
+  $$('.window').forEach((win) => {
+    $('.closebox', win).addEventListener('click', () => closeWin(win));
+    win.addEventListener('pointerdown', () => { if (stack[stack.length - 1] !== win || !win.classList.contains('is-active')) raise(win); });
+    const bar = $('.titlebar', win);
+    bar.addEventListener('pointerdown', (e) => {
+      if (narrow.matches || isDocked(win) || e.button !== 0 || e.target.closest('.closebox')) return;
+      e.preventDefault();
+      raise(win);
+      const r = win.getBoundingClientRect();
+      const dx = e.clientX - r.left, dy = e.clientY - r.top;
+      win.style.right = 'auto';
+      win.style.bottom = 'auto';
+      placeWin(win, r.left, r.top);
+      bar.setPointerCapture(e.pointerId);
+      const move = (ev) => placeWin(win, ev.clientX - dx, ev.clientY - dy);
+      const end = () => {
+        bar.removeEventListener('pointermove', move);
+        bar.removeEventListener('pointerup', end);
+        bar.removeEventListener('pointercancel', end);
+      };
+      bar.addEventListener('pointermove', move);
+      bar.addEventListener('pointerup', end);
+      bar.addEventListener('pointercancel', end);
+    });
+  });
+  $('[data-close]', W.readme).addEventListener('click', () => closeWin(W.readme));
+  $$('.inline-link[data-win]').forEach((b) => b.addEventListener('click', () => openWin(W[b.dataset.win])));
+
+  let resizeFrame = 0;
+  addEventListener('resize', () => {
+    cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      Object.values(W).forEach((win) => {
+        if (narrow.matches) {
+          win.style.left = win.style.top = win.style.right = win.style.bottom = '';
+        } else if (win.style.left) {
+          placeWin(win, parseFloat(win.style.left), parseFloat(win.style.top));
+        }
+      });
+      updateDock();
+      if (!W.piano.hidden) Piano.layout();
+      if (!W.readme.hidden) renderProgress();
+    });
+  });
+
+  /* ==========================================================
+     Read Me progress
+  ========================================================== */
+  const track = $('.track', W.readme);
+  const fill = $('#fill');
+  const pct = $('#pct');
+  const task = $('#task');
+  const tasks = [
+    'Setting the type',
+    'Writing case studies',
+    'Exporting project images',
+    'Choosing between two identical greys',
+    'Nudging things by one pixel',
+  ];
+  let progress = 61, taskIndex = 0, pTimer = 0, tTimer = 0;
+  function renderProgress() {
+    const inner = track.clientWidth - 2;
+    fill.style.width = Math.max(0, Math.round((inner * progress) / 100)) + 'px';
+    const shown = Math.floor(progress);
+    pct.textContent = shown + '%';
+    track.setAttribute('aria-valuenow', String(shown));
+  }
+  function startProgress() {
+    stopProgress();
+    renderProgress();
+    pTimer = setInterval(() => {
+      progress = Math.min(99, progress + (99.4 - progress) * (0.05 + Math.random() * 0.1));
+      renderProgress();
+    }, 1400);
+    tTimer = setInterval(() => {
+      taskIndex = (taskIndex + 1) % tasks.length;
+      task.textContent = tasks[taskIndex] + '…';
+    }, 3400);
+  }
+  function stopProgress() { clearInterval(pTimer); clearInterval(tTimer); }
+
+  /* ==========================================================
+     About Me — portrait.jpg (optional) is Atkinson-dithered,
+     the algorithm MacPaint used, in the current theme's colours.
+  ========================================================== */
+  const Portrait = (() => {
+    const frame = $('#portrait');
+    const canvas = $('canvas', frame);
+    const S = 72;
+    let lum = null, started = false;
+    const hex = (c) => {
+      c = c.trim().replace('#', '');
+      if (c.length === 3) c = c.split('').map((x) => x + x).join('');
+      const n = parseInt(c, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    function render() {
+      if (!lum) return;
+      const cs = getComputedStyle(root);
+      const ink = hex(cs.getPropertyValue('--ink'));
+      const paper = hex(cs.getPropertyValue('--paper'));
+      const px = Float32Array.from(lum);
+      const g = canvas.getContext('2d');
+      const out = g.createImageData(S, S);
+      const spread = [[1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]];
+      for (let y = 0; y < S; y++) {
+        for (let x = 0; x < S; x++) {
+          const i = y * S + x;
+          const on = px[i] >= 0.5 ? 1 : 0;
+          const err = (px[i] - on) / 8;
+          for (const [dx, dy] of spread) {
+            const xx = x + dx, yy = y + dy;
+            if (xx >= 0 && xx < S && yy < S) px[yy * S + xx] += err;
+          }
+          const c = on ? paper : ink;
+          out.data[i * 4] = c[0]; out.data[i * 4 + 1] = c[1]; out.data[i * 4 + 2] = c[2]; out.data[i * 4 + 3] = 255;
+        }
+      }
+      g.putImageData(out, 0, 0);
+    }
+    function load() {
+      if (started) return;
+      started = true;
+      const img = new Image();
+      img.onload = () => {
+        frame.classList.add('has-photo');
+        try {
+          const c = document.createElement('canvas');
+          c.width = c.height = S;
+          const g = c.getContext('2d');
+          const side = Math.min(img.naturalWidth, img.naturalHeight);
+          g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, S, S);
+          const d = g.getImageData(0, 0, S, S).data;
+          lum = new Float32Array(S * S);
+          for (let i = 0; i < S * S; i++) {
+            const l = (0.2126 * d[i * 4] + 0.7152 * d[i * 4 + 1] + 0.0722 * d[i * 4 + 2]) / 255;
+            lum[i] = clamp((l - 0.5) * 1.3 + 0.52, 0, 1);
+          }
+          canvas.hidden = false;
+          render();
+        } catch (e) {
+          // Opened from disk, the browser won't let us read pixels: show the photo as-is.
+          frame.append(img);
+        }
+      };
+      img.src = 'portrait.jpg';
+    }
+    return { load, render };
+  })();
+
+  const copyBtn = $('#copy-email');
+  copyBtn.addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText('hello@adiel.design');
+      copyBtn.textContent = 'Copied';
+    } catch (e) {
+      location.href = 'mailto:hello@adiel.design';
+    }
+    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600);
+  });
+
+  /* ==========================================================
+     Piano
+  ========================================================== */
+  const Piano = (() => {
+    const win = W.piano;
+    const keysEl = $('#keys');
+    const rangeEl = $('#range');
+    const statusEl = $('#piano-status');
+    const sustain = $('#sustain');
+    const WHITE = [0, 2, 4, 5, 7, 9, 11];
+    const CODES = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9, KeyU: 10, KeyJ: 11, KeyK: 12, KeyO: 13, KeyL: 14, KeyP: 15, Semicolon: 16, Quote: 17 };
+    const LABELS = ['A', 'W', 'S', 'E', 'D', 'F', 'T', 'G', 'Y', 'H', 'U', 'J', 'K', 'O', 'L', 'P', ';', '\''];
+    let base = 60, built = false, warmed = false;
+    const voices = new Map();
+    const held = [];
+    const down = new Map();
+    const ptr = new Map();
+    const octaveName = (m) => 'C' + (Math.floor(m / 12) - 1);
+
+    function makeKey(off, cls) {
+      const k = document.createElement('div');
+      k.className = 'key ' + cls;
+      k.dataset.off = off;
+      if (LABELS[off]) {
+        const s = document.createElement('span');
+        s.className = 'key-label';
+        s.textContent = LABELS[off];
+        k.append(s);
+      }
+      return k;
+    }
+    function build() {
+      const whites = [];
+      for (let o = 0; o <= 24; o++) if (WHITE.includes(o % 12)) whites.push(o);
+      whites.forEach((o, i) => keysEl.append(makeKey(o, i === whites.length - 1 ? 'wk is-last' : 'wk')));
+      whites.forEach((o, i) => {
+        const n = o + 1;
+        if (i < whites.length - 1 && !WHITE.includes(n % 12)) {
+          const k = makeKey(n, 'bk');
+          k.dataset.slot = i;
+          keysEl.append(k);
+        }
+      });
+      built = true;
+    }
+    function layout() {
+      if (!built) build();
+      const avail = narrow.matches ? innerWidth - 54 : 390;
+      const kw = clamp(Math.floor(avail / 15), 18, 26);
+      let bw = Math.round(kw * 0.58);
+      if (bw % 2 === 0) bw -= 1;
+      keysEl.style.setProperty('--kw', kw + 'px');
+      keysEl.style.setProperty('--bw', bw + 'px');
+      win.style.setProperty('--kbw', (kw * 15 + 2) + 'px');
+      $$('.bk', keysEl).forEach((k) => { k.style.left = ((+k.dataset.slot + 1) * kw - 1 - (bw - 1) / 2) + 'px'; });
+    }
+    function loadSamples() {
+      statusEl.textContent = 'Loading the grand piano…';
+      Sound.preload(base, base + 24).then(() => {
+        statusEl.textContent = 'Click the keys, or play A to ; on your keyboard.';
+      });
+    }
+    function warm() {
+      if (warmed) return;
+      warmed = true;
+      if (!Sound.unlock()) { statusEl.textContent = 'This browser can’t play audio.'; return; }
+      loadSamples();
+    }
+    function mark(off, d) {
+      const n = Math.max(0, (down.get(off) || 0) + d);
+      down.set(off, n);
+      const k = keysEl.querySelector('[data-off="' + off + '"]');
+      if (k) k.classList.toggle('is-down', n > 0);
+    }
+    function press(off, src, vel) {
+      release(src);
+      const v = Sound.note(base + off, vel);
+      if (!v) return;
+      voices.set(src, { off, v });
+      mark(off, 1);
+    }
+    function release(src) {
+      const rec = voices.get(src);
+      if (!rec) return;
+      voices.delete(src);
+      mark(rec.off, -1);
+      if (sustain.checked) held.push(rec.v); else rec.v.stop(0.3);
+    }
+    function releaseAll() { Array.from(voices.keys()).forEach(release); }
+    function shift(d) {
+      const next = clamp(base + 12 * d, 36, 84);
+      if (next === base) return;
+      releaseAll();
+      base = next;
+      rangeEl.textContent = octaveName(base) + '–' + octaveName(base + 24);
+      if (warmed) Sound.preload(base, base + 24);
+    }
+
+    sustain.addEventListener('change', () => { if (!sustain.checked) held.splice(0).forEach((v) => v.stop(0.5)); });
+    $$('[data-oct]', win).forEach((b) => b.addEventListener('click', () => shift(+b.dataset.oct)));
+
+    const keyAt = (x, y) => {
+      const el = document.elementFromPoint(x, y);
+      const k = el && el.closest('.key');
+      return k && keysEl.contains(k) ? k : null;
+    };
+    const velocity = (k, y) => {
+      const r = k.getBoundingClientRect();
+      return 0.55 + 0.4 * clamp((y - r.top) / r.height, 0, 1);
+    };
+    keysEl.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      e.preventDefault();
+      keysEl.setPointerCapture(e.pointerId);
+      const k = keyAt(e.clientX, e.clientY);
+      ptr.set(e.pointerId, k);
+      if (k) press(+k.dataset.off, 'p' + e.pointerId, velocity(k, e.clientY));
+    });
+    keysEl.addEventListener('pointermove', (e) => {
+      if (!ptr.has(e.pointerId)) return;
+      const k = keyAt(e.clientX, e.clientY);
+      if (k === ptr.get(e.pointerId)) return;
+      ptr.set(e.pointerId, k);
+      if (k) press(+k.dataset.off, 'p' + e.pointerId, velocity(k, e.clientY));
+      else release('p' + e.pointerId);
+    });
+    const lift = (e) => {
+      if (!ptr.has(e.pointerId)) return;
+      ptr.delete(e.pointerId);
+      release('p' + e.pointerId);
+    };
+    keysEl.addEventListener('pointerup', lift);
+    keysEl.addEventListener('pointercancel', lift);
+    keysEl.addEventListener('lostpointercapture', lift);
+    addEventListener('blur', releaseAll);
+
+    function keydown(e) {
+      if (e.code in CODES) {
+        e.preventDefault();
+        if (!e.repeat) press(CODES[e.code], 'k' + e.code, 0.8);
+        return true;
+      }
+      if (e.code === 'KeyZ' || e.code === 'KeyX') {
+        e.preventDefault();
+        if (!e.repeat) shift(e.code === 'KeyZ' ? -1 : 1);
+        return true;
+      }
+      return false;
+    }
+    function keyup(e) { if (e.code in CODES) release('k' + e.code); }
+
+    return {
+      layout, warm, releaseAll, keydown, keyup,
+      get active() { return !win.hidden && win.classList.contains('is-active'); },
+    };
+  })();
+
+  /* ==========================================================
+     Desktop icons
+  ========================================================== */
+  let lastPointer = 'mouse';
+  function selectIcon(icon) { $$('.icon').forEach((i) => i.classList.toggle('is-selected', i === icon)); }
+  $$('.icon').forEach((icon) => {
+    icon.addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; });
+    icon.addEventListener('click', (e) => {
+      selectIcon(icon);
+      // Double-click with a mouse, single tap on touch, Enter/Space on keyboard.
+      if (e.detail === 0 || e.detail >= 2 || lastPointer !== 'mouse') {
+        const target = icon.dataset.open;
+        if (target === 'work') openAlert(); else openWin(W[target]);
+      }
+    });
+  });
+
+  /* ==========================================================
+     Alert
+  ========================================================== */
+  const alertBox = $('#alert');
+  const scrim = $('#scrim');
+  const alertOk = $('.btn', alertBox);
+  let returnFocus = null;
+  function openAlert() {
+    returnFocus = document.activeElement;
+    scrim.hidden = false;
+    alertBox.hidden = false;
+    alertOk.focus();
+    Sound.play('alert');
+  }
+  function closeAlert() {
+    scrim.hidden = true;
+    alertBox.hidden = true;
+    if (returnFocus && returnFocus.focus) returnFocus.focus({ preventScroll: true });
+  }
+  alertOk.addEventListener('click', closeAlert);
+  alertBox.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') { e.preventDefault(); closeAlert(); }
+    if (e.key === 'Tab') e.preventDefault();
+  });
+  // Clicking outside a modal alert: it beeps, or with sound off the menu bar flashes.
+  scrim.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    if (Sound.sfxOn) { Sound.play('alert'); return; }
+    menubar.classList.add('is-flash');
+    setTimeout(() => menubar.classList.remove('is-flash'), 130);
+  });
+
+  /* ==========================================================
+     Global input
+  ========================================================== */
+  const CLICKABLE = 'button:not([aria-disabled="true"]), a[href], .icon, .titlebar, label.checkbox';
+  let pressed = false;
+  document.addEventListener('pointerdown', (e) => {
+    Sound.unlock();
+    if (e.button !== 0 || e.target.closest('.keys')) return;
+    if (e.target.closest(CLICKABLE)) { Sound.play('down'); pressed = true; }
+  }, true);
+  document.addEventListener('pointerup', () => {
+    if (pressed) { pressed = false; Sound.play('up'); }
+  }, true);
+
+  document.addEventListener('pointerdown', (e) => {
+    if (!e.target.closest('.window, .menubar, .scrim, .alert')) setActive(null);
+  });
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.mb-menu')) closeMenu();
+    if (!e.target.closest('.icon')) selectIcon(null);
+  });
+  document.addEventListener('keydown', (e) => {
+    Sound.unlock();
+    if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !alertBox.hidden) return;
+    if (e.target.closest('input:not([type="checkbox"]), textarea, [contenteditable]')) return;
+    if (Piano.active && Piano.keydown(e)) return;
+    if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
+    if (e.key === 'Escape') {
+      if (openRec) { closeMenu(true); return; }
+      const top = activeWin();
+      if (top) closeWin(top);
+    }
+  });
+  document.addEventListener('keyup', (e) => Piano.keyup(e));
+
+  /* Boot: wait for the font, then open Read Me from its icon. */
+  const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
+  Promise.race([fontsReady, new Promise((r) => setTimeout(r, 1500))]).then(() => {
+    setTimeout(() => openWin(W.readme, { focus: false }), narrow.matches ? 0 : 450);
+  });
+})();
+</script>
+</body>
+</html>
