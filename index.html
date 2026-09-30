@@ -8,8 +8,14 @@
 <meta property="og:title" content="Adiel Vásquez — Brand Designer">
 <meta property="og:description" content="Adiel Vásquez is a designer focused on brand identity, currently a brand designer at Hex.">
 <meta property="og:url" content="https://adiel.design/">
-<meta name="twitter:card" content="summary">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://adiel.design/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="“Adiel Vásquez is a designer focused on brand identity. Currently a brand designer at Hex.” Each line is drawn in a different retro display, beside Paint and Hoops windows.">
+<meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:site" content="@adieldesign">
+<meta name="twitter:image" content="https://adiel.design/og.png">
 <meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://adiel.design/">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath fill='%23fff' d='M6 4h4v1H6zM5 5h2v6H5zM9 5h2v6H9zM7 7h2v1H7z'/%3E%3C/svg%3E">
@@ -491,6 +497,56 @@
   .piano-status { margin-top: 10px; font-size: 12px; }
   .piano-credit { margin-top: 2px; font-size: 11px; color: var(--graphite); }
 
+  /* Paint desk accessory, laid out like MacPaint: tools left, patterns below */
+  #paint { left: clamp(28px, 11vw, 210px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 52px); }
+  .paint-body { padding: 10px 12px 12px; }
+  .paint-main { display: flex; align-items: flex-start; gap: 10px; }
+  .paint-side { display: flex; flex-direction: column; gap: 10px; flex: none; }
+  .tools {
+    display: grid; grid-template-columns: repeat(2, 24px); gap: 1px;
+    border: 1px solid var(--ink); background: var(--ink);
+  }
+  .tool { display: grid; place-items: center; height: 22px; background: var(--paper); cursor: default; }
+  .tool svg { display: block; width: 16px; height: 16px; }
+  .tool[aria-pressed="true"] { background: var(--ink); }
+  .tool[aria-pressed="true"] .i-ink { fill: var(--paper); }
+  .tool[aria-pressed="true"] .i-fill { fill: var(--ink); }
+  .tool:focus-visible { outline-offset: -4px; }
+  .paint-actions { display: grid; gap: 6px; }
+  .paint-actions .btn { width: 100%; }
+  .sheet { position: relative; flex: none; max-width: 100%; border: 1px solid var(--ink); line-height: 0; }
+  .sheet canvas { display: block; width: 320px; max-width: 100%; height: auto; image-rendering: pixelated; cursor: crosshair; touch-action: none; }
+  .sheet canvas.is-text { cursor: text; }
+  .type-in {
+    position: absolute; z-index: 1;
+    min-width: 6px; margin: 0; padding: 0; border: 0; border-radius: 0;
+    background: transparent; color: var(--ink); caret-color: var(--accent);
+    font: 600 13px/1 var(--font); letter-spacing: 0;
+    outline: 1px dotted var(--graphite); outline-offset: 1px;
+  }
+  .patterns { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+  .pat { height: 20px; padding: 2px; border: 1px solid var(--ink); background: var(--paper); cursor: default; }
+  .pat svg { display: block; width: 100%; height: 14px; }  /* cropped, never scaled, so pixels stay crisp */
+  .pat[aria-pressed="true"] { border-width: 2px; padding: 1px; }
+
+  /* Hoops desk accessory */
+  #hoops { right: clamp(104px, 12vw, 240px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 96px); }
+  .hoops-body { padding: 10px 12px 12px; }
+  .hoops-bar { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .hoops-bar b { padding: 0 3px; font-weight: 700; }
+  .hoops-bar b.is-lit { background: var(--ink); color: var(--paper); }
+  .court {
+    display: block; width: 402px; max-width: 100%; height: auto;
+    border: 1px solid var(--ink);
+    image-rendering: pixelated; touch-action: none; cursor: grab;
+  }
+  .court.is-aiming { cursor: grabbing; }
+  .hoops-status { min-height: 17px; margin-top: 8px; font-size: 12px; }
+  .hoops-hint { margin-top: 2px; font-size: 11px; color: var(--graphite); }
+
+  /* Screen saver */
+  .saver { position: fixed; inset: 0; z-index: 90; display: block; width: 100%; height: 100%; background: var(--desk-color); cursor: none; }
+
   /* Docked Read Me: in the page flow on small screens, or when it would cover the text */
   .is-docked #readme {
     position: relative; left: auto !important; top: auto !important; right: auto; bottom: auto;
@@ -535,6 +591,11 @@
     }
     .window.is-float .titlebar { touch-action: auto; }
     .piano-body { width: auto; }
+    .paint-main { flex-direction: column; align-items: stretch; }
+    .paint-side { flex-direction: row; align-items: flex-start; }
+    .tools { flex: 1; grid-template-columns: repeat(6, 1fr); }
+    .paint-actions { width: 64px; }
+    .sheet { align-self: center; }
   }
   @media (max-width: 520px) {
     .theme-name { display: none; }
@@ -574,7 +635,11 @@
       <ul class="menu" id="m-adiel" role="menu" aria-labelledby="menu-adiel" hidden>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="about">About Me</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="readme">Read Me</button></li>
+        <li role="separator" class="sep"></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="piano">Piano</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="paint">Paint</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="hoops">Hoops</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-saver>Screen Saver</button></li>
         <li role="separator" class="sep"></li>
         <li role="none"><a class="mi" role="menuitem" href="https://hex.inc" target="_blank" rel="noopener">Visit hex.inc</a></li>
         <li role="separator" class="sep"></li>
@@ -619,7 +684,7 @@
     </header>
     <div class="wbody">
       <p class="w-lead">A new portfolio is in progress.</p>
-      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button> or play the <button class="inline-link" type="button" data-win="piano">Piano</button>.</p>
+      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button>, play the <button class="inline-link" type="button" data-win="piano">Piano</button>, draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <button class="inline-link" type="button" data-win="hoops">Hoops</button>.</p>
       <div class="progress">
         <div class="track" role="progressbar" aria-label="Portfolio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61"><div class="fill" id="fill"></div></div>
         <span class="pct" id="pct" aria-hidden="true">61%</span>
@@ -702,6 +767,62 @@
   </div>
 </section>
 
+<!-- Paint -->
+<section class="window is-float" id="paint" data-icon="icon-paint" tabindex="-1" aria-labelledby="paint-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Paint"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="paint-title">Paint</h2>
+  </header>
+  <div class="wbody paint-body">
+    <div class="paint-main">
+      <div class="paint-side">
+        <div class="tools" role="toolbar" aria-label="Tools">
+          <button class="tool" type="button" data-tool="pencil" aria-pressed="true" aria-label="Pencil" title="Pencil"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M11 2h2v1h-2zM10 3h2v1h-2zM13 3h1v1h-1zM9 4h2v1h-2zM12 4h2v1h-2zM8 5h2v1h-2zM11 5h2v1h-2zM7 6h2v1h-2zM10 6h2v1h-2zM6 7h2v1h-2zM9 7h2v1h-2zM5 8h2v1h-2zM8 8h2v1h-2zM4 9h2v1h-2zM7 9h2v1h-2zM4 10h1v1h-1zM6 10h2v1h-2zM5 11h2v1h-2z"/><path class="i-ink" d="M11 1h2v1h-2zM10 2h1v1h-1zM13 2h1v1h-1zM9 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM8 4h1v1h-1zM11 4h1v1h-1zM14 4h1v1h-1zM7 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM6 6h1v1h-1zM9 6h1v1h-1zM12 6h1v1h-1zM5 7h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM7 8h1v1h-1zM10 8h1v1h-1zM3 9h1v1h-1zM6 9h1v1h-1zM9 9h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM8 10h1v1h-1zM3 11h2v1h-2zM7 11h1v1h-1zM3 12h4v1h-4zM3 13h2v1h-2z"/></svg></button>
+          <button class="tool" type="button" data-tool="brush" aria-pressed="false" aria-label="Brush" title="Brush"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M12 2h2v1h-2zM11 3h2v1h-2zM10 4h2v1h-2zM9 5h2v1h-2zM8 6h2v1h-2z"/><path class="i-ink" d="M12 1h2v1h-2zM11 2h1v1h-1zM14 2h1v1h-1zM10 3h1v1h-1zM13 3h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM7 6h1v1h-1zM10 6h1v1h-1zM6 7h4v1h-4zM5 8h5v1h-5zM4 9h6v1h-6zM3 10h6v1h-6zM3 11h5v1h-5zM2 12h4v1h-4zM2 13h2v1h-2z"/></svg></button>
+          <button class="tool" type="button" data-tool="spray" aria-pressed="false" aria-label="Spray can" title="Spray can"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M9 2h2v1h-2zM7 4h5v1h-5zM7 6h5v1h-5zM7 7h5v1h-5zM7 8h5v1h-5zM7 9h5v1h-5zM7 10h5v1h-5zM7 11h5v1h-5zM7 12h5v1h-5z"/><path class="i-ink" d="M1 1h1v1h-1zM3 1h1v1h-1zM8 1h4v1h-4zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM11 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM5 3h7v1h-7zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM12 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM6 5h7v1h-7zM6 6h1v1h-1zM12 6h1v1h-1zM6 7h1v1h-1zM12 7h1v1h-1zM6 8h1v1h-1zM12 8h1v1h-1zM6 9h1v1h-1zM12 9h1v1h-1zM6 10h1v1h-1zM12 10h1v1h-1zM6 11h1v1h-1zM12 11h1v1h-1zM6 12h1v1h-1zM12 12h1v1h-1zM6 13h7v1h-7z"/></svg></button>
+          <button class="tool" type="button" data-tool="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser (double-click to clear)"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M8 3h5v1h-5zM7 4h5v1h-5zM13 4h1v1h-1zM6 5h5v1h-5zM12 5h2v1h-2zM5 6h5v1h-5zM11 6h2v1h-2zM10 7h2v1h-2zM4 8h5v1h-5zM10 8h1v1h-1zM4 9h5v1h-5z"/><path class="i-ink" d="M8 2h7v1h-7zM7 3h1v1h-1zM13 3h2v1h-2zM6 4h1v1h-1zM12 4h1v1h-1zM14 4h1v1h-1zM5 5h1v1h-1zM11 5h1v1h-1zM14 5h1v1h-1zM4 6h1v1h-1zM10 6h1v1h-1zM13 6h1v1h-1zM3 7h7v1h-7zM12 7h1v1h-1zM3 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM3 9h1v1h-1zM9 9h2v1h-2zM3 10h7v1h-7z"/></svg></button>
+          <button class="tool" type="button" data-tool="bucket" aria-pressed="false" aria-label="Paint bucket" title="Paint bucket"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M7 2h1v1h-1zM6 3h3v1h-3zM5 4h5v1h-5zM4 5h7v1h-7zM3 6h9v1h-9zM3 7h9v1h-9zM1 8h1v1h-1zM4 8h7v1h-7zM1 9h2v1h-2zM5 9h5v1h-5zM2 10h2v1h-2zM6 10h3v1h-3zM3 11h2v1h-2zM6 11h2v1h-2zM5 12h1v1h-1z"/><path class="i-ink" d="M7 1h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM4 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM11 5h1v1h-1zM2 6h1v1h-1zM12 6h1v1h-1zM1 7h2v1h-2zM12 7h4v1h-4zM0 8h1v1h-1zM2 8h2v1h-2zM11 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM10 9h6v1h-6zM1 10h1v1h-1zM4 10h2v1h-2zM9 10h1v1h-1zM11 10h4v1h-4zM2 11h1v1h-1zM5 11h1v1h-1zM8 11h1v1h-1zM12 11h2v1h-2zM3 12h2v1h-2zM6 12h2v1h-2zM12 12h2v1h-2zM5 13h1v1h-1zM12 13h1v1h-1z"/></svg></button>
+          <button class="tool" type="button" data-tool="text" aria-pressed="false" aria-label="Text" title="Text"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-ink" d="M6 2h4v1h-4zM5 3h2v1h-2zM9 3h2v1h-2zM4 4h2v1h-2zM10 4h2v1h-2zM4 5h2v1h-2zM10 5h2v1h-2zM4 6h2v1h-2zM10 6h2v1h-2zM4 7h8v1h-8zM4 8h2v1h-2zM10 8h2v1h-2zM4 9h2v1h-2zM10 9h2v1h-2zM4 10h2v1h-2zM10 10h2v1h-2zM4 11h2v1h-2zM10 11h2v1h-2z"/></svg></button>
+          <button class="tool" type="button" data-tool="line" aria-pressed="false" aria-label="Line" title="Line"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-ink" d="M13 2h1v1h-1zM12 3h1v1h-1zM11 4h1v1h-1zM10 5h1v1h-1zM9 6h1v1h-1zM8 7h1v1h-1zM7 8h1v1h-1zM6 9h1v1h-1zM5 10h1v1h-1zM4 11h1v1h-1zM3 12h1v1h-1zM2 13h1v1h-1z"/></svg></button>
+          <button class="tool" type="button" data-tool="stamp" aria-pressed="false" aria-label="Stamp" title="Stamp"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M6 2h4v1h-4zM6 3h4v1h-4zM7 4h2v1h-2zM7 5h2v1h-2zM7 6h2v1h-2zM4 8h8v1h-8zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1z"/><path class="i-ink" d="M6 1h4v1h-4zM5 2h1v1h-1zM10 2h1v1h-1zM5 3h1v1h-1zM10 3h1v1h-1zM6 4h1v1h-1zM9 4h1v1h-1zM6 5h1v1h-1zM9 5h1v1h-1zM6 6h1v1h-1zM9 6h1v1h-1zM3 7h10v1h-10zM3 8h1v1h-1zM12 8h1v1h-1zM3 9h10v1h-10zM3 10h1v1h-1zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h2v1h-2zM3 11h10v1h-10zM2 13h12v1h-12z"/></svg></button>
+          <button class="tool" type="button" data-tool="rect" aria-pressed="false" aria-label="Rectangle" title="Rectangle"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M3 4h10v1h-10zM3 5h10v1h-10zM3 6h10v1h-10zM3 7h10v1h-10zM3 8h10v1h-10zM3 9h10v1h-10zM3 10h10v1h-10zM3 11h10v1h-10z"/><path class="i-ink" d="M2 3h12v1h-12zM2 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM13 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM13 9h1v1h-1zM2 10h1v1h-1zM13 10h1v1h-1zM2 11h1v1h-1zM13 11h1v1h-1zM2 12h12v1h-12z"/></svg></button>
+          <button class="tool" type="button" data-tool="rectf" aria-pressed="false" aria-label="Filled rectangle" title="Filled rectangle"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1z"/><path class="i-ink" d="M2 3h12v1h-12zM2 4h2v1h-2zM5 4h1v1h-1zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h2v1h-2zM2 6h2v1h-2zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h2v1h-2zM2 8h2v1h-2zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h2v1h-2zM2 10h2v1h-2zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h2v1h-2zM2 12h12v1h-12z"/></svg></button>
+          <button class="tool" type="button" data-tool="oval" aria-pressed="false" aria-label="Oval" title="Oval"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M5 4h6v1h-6zM3 5h10v1h-10zM3 6h10v1h-10zM3 7h10v1h-10zM3 8h10v1h-10zM3 9h10v1h-10zM3 10h10v1h-10zM5 11h6v1h-6z"/><path class="i-ink" d="M5 3h6v1h-6zM3 4h2v1h-2zM11 4h2v1h-2zM2 5h1v1h-1zM13 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM13 9h1v1h-1zM2 10h1v1h-1zM13 10h1v1h-1zM3 11h2v1h-2zM11 11h2v1h-2zM5 12h6v1h-6z"/></svg></button>
+          <button class="tool" type="button" data-tool="ovalf" aria-pressed="false" aria-label="Filled oval" title="Filled oval"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1z"/><path class="i-ink" d="M5 3h6v1h-6zM3 4h3v1h-3zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h2v1h-2zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h2v1h-2zM2 6h2v1h-2zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h2v1h-2zM2 8h2v1h-2zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h2v1h-2zM2 10h2v1h-2zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM3 11h2v1h-2zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h3v1h-3zM5 12h6v1h-6z"/></svg></button>
+        </div>
+        <div class="paint-actions">
+          <button class="btn btn-sm" type="button" id="paint-undo" title="Undo (⌘Z)">Undo</button>
+          <button class="btn btn-sm" type="button" id="paint-clear">Clear</button>
+          <button class="btn btn-sm" type="button" id="paint-save" title="Save as PNG">Save</button>
+        </div>
+      </div>
+      <div class="sheet">
+        <canvas id="sheet" width="320" height="224" role="img" aria-label="Drawing canvas"></canvas>
+        <input class="type-in" id="type-in" type="text" aria-label="Text to place" autocomplete="off" spellcheck="false" hidden>
+      </div>
+    </div>
+    <div class="patterns" id="patterns" role="toolbar" aria-label="Patterns"></div>
+  </div>
+</section>
+
+<!-- Hoops -->
+<section class="window is-float" id="hoops" data-icon="icon-hoops" tabindex="-1" aria-labelledby="hoops-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Hoops"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="hoops-title">Hoops</h2>
+  </header>
+  <div class="wbody hoops-body">
+    <div class="hoops-bar">
+      <span>Score <b id="h-score">0</b></span>
+      <span>Streak <b id="h-streak">0</b></span>
+      <span>Best streak <b id="h-best">0</b></span>
+    </div>
+    <canvas class="court" id="court" width="200" height="140" role="img" aria-label="Basketball court"></canvas>
+    <p class="hoops-status" id="hoops-status" aria-live="polite">Pull back anywhere and let go.</p>
+    <p class="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
+  </div>
+</section>
+
 <nav class="icons" aria-label="Desktop">
   <button class="icon" id="icon-about" type="button" data-open="about" aria-label="About Me">
     <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
@@ -723,6 +844,20 @@
       <path class="i-ink" d="M3 9h27v1H3zM3 24h27v1H3zM2 10h1v14H2zM30 10h1v14h-1zM3 12h27v1H3zM6 13h1v11H6zM10 13h1v11h-1zM14 13h1v11h-1zM18 13h1v11h-1zM22 13h1v11h-1zM26 13h1v11h-1zM5 13h3v7H5zM9 13h3v7H9zM17 13h3v7h-3zM21 13h3v7h-3zM25 13h3v7h-3z"/>
     </svg>
     <span class="icon-label" aria-hidden="true">Piano</span>
+  </button>
+  <button class="icon" id="icon-paint" type="button" data-open="paint" aria-label="Paint">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M28 2h2v1h-2zM27 3h2v1h-2zM26 4h2v1h-2zM26 5h2v1h-2zM25 6h2v1h-2zM24 7h2v1h-2zM3 8h19v1h-19zM23 8h2v1h-2zM3 9h18v1h-18zM22 9h2v1h-2zM3 10h5v1h-5zM9 10h11v1h-11zM21 10h2v1h-2zM3 11h4v1h-4zM8 11h1v1h-1zM10 11h10v1h-10zM21 11h2v1h-2zM3 12h3v1h-3zM7 12h1v1h-1zM9 12h1v1h-1zM11 12h8v1h-8zM20 12h2v1h-2zM24 12h1v1h-1zM3 13h2v1h-2zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM12 13h6v1h-6zM24 13h1v1h-1zM3 14h3v1h-3zM7 14h1v1h-1zM9 14h1v1h-1zM11 14h8v1h-8zM24 14h1v1h-1zM3 15h4v1h-4zM8 15h1v1h-1zM10 15h9v1h-9zM22 15h3v1h-3zM3 16h5v1h-5zM9 16h9v1h-9zM22 16h3v1h-3zM3 17h14v1h-14zM21 17h4v1h-4zM3 18h13v1h-13zM19 18h6v1h-6zM3 19h13v1h-13zM17 19h8v1h-8zM3 20h6v1h-6zM11 20h14v1h-14zM3 21h4v1h-4zM13 21h12v1h-12zM3 22h3v1h-3zM9 22h2v1h-2zM14 22h11v1h-11zM3 23h2v1h-2zM7 23h6v1h-6zM16 23h2v1h-2zM20 23h5v1h-5zM3 24h1v1h-1zM6 24h8v1h-8zM20 24h5v1h-5zM3 25h1v1h-1zM5 25h11v1h-11zM18 25h7v1h-7zM3 26h22v1h-22zM3 27h22v1h-22z"/>
+      <path class="i-ink" d="M27 2h1v1h-1zM30 2h2v1h-2zM26 3h1v1h-1zM29 3h2v1h-2zM25 4h1v1h-1zM28 4h2v1h-2zM25 5h1v1h-1zM28 5h2v1h-2zM24 6h1v1h-1zM27 6h2v1h-2zM2 7h22v1h-22zM26 7h2v1h-2zM2 8h1v1h-1zM22 8h1v1h-1zM25 8h2v1h-2zM2 9h1v1h-1zM21 9h1v1h-1zM24 9h2v1h-2zM2 10h1v1h-1zM8 10h1v1h-1zM20 10h1v1h-1zM23 10h3v1h-3zM2 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM20 11h1v1h-1zM23 11h3v1h-3zM2 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM19 12h1v1h-1zM22 12h2v1h-2zM25 12h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM18 13h6v1h-6zM25 13h1v1h-1zM2 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM19 14h5v1h-5zM25 14h1v1h-1zM2 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM19 15h3v1h-3zM25 15h1v1h-1zM2 16h1v1h-1zM8 16h1v1h-1zM18 16h4v1h-4zM25 16h1v1h-1zM2 17h1v1h-1zM17 17h4v1h-4zM25 17h1v1h-1zM2 18h1v1h-1zM16 18h3v1h-3zM25 18h1v1h-1zM2 19h1v1h-1zM16 19h1v1h-1zM25 19h1v1h-1zM2 20h1v1h-1zM9 20h2v1h-2zM25 20h1v1h-1zM2 21h1v1h-1zM7 21h6v1h-6zM25 21h1v1h-1zM2 22h1v1h-1zM6 22h3v1h-3zM11 22h3v1h-3zM25 22h1v1h-1zM2 23h1v1h-1zM5 23h2v1h-2zM13 23h3v1h-3zM18 23h2v1h-2zM25 23h1v1h-1zM2 24h1v1h-1zM4 24h2v1h-2zM14 24h6v1h-6zM25 24h1v1h-1zM2 25h1v1h-1zM4 25h1v1h-1zM16 25h2v1h-2zM25 25h1v1h-1zM2 26h1v1h-1zM25 26h1v1h-1zM2 27h1v1h-1zM25 27h1v1h-1zM2 28h24v1h-24z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Paint</span>
+  </button>
+  <button class="icon" id="icon-hoops" type="button" data-open="hoops" aria-label="Hoops">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M14 3h16v1h-16zM14 4h16v1h-16zM14 5h16v1h-16zM14 6h16v1h-16zM6 7h1v1h-1zM8 7h1v1h-1zM14 7h4v1h-4zM26 7h4v1h-4zM5 8h2v1h-2zM8 8h2v1h-2zM14 8h4v1h-4zM19 8h6v1h-6zM26 8h4v1h-4zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM14 9h4v1h-4zM19 9h6v1h-6zM26 9h4v1h-4zM3 10h4v1h-4zM8 10h4v1h-4zM14 10h4v1h-4zM19 10h6v1h-6zM26 10h4v1h-4zM14 11h4v1h-4zM19 11h6v1h-6zM26 11h4v1h-4zM3 12h4v1h-4zM8 12h4v1h-4zM14 12h4v1h-4zM19 12h6v1h-6zM26 12h4v1h-4zM4 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM14 13h4v1h-4zM19 13h6v1h-6zM26 13h4v1h-4zM5 14h2v1h-2zM8 14h2v1h-2zM6 15h1v1h-1zM8 15h1v1h-1zM18 17h1v1h-1zM21 17h1v1h-1zM24 17h1v1h-1zM17 18h1v1h-1zM19 18h2v1h-2zM22 18h2v1h-2zM25 18h2v1h-2zM18 19h1v1h-1zM21 19h1v1h-1zM24 19h1v1h-1zM18 20h1v1h-1zM21 20h1v1h-1zM24 20h1v1h-1zM19 21h2v1h-2zM22 21h2v1h-2zM21 22h1v1h-1zM24 22h1v1h-1zM21 23h1v1h-1zM20 24h1v1h-1zM22 24h2v1h-2z"/>
+      <path class="i-ink" d="M13 2h18v1h-18zM13 3h1v1h-1zM30 3h1v1h-1zM13 4h1v1h-1zM30 4h1v1h-1zM13 5h1v1h-1zM30 5h1v1h-1zM5 6h5v1h-5zM13 6h1v1h-1zM30 6h1v1h-1zM4 7h2v1h-2zM7 7h1v1h-1zM9 7h2v1h-2zM13 7h1v1h-1zM18 7h8v1h-8zM30 7h1v1h-1zM3 8h2v1h-2zM7 8h1v1h-1zM10 8h2v1h-2zM13 8h1v1h-1zM18 8h1v1h-1zM25 8h1v1h-1zM30 8h1v1h-1zM2 9h2v1h-2zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h3v1h-3zM18 9h1v1h-1zM25 9h1v1h-1zM30 9h1v1h-1zM2 10h1v1h-1zM7 10h1v1h-1zM12 10h2v1h-2zM18 10h1v1h-1zM25 10h1v1h-1zM30 10h1v1h-1zM2 11h12v1h-12zM18 11h1v1h-1zM25 11h1v1h-1zM30 11h1v1h-1zM2 12h1v1h-1zM7 12h1v1h-1zM12 12h2v1h-2zM18 12h1v1h-1zM25 12h1v1h-1zM30 12h1v1h-1zM2 13h2v1h-2zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h3v1h-3zM18 13h1v1h-1zM25 13h1v1h-1zM30 13h1v1h-1zM3 14h2v1h-2zM7 14h1v1h-1zM10 14h2v1h-2zM13 14h18v1h-18zM4 15h2v1h-2zM7 15h1v1h-1zM9 15h2v1h-2zM15 15h14v1h-14zM5 16h5v1h-5zM15 16h14v1h-14zM16 17h2v1h-2zM19 17h2v1h-2zM22 17h2v1h-2zM25 17h3v1h-3zM16 18h1v1h-1zM18 18h1v1h-1zM21 18h1v1h-1zM24 18h1v1h-1zM27 18h1v1h-1zM2 19h1v1h-1zM17 19h1v1h-1zM19 19h2v1h-2zM22 19h2v1h-2zM25 19h2v1h-2zM17 20h1v1h-1zM19 20h2v1h-2zM22 20h2v1h-2zM25 20h2v1h-2zM18 21h1v1h-1zM21 21h1v1h-1zM24 21h2v1h-2zM18 22h3v1h-3zM22 22h2v1h-2zM25 22h1v1h-1zM1 23h1v1h-1zM19 23h2v1h-2zM22 23h3v1h-3zM19 24h1v1h-1zM21 24h1v1h-1zM24 24h1v1h-1zM0 27h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Hoops</span>
   </button>
   <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
     <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
@@ -752,6 +887,7 @@
   <div class="wactions"><button class="btn is-default" type="button">OK</button></div>
 </section>
 
+<canvas class="saver" id="saver" aria-hidden="true" hidden></canvas>
 <div class="fx" aria-hidden="true"></div>
 <div class="bezel" aria-hidden="true"></div>
 
@@ -860,8 +996,19 @@
       pocket() { tone({ f: 1047, type: 'square', gain: 0.022, dur: 0.06 }); tone({ f: 2093, type: 'square', gain: 0.02, dur: 0.22, at: 0.07 }); },
       ega() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1175, type: 'square', gain: 0.02, dur: 0.1, at: 0.1 }); },
       textmode() { tone({ f: 1000, type: 'square', gain: 0.028, dur: 0.15 }); }, // PC speaker POST beep
+      // Hoops. k scales with how hard the ball hit something.
+      shoot() { hit({ f: 1400, q: 0.6, gain: 0.05, dur: 0.07 }); },
+      bounce(k = 1) { tone({ f: 140, f2: 62, gain: 0.12 * k, dur: 0.1 }); hit({ f: 420, type: 'lowpass', q: 0.7, gain: 0.1 * k, dur: 0.05 }); },
+      board(k = 1) { hit({ f: 800, type: 'lowpass', q: 0.8, gain: 0.16 * k, dur: 0.08 }); tone({ f: 120, f2: 70, gain: 0.08 * k, dur: 0.09 }); },
+      rim(k = 1) {
+        tone({ f: 1250, type: 'triangle', gain: 0.035 * k, dur: 0.22 });
+        tone({ f: 1830, type: 'triangle', gain: 0.02 * k, dur: 0.14 });
+        hit({ f: 3800, q: 3, gain: 0.07 * k, dur: 0.025 });
+      },
+      swish() { hit({ f: 5200, q: 0.5, gain: 0.08, dur: 0.24 }); hit({ f: 8000, q: 0.8, gain: 0.04, dur: 0.18, at: 0.04 }); },
+      score() { tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.1, at: 0.08 }); tone({ f: 1175, type: 'triangle', gain: 0.03, dur: 0.18, at: 0.16 }); },
     };
-    function play(name) { if (sfxOn && ctx && FX[name]) FX[name](); }
+    function play(name, k) { if (sfxOn && ctx && FX[name]) FX[name](k); }
 
     /* Piano */
     const fileFor = (m) => NAMES[m % 12] + (Math.floor(m / 12) - 1) + '.mp3';
@@ -945,6 +1092,147 @@
   })();
 
   /* ==========================================================
+     1-bit pictures. The portrait, Paint, Hoops and the screen
+     saver keep plain 0/1 pixels; the current display decides
+     what ink and paper look like, so they recolour with it.
+  ========================================================== */
+  const Colors = (() => {
+    let cache = null;
+    const hex = (c) => {
+      c = c.trim().replace('#', '');
+      if (c.length === 3) c = c.split('').map((x) => x + x).join('');
+      const n = parseInt(c, 16);
+      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    };
+    return {
+      get() {
+        if (!cache) {
+          const cs = getComputedStyle(root);
+          const v = (name) => hex(cs.getPropertyValue(name));
+          cache = { ink: v('--ink'), paper: v('--paper'), accent: v('--accent'), desk: v('--desk-color'), deskInk: v('--desk-ink') };
+        }
+        return cache;
+      },
+      reset() { cache = null; },
+    };
+  })();
+  const rgb = (c) => 'rgb(' + c.join(' ') + ')';
+  function blit(g, img, bits, ink, paper) {
+    const d = img.data;
+    for (let i = 0, j = 0; i < bits.length; i++, j += 4) {
+      const c = bits[i] ? ink : paper;
+      d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2]; d[j + 3] = 255;
+    }
+    g.putImageData(img, 0, 0);
+  }
+  // Pixel art as rows of text: # is ink, . is paper, a space is see-through.
+  const pixPath = (rows, ch) => {
+    let d = '';
+    rows.forEach((r, y) => {
+      for (let x = 0; x < r.length; x++) {
+        if (r[x] !== ch) continue;
+        let e = x;
+        while (r[e] === ch) e++;
+        d += 'M' + x + ' ' + y + 'h' + (e - x) + 'v1h-' + (e - x) + 'z';
+        x = e;
+      }
+    });
+    return d;
+  };
+  const STAMPS = {
+    Star: [
+      '                ',
+      '       ##       ',
+      '      #..#      ',
+      '      #..#      ',
+      '      #..#      ',
+      ' #####....##### ',
+      '#..............#',
+      ' ##..........## ',
+      '   #........#   ',
+      '    #......#    ',
+      '    #......#    ',
+      '   #........#   ',
+      '   #..####..#   ',
+      '   #.#    #.#   ',
+      '    #      #    ',
+      '                ',
+    ],
+    Ball: [
+      '       ##       ',
+      '    ###..###    ',
+      '   #...#.#..#   ',
+      '  #.#..#..#..#  ',
+      ' #.#...#...#..# ',
+      ' #.#...#...#..# ',
+      ' #.#...#...#..# ',
+      '#.############.#',
+      '#..#...#...#...#',
+      ' #.#...#...#..# ',
+      ' #.#...#...#..# ',
+      ' #.#...#...#..# ',
+      '  #.#..#..#..#  ',
+      '   #...#.#..#   ',
+      '    ###..###    ',
+      '       ##       ',
+    ],
+    Volcano: [
+      '    #   ##  #   ',
+      '  #   #    #    ',
+      '    ## ### #    ',
+      '     ######     ',
+      '      ####      ',
+      '     #....#     ',
+      '    #.#...##    ',
+      '    #.#....#    ',
+      '   #.#....#.#   ',
+      '   #.#.....##   ',
+      '  #.#.......##  ',
+      ' #...#.....#.## ',
+      ' #..........#.# ',
+      '#............#.#',
+      '#...........#.##',
+      '################',
+    ],
+    Smile: [
+      '                ',
+      '                ',
+      '     #####      ',
+      '   ##.....##    ',
+      '  #.........#   ',
+      '  #..#...#..#   ',
+      ' #...#...#...#  ',
+      ' #...........#  ',
+      ' #...........#  ',
+      ' #..#.....#..#  ',
+      '  #..#...#..#   ',
+      '  #...###...#   ',
+      '   ##.....##    ',
+      '     #####      ',
+      '                ',
+      '                ',
+    ],
+    Glyph: [
+      '                ',
+      '                ',
+      '  ############  ',
+      '  ############  ',
+      '  #####..#####  ',
+      '  ####....####  ',
+      '  ###..##..###  ',
+      '  ###..##..###  ',
+      '  ###......###  ',
+      '  ###..##..###  ',
+      '  ###..##..###  ',
+      '  ###..##..###  ',
+      '  ############  ',
+      '  ############  ',
+      '                ',
+      '                ',
+    ],
+  };
+
+  /* ==========================================================
      Themes
   ========================================================== */
   const THEMES = [
@@ -969,8 +1257,11 @@
   function applyTheme(id) {
     root.dataset.theme = id;
     store.set('adiel-theme', id);
+    Colors.reset();
     syncTheme();
     Portrait.render();
+    Paint.render();
+    Hoops.render();
     updateDock();
   }
   function setTheme(id) {
@@ -1057,10 +1348,12 @@
       const item = e.target.closest('.mi');
       if (!item) return;
       const { win } = item.dataset;
-      if (!win) { closeMenu(); return; } // links navigate normally
+      const saver = item.hasAttribute('data-saver');
+      if (!win && !saver) { closeMenu(); return; } // links navigate normally
       blinkThen(rec, item, () => {
         closeMenu();
-        openWin(W[win], { scroll: true });
+        if (saver) Saver.start();
+        else openWin(W[win], { scroll: true });
       });
     });
   });
@@ -1080,7 +1373,7 @@
   /* ==========================================================
      Windows
   ========================================================== */
-  const W = { readme: $('#readme'), about: $('#about'), piano: $('#piano') };
+  const W = { readme: $('#readme'), about: $('#about'), piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops') };
   const stack = [];
   const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
   const visibleBox = (el) => (el && el.getClientRects().length ? box(el) : null);
@@ -1146,6 +1439,8 @@
     readme: { after: () => startProgress(), close: () => stopProgress() },
     about: { before: () => Portrait.load() },
     piano: { before: () => Piano.layout(), after: () => Piano.warm(), close: () => Piano.releaseAll() },
+    paint: { before: () => Paint.build(), close: () => Paint.commit() },
+    hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => Hoops.stop() },
   };
 
   function openWin(win, opts = {}) {
@@ -1236,6 +1531,7 @@
       updateDock();
       if (!W.piano.hidden) Piano.layout();
       if (!W.readme.hidden) renderProgress();
+      Paint.commit();
     });
   });
 
@@ -1284,17 +1580,9 @@
     const canvas = $('canvas', frame);
     const S = 72;
     let lum = null, started = false;
-    const hex = (c) => {
-      c = c.trim().replace('#', '');
-      if (c.length === 3) c = c.split('').map((x) => x + x).join('');
-      const n = parseInt(c, 16);
-      return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
-    };
     function render() {
       if (!lum) return;
-      const cs = getComputedStyle(root);
-      const ink = hex(cs.getPropertyValue('--ink'));
-      const paper = hex(cs.getPropertyValue('--paper'));
+      const { ink, paper } = Colors.get();
       const px = Float32Array.from(lum);
       const g = canvas.getContext('2d');
       const out = g.createImageData(S, S);
@@ -1513,6 +1801,699 @@
   })();
 
   /* ==========================================================
+     Paint — a small MacPaint. The picture is 1-bit, redraws in
+     the current display's colours and is kept in this browser.
+  ========================================================== */
+  const Paint = (() => {
+    const win = W.paint;
+    const canvas = $('#sheet');
+    const g = canvas.getContext('2d');
+    const SW = canvas.width, SH = canvas.height;
+    const img = g.createImageData(SW, SH);
+    const typeIn = $('#type-in');
+    const toolBtns = $$('.tool', win);
+    const stampBtn = $('[data-tool="stamp"]', win);
+    const patEl = $('#patterns');
+    const KEY = 'adiel-paint';
+    const TEXT_PX = 13;
+    // 8×8 fill patterns, one byte per row, leftmost pixel in the high bit.
+    const PATTERNS = [
+      ['Black', [0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff]],
+      ['Dark grey', [0x77, 0xdd, 0x77, 0xdd, 0x77, 0xdd, 0x77, 0xdd]],
+      ['Grey', [0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55]],
+      ['Light grey', [0x88, 0x22, 0x88, 0x22, 0x88, 0x22, 0x88, 0x22]],
+      ['Dots', [0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08, 0x00]],
+      ['Stripes', [0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00]],
+      ['Diagonal', [0x81, 0xc0, 0x60, 0x30, 0x18, 0x0c, 0x06, 0x03]],
+      ['Bricks', [0xff, 0x80, 0x80, 0x80, 0xff, 0x08, 0x08, 0x08]],
+      ['Weave', [0x88, 0x54, 0x22, 0x45, 0x88, 0x15, 0x22, 0x51]],
+      ['White', [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]],
+    ];
+    const STAMP_NAMES = Object.keys(STAMPS);
+    let bits = new Uint8Array(SW * SH);
+    let built = false, tool = 'pencil', pat = 0, stampAt = 0;
+    let history = [], drag = null, typing = null, saveTimer = 0;
+
+    const inside = (x, y) => x >= 0 && y >= 0 && x < SW && y < SH;
+    const put = (x, y, v) => { if (inside(x, y)) bits[y * SW + x] = v; };
+    const patAt = (x, y) => (PATTERNS[pat][1][y & 7] >> (7 - (x & 7))) & 1;
+    const daub = (x, y) => { if (inside(x, y)) bits[y * SW + x] = patAt(x, y); };
+
+    function render() {
+      if (!built) return;
+      const { ink, paper } = Colors.get();
+      blit(g, img, bits, ink, paper);
+    }
+
+    /* Keeping the picture: 8 pixels to a byte, base64 in localStorage. */
+    function pack(b) {
+      let s = '';
+      for (let i = 0; i < b.length; i += 8) {
+        let byte = 0;
+        for (let k = 0; k < 8; k++) byte = (byte << 1) | b[i + k];
+        s += String.fromCharCode(byte);
+      }
+      return btoa(s);
+    }
+    function unpack(str) {
+      try {
+        const s = atob(str);
+        if (s.length * 8 !== SW * SH) return null;
+        const b = new Uint8Array(SW * SH);
+        for (let i = 0; i < s.length; i++) {
+          const byte = s.charCodeAt(i);
+          for (let k = 0; k < 8; k++) b[i * 8 + k] = (byte >> (7 - k)) & 1;
+        }
+        return b;
+      } catch (e) { return null; }
+    }
+    function saveSoon() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => store.set(KEY, pack(bits)), 300);
+    }
+    function checkpoint() {
+      history.push(bits.slice());
+      if (history.length > 30) history.shift();
+    }
+    function undo() {
+      commit();
+      if (!history.length) return;
+      bits = history.pop();
+      render(); saveSoon();
+    }
+    function clear() {
+      commit();
+      checkpoint();
+      bits.fill(0);
+      render(); saveSoon();
+    }
+
+    /* Tools */
+    function line(x0, y0, x1, y1, plot) {
+      const dx = Math.abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+      const dy = -Math.abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+      let e = dx + dy;
+      for (;;) {
+        plot(x0, y0);
+        if (x0 === x1 && y0 === y1) return;
+        const e2 = 2 * e;
+        if (e2 >= dy) { e += dy; x0 += sx; }
+        if (e2 <= dx) { e += dx; y0 += sy; }
+      }
+    }
+    const brush = (x, y) => { for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) if (i * i + j * j <= 10) daub(x + i, y + j); };
+    const rub = (x, y) => { for (let j = -6; j < 6; j++) for (let i = -6; i < 6; i++) put(x + i, y + j, 0); };
+    function spray(x, y) {
+      for (let k = 0; k < 10; k++) {
+        const a = Math.random() * Math.PI * 2, r = 10 * Math.sqrt(Math.random());
+        daub(Math.round(x + r * Math.cos(a)), Math.round(y + r * Math.sin(a)));
+      }
+    }
+    function flood(x, y) {
+      if (!inside(x, y)) return;
+      const seed = bits[y * SW + x];
+      const seen = new Uint8Array(SW * SH);
+      const stack = [y * SW + x];
+      const visit = (n) => { if (!seen[n] && bits[n] === seed) { seen[n] = 1; stack.push(n); } };
+      seen[stack[0]] = 1;
+      while (stack.length) {
+        const i = stack.pop(), px = i % SW, py = (i - px) / SW;
+        bits[i] = patAt(px, py);
+        if (px > 0) visit(i - 1);
+        if (px < SW - 1) visit(i + 1);
+        if (py > 0) visit(i - SW);
+        if (py < SH - 1) visit(i + SW);
+      }
+    }
+    // Shapes: a 1px ink outline, filled with the pattern when solid.
+    function box(x0, y0, x1, y1, solid) {
+      for (let y = Math.max(y0, 0); y <= Math.min(y1, SH - 1); y++) {
+        for (let x = Math.max(x0, 0); x <= Math.min(x1, SW - 1); x++) {
+          if (x === x0 || x === x1 || y === y0 || y === y1) bits[y * SW + x] = 1;
+          else if (solid) bits[y * SW + x] = patAt(x, y);
+        }
+      }
+    }
+    function oval(x0, y0, x1, y1, solid) {
+      const cx = (x0 + x1 + 1) / 2, cy = (y0 + y1 + 1) / 2, rx = (x1 - x0 + 1) / 2, ry = (y1 - y0 + 1) / 2;
+      const on = (x, y) => ((x + 0.5 - cx) / rx) ** 2 + ((y + 0.5 - cy) / ry) ** 2 <= 1;
+      for (let y = Math.max(y0, 0); y <= Math.min(y1, SH - 1); y++) {
+        for (let x = Math.max(x0, 0); x <= Math.min(x1, SW - 1); x++) {
+          if (!on(x, y)) continue;
+          if (!on(x - 1, y) || !on(x + 1, y) || !on(x, y - 1) || !on(x, y + 1)) bits[y * SW + x] = 1;
+          else if (solid) bits[y * SW + x] = patAt(x, y);
+        }
+      }
+    }
+    function shape(x0, y0, x1, y1, shift) {
+      if (tool === 'line') {
+        if (shift) { // snap to 45°
+          const a = Math.round(Math.atan2(y1 - y0, x1 - x0) / (Math.PI / 4)) * (Math.PI / 4);
+          const len = Math.hypot(x1 - x0, y1 - y0);
+          x1 = x0 + Math.round(Math.cos(a) * len);
+          y1 = y0 + Math.round(Math.sin(a) * len);
+        }
+        line(x0, y0, x1, y1, (x, y) => put(x, y, 1));
+        return;
+      }
+      if (shift) { // squares and circles
+        const s = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+        x1 = x0 + (x1 < x0 ? -s : s);
+        y1 = y0 + (y1 < y0 ? -s : s);
+      }
+      const draw = tool.startsWith('rect') ? box : oval;
+      draw(Math.min(x0, x1), Math.min(y0, y1), Math.max(x0, x1), Math.max(y0, y1), tool.endsWith('f'));
+    }
+    // Stamps print at double size, centred on the click.
+    function stamp(x, y) {
+      const rows = STAMPS[STAMP_NAMES[stampAt]];
+      const ox = x - rows[0].length, oy = y - rows.length;
+      rows.forEach((r, j) => {
+        for (let i = 0; i < r.length; i++) {
+          if (r[i] !== '#' && r[i] !== '.') continue;
+          const v = r[i] === '#' ? 1 : 0;
+          put(ox + i * 2, oy + j * 2, v); put(ox + i * 2 + 1, oy + j * 2, v);
+          put(ox + i * 2, oy + j * 2 + 1, v); put(ox + i * 2 + 1, oy + j * 2 + 1, v);
+        }
+      });
+    }
+    function syncStamp() {
+      const name = STAMP_NAMES[stampAt], rows = STAMPS[name];
+      stampBtn.innerHTML = '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="' + pixPath(rows, '.') + '"/><path class="i-ink" d="' + pixPath(rows, '#') + '"/></svg>';
+      stampBtn.title = 'Stamp: ' + name + '. Click again for another.';
+      stampBtn.setAttribute('aria-label', 'Stamp: ' + name);
+    }
+
+    /* Text: type in place, then it's set into the picture in the display's font. */
+    const font = (px) => '600 ' + px + 'px ' + getComputedStyle(document.body).fontFamily;
+    const measure = document.createElement('canvas').getContext('2d');
+    function openType(x, y) {
+      const s = canvas.getBoundingClientRect().width / SW;
+      typing = { x, y };
+      typeIn.value = '';
+      typeIn.style.left = x * s + 'px';
+      typeIn.style.top = y * s + 'px';
+      typeIn.style.fontSize = TEXT_PX * s + 'px';
+      typeIn.hidden = false;
+      fitType();
+      typeIn.focus({ preventScroll: true });
+    }
+    function fitType() {
+      if (!typing) return;
+      const s = canvas.getBoundingClientRect().width / SW;
+      measure.font = font(TEXT_PX);
+      const w = Math.ceil(measure.measureText(typeIn.value).width + 3) * s;
+      typeIn.style.width = Math.min(w, (SW - typing.x) * s) + 'px';
+    }
+    function commit(keep = true) {
+      if (!typing) return;
+      const { x, y } = typing;
+      typing = null;
+      typeIn.hidden = true;
+      const text = typeIn.value;
+      if (!keep || !text.trim()) return;
+      checkpoint();
+      const c = document.createElement('canvas');
+      c.width = SW; c.height = SH;
+      const t = c.getContext('2d');
+      t.font = font(TEXT_PX);
+      t.textBaseline = 'top';
+      t.fillText(text, x, y);
+      const d = t.getImageData(0, 0, SW, SH).data;
+      for (let i = 0; i < SW * SH; i++) if (d[i * 4 + 3] > 100) bits[i] = 1;
+      render(); saveSoon();
+    }
+    typeIn.addEventListener('input', fitType);
+    typeIn.addEventListener('blur', () => commit());
+    typeIn.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); commit(); win.focus({ preventScroll: true }); }
+      if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); commit(false); }
+    });
+
+    /* Pointer */
+    const at = (e) => {
+      const r = canvas.getBoundingClientRect();
+      return [Math.floor(((e.clientX - r.left) * SW) / r.width), Math.floor(((e.clientY - r.top) * SH) / r.height)];
+    };
+    function move(x, y, shift) {
+      const px = drag.x, py = drag.y;
+      drag.x = x; drag.y = y;
+      if (tool === 'pencil') line(px, py, x, y, (a, b) => put(a, b, drag.v));
+      else if (tool === 'brush') line(px, py, x, y, brush);
+      else if (tool === 'eraser') line(px, py, x, y, rub);
+      else if (tool === 'spray') return;
+      else { bits.set(drag.base); shape(drag.x0, drag.y0, x, y, shift); }
+      render();
+    }
+    function sprayLoop() {
+      if (!drag) return;
+      spray(drag.x, drag.y);
+      render();
+      drag.raf = requestAnimationFrame(sprayLoop);
+    }
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || drag) return;
+      e.preventDefault();
+      const [x, y] = at(e);
+      commit();
+      if (tool === 'text') { openType(x, y); return; }
+      checkpoint();
+      if (tool === 'bucket' || tool === 'stamp') {
+        if (tool === 'bucket') flood(x, y); else stamp(x, y);
+        render(); saveSoon();
+        return;
+      }
+      canvas.setPointerCapture(e.pointerId);
+      // Like MacPaint, the pencil draws white when you start on a black pixel.
+      const v = tool === 'pencil' && inside(x, y) && bits[y * SW + x] ? 0 : 1;
+      drag = { id: e.pointerId, x0: x, y0: y, x, y, v, base: bits.slice(), raf: 0 };
+      move(x, y, e.shiftKey);
+      if (tool === 'spray') sprayLoop();
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      const [x, y] = at(e);
+      move(x, y, e.shiftKey);
+    });
+    const lift = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      cancelAnimationFrame(drag.raf);
+      drag = null;
+      saveSoon();
+    };
+    canvas.addEventListener('pointerup', lift);
+    canvas.addEventListener('pointercancel', lift);
+    canvas.addEventListener('lostpointercapture', lift);
+
+    /* Palettes */
+    function setTool(t) {
+      commit();
+      tool = t;
+      toolBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.tool === t)));
+      canvas.classList.toggle('is-text', t === 'text');
+    }
+    function setPat(i) {
+      pat = i;
+      $$('.pat', patEl).forEach((b, k) => b.setAttribute('aria-pressed', String(k === i)));
+    }
+    toolBtns.forEach((b) => b.addEventListener('click', () => {
+      if (b === stampBtn && tool === 'stamp') {
+        stampAt = (stampAt + 1) % STAMP_NAMES.length;
+        syncStamp();
+      }
+      setTool(b.dataset.tool);
+    }));
+    // MacPaint cleared the page when you double-clicked the eraser.
+    $('[data-tool="eraser"]', win).addEventListener('dblclick', clear);
+    $('#paint-undo').addEventListener('click', undo);
+    $('#paint-clear').addEventListener('click', clear);
+    $('#paint-save').addEventListener('click', () => {
+      commit();
+      const k = 3, c = document.createElement('canvas');
+      c.width = SW * k; c.height = SH * k;
+      const t = c.getContext('2d');
+      t.imageSmoothingEnabled = false;
+      t.drawImage(canvas, 0, 0, c.width, c.height);
+      c.toBlob((blob) => {
+        if (!blob) return;
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'adiel-paint.png';
+        document.body.append(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+      }, 'image/png');
+    });
+
+    function build() {
+      if (built) return;
+      built = true;
+      const saved = unpack(store.get(KEY) || '');
+      if (saved) bits = saved;
+      PATTERNS.forEach(([name, rows], i) => {
+        const art = Array.from({ length: 14 }, (_, y) => Array.from({ length: 48 }, (_, x) => ((rows[y & 7] >> (7 - (x & 7))) & 1 ? '#' : ' ')).join(''));
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'pat';
+        b.title = name;
+        b.setAttribute('aria-label', name + ' pattern');
+        b.innerHTML = '<svg viewBox="0 0 48 14" preserveAspectRatio="xMinYMin slice" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M0 0h48v14H0z"/><path class="i-ink" d="' + pixPath(art, '#') + '"/></svg>';
+        b.addEventListener('click', () => setPat(i));
+        patEl.append(b);
+      });
+      setPat(0);
+      syncStamp();
+      render();
+    }
+    // The screen saver borrows your drawing, if there is one.
+    function picture() {
+      const b = built ? bits : unpack(store.get(KEY) || '');
+      if (!b) return null;
+      let n = 0;
+      for (let i = 0; i < b.length; i++) n += b[i];
+      return n >= 24 ? { bits: b, w: SW, h: SH } : null;
+    }
+
+    return {
+      build, render, undo, commit, picture,
+      get active() { return !win.hidden && win.classList.contains('is-active'); },
+    };
+  })();
+
+  /* ==========================================================
+     Hoops — pull back anywhere and let go. The court is 200×140
+     pixels, shown at double size.
+  ========================================================== */
+  const Hoops = (() => {
+    const win = W.hoops;
+    const canvas = $('#court');
+    const g = canvas.getContext('2d');
+    const CW = canvas.width, CH = canvas.height;
+    const img = g.createImageData(CW, CH);
+    const px = new Uint8Array(CW * CH);
+    const scoreEl = $('#h-score'), streakEl = $('#h-streak'), bestEl = $('#h-best');
+    const statusEl = $('#hoops-status');
+    const KEY = 'adiel-hoops-best';
+    const FLOOR = 126, R = 5, GRAV = 430, VMAX = 470, PULL = 64, THREE = 72;
+    const RIM_Y = 58, RIM_F = 153;               // rim height and front edge
+    const BOARD = [175, 24, 178, 62];            // x0, y0, x1, y1, inclusive
+    const ARM = [179, 42, 186, 44];
+    const POLE = [187, 38, 189, FLOOR - 1];
+    const LINES = {
+      swish: ['Swish.', 'Nothing but net.', 'Cash.', 'Wet.'],
+      bank: ['Off the glass.', 'Bank is open.', 'Called glass.'],
+      roll: ['Friendly bounce.', 'Rolled in.', 'Kissed the rim.'],
+      three: ['From downtown.', 'Deep three.', 'Splash.'],
+      air: ['Airball.', 'All air.', 'Nowhere near it.'],
+      clank: ['Clank.', 'Rim out.', 'In and out.', 'So close.'],
+      glass: ['All glass, no net.', 'Off the board.'],
+    };
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, a: 0 };
+    let built = false, state = 'ready', shot = null, aim = null;
+    let keyA = 0.95, keyP = 0.72, showKey = false;
+    let score = 0, streak = 0, best = parseInt(store.get(KEY), 10) || 0;
+    let net = 0, netT = 0, wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0;
+
+    const say = (text) => { statusEl.textContent = text; };
+    function sync(flash) {
+      scoreEl.textContent = score;
+      streakEl.textContent = streak;
+      bestEl.textContent = best;
+      if (flash) {
+        scoreEl.classList.add('is-lit');
+        setTimeout(() => scoreEl.classList.remove('is-lit'), 450);
+      }
+    }
+    const thump = (name, v) => Sound.play(name, clamp(v / 320, 0.15, 1));
+
+    /* Physics */
+    function hitRect([x0, y0, x1, y1]) {
+      const cx = clamp(ball.x, x0, x1 + 1), cy = clamp(ball.y, y0, y1 + 1);
+      const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+      if (d >= R || d === 0) return 0;
+      const nx = dx / d, ny = dy / d;
+      ball.x = cx + nx * R; ball.y = cy + ny * R;
+      const vn = ball.vx * nx + ball.vy * ny;
+      if (vn >= 0) return 0;
+      ball.vx -= 1.6 * vn * nx; ball.vy -= 1.6 * vn * ny;
+      return -vn;
+    }
+    function hitPoint(x, y, r) {
+      const dx = ball.x - x, dy = ball.y - y, d = Math.hypot(dx, dy);
+      if (d >= R + r || d === 0) return 0;
+      const nx = dx / d, ny = dy / d;
+      ball.x = x + nx * (R + r); ball.y = y + ny * (R + r);
+      const vn = ball.vx * nx + ball.vy * ny;
+      if (vn >= 0) return 0;
+      ball.vx -= 1.5 * vn * nx; ball.vy -= 1.5 * vn * ny;
+      return -vn;
+    }
+    function step(h) {
+      const py = ball.y;
+      ball.vy += GRAV * h;
+      ball.x += ball.vx * h;
+      ball.y += ball.vy * h;
+      ball.a += (ball.vx * h) / R;
+      if (ball.y >= FLOOR - R) {
+        ball.y = FLOOR - R;
+        if (ball.vy > 0) {
+          if (ball.vy > 45) thump('bounce', ball.vy);
+          ball.vy = ball.vy > 32 ? -ball.vy * 0.62 : 0;
+          ball.vx *= 0.88;
+        }
+        if (ball.vy === 0) ball.vx -= ball.vx * Math.min(1, 1.6 * h); // rolling
+      }
+      if (ball.x < R) { ball.x = R; ball.vx = Math.abs(ball.vx) * 0.6; }
+      if (ball.x > CW - R) { ball.x = CW - R; ball.vx = -Math.abs(ball.vx) * 0.6; }
+      const b = hitRect(BOARD);
+      if (b) { if (shot) shot.board = true; if (b > 30) thump('board', b); }
+      const p = Math.max(hitRect(ARM), hitRect(POLE));
+      if (p > 30) thump('board', p);
+      const r = hitPoint(RIM_F, RIM_Y + 1, 1.5);
+      if (r) { if (shot) shot.rim = true; if (r > 25) thump('rim', r); }
+      if (shot && !shot.scored && py < RIM_Y + 1 && ball.y >= RIM_Y + 1 && ball.vy > 0 && ball.x > RIM_F && ball.x < BOARD[0]) scored();
+    }
+    function scored() {
+      shot.scored = true;
+      const pts = shot.from < THREE ? 3 : 2;
+      const clean = !shot.rim && !shot.board;
+      score += pts;
+      streak++;
+      if (streak > best) { best = streak; store.set(KEY, String(best)); }
+      net = 1;
+      let line;
+      if (streak === 3) line = 'Heating up.';
+      else if (streak === 5) line = 'On fire.';
+      else if (streak >= 8 && streak % 4 === 0) line = 'Unconscious.';
+      else if (pts === 3) line = pick(LINES.three);
+      else line = pick(clean ? LINES.swish : shot.rim ? LINES.roll : LINES.bank);
+      say(line + ' +' + pts);
+      Sound.play('swish');
+      Sound.play('score');
+      sync(true);
+    }
+    function shotEnd() {
+      if (!shot.scored) {
+        const lost = streak >= 3;
+        streak = 0;
+        say(pick(shot.rim ? LINES.clank : shot.board ? LINES.glass : LINES.air) + (lost ? ' Streak over.' : ''));
+        sync();
+      }
+      shot = null;
+      trail = [];
+      state = 'wait';
+      wait = 0.45;
+    }
+    // A new ball drops in somewhere on the floor.
+    function spawn() {
+      ball.x = 14 + Math.round(Math.random() * 116);
+      ball.y = FLOOR - R - 28;
+      ball.vx = 0; ball.vy = 0;
+      state = 'drop';
+      rest = 0;
+      dirty = true;
+    }
+    function settle() {
+      ball.y = FLOOR - R;
+      ball.vx = 0; ball.vy = 0;
+      state = 'ready';
+      dirty = true;
+    }
+    function launch(vx, vy) {
+      settle();
+      ball.vx = vx; ball.vy = vy;
+      shot = { from: ball.x, rim: false, board: false, scored: false, t: 0 };
+      state = 'flight';
+      rest = 0;
+      showKey = false;
+      Sound.play('shoot');
+    }
+    function update(dt) {
+      if (net > 0) { net = Math.max(0, net - dt * 1.4); netT += dt; dirty = true; }
+      if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(); return; }
+      if (state !== 'flight' && state !== 'drop') return;
+      const n = Math.max(1, Math.ceil(dt * 480));
+      for (let i = 0; i < n; i++) step(dt / n);
+      dirty = true;
+      const still = ball.y >= FLOOR - R - 0.01 && ball.vy === 0 && Math.abs(ball.vx) < 5;
+      rest = still ? rest + dt : 0;
+      if (state === 'drop') { if (rest > 0.05) settle(); return; }
+      shot.t += dt;
+      if (streak >= 5) { trail.push([ball.x, ball.y]); if (trail.length > 10) trail.shift(); }
+      if (rest > 0.3 || shot.t > 7) shotEnd();
+    }
+
+    /* Drawing, one pixel at a time */
+    const set = (x, y, v = 1) => {
+      x = Math.round(x); y = Math.round(y);
+      if (x >= 0 && y >= 0 && x < CW && y < CH) px[y * CW + x] = v;
+    };
+    const fill = ([x0, y0, x1, y1], v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, v); };
+    function drawBall() {
+      const cx = Math.round(ball.x), cy = Math.round(ball.y), c = Math.cos(ball.a), s = Math.sin(ball.a);
+      for (let j = -R; j <= R; j++) {
+        for (let i = -R; i <= R; i++) {
+          const d = i * i + j * j;
+          if (d > R * R + 3) continue;
+          let v = 0;
+          if (d > (R - 1) * (R - 1) + 2) v = 1;                    // outline
+          else if (Math.abs(i * c + j * s) < 0.6 || Math.abs(j * c - i * s) < 0.6) v = 1; // seams
+          else if (i + j > 1 && ((i + j) & 1) === 0) v = 1;          // shade
+          set(cx + i, cy + j, v);
+        }
+      }
+    }
+    function drawNet() {
+      const sway = net * Math.sin(netT * 22) * 2.5;
+      for (let k = 0; k <= 12; k++) {
+        const y = RIM_Y + 2 + k, off = sway * (k / 12), pinch = k * 0.3;
+        const l = Math.round(RIM_F + pinch + off), r = Math.round(BOARD[0] - 2 - pinch + off);
+        const o = Math.round(off);
+        for (let x = l; x <= r; x++) {
+          if (x === l || x === r || (x - o + k) % 4 === 0 || (x - o - k + 48) % 4 === 0) set(x, y);
+        }
+      }
+    }
+    function dots(vx, vy) {
+      let x = ball.x, y = ball.y;
+      for (let i = 1; i <= 21; i++) {
+        vy += GRAV / 60; x += vx / 60; y += vy / 60;
+        if (i % 3 === 0) { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); }
+      }
+    }
+    function draw() {
+      tick++;
+      px.fill(0);
+      // floor: a line over a light dither, and the three-point line
+      for (let x = 0; x < CW; x++) {
+        set(x, FLOOR);
+        for (let y = FLOOR + 2; y < CH; y++) if ((((y & 1) ? 0x22 : 0x88) >> (7 - (x & 7))) & 1) set(x, y);
+      }
+      for (let y = FLOOR + 1; y < CH; y++) { set(THREE - 1, y, 0); set(THREE, y); set(THREE + 1, y, 0); }
+      // the stanchion
+      fill([183, FLOOR - 5, 193, FLOOR - 1]);
+      fill([184, FLOOR - 4, 192, FLOOR - 2], 0);
+      for (let x = 184; x <= 192; x++) if (x & 1) set(x, FLOOR - 3);
+      fill(POLE);
+      fill(ARM);
+      fill(BOARD);
+      fill([BOARD[0] + 1, BOARD[1] + 1, BOARD[2] - 1, BOARD[3] - 1], 0);
+      // shadow, smaller the higher the ball
+      const sw = Math.round(R * (1 - clamp((FLOOR - R - ball.y) / 90, 0, 0.8)));
+      for (let i = -sw; i <= sw; i++) { set(ball.x + i, FLOOR + 1); if (!(i & 1)) set(ball.x + i, FLOOR + 2); }
+      // on fire: the ball leaves a flickering trail
+      trail.forEach(([tx, ty], n) => {
+        const r = 1 + n * 0.35;
+        for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) {
+          if (i * i + j * j <= r * r && ((i + j + tick) & 3) === 0) set(tx + i, ty + j);
+        }
+      });
+      drawBall();
+      // rim and net sit in front of the ball
+      fill([RIM_F - 1, RIM_Y, BOARD[0] - 1, RIM_Y + 1]);
+      drawNet();
+      if (aim) dots(aim.vx, aim.vy);
+      else if (showKey && state === 'ready') dots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
+      const { ink, paper } = Colors.get();
+      blit(g, img, px, ink, paper);
+    }
+
+    function frame(t) {
+      raf = requestAnimationFrame(frame);
+      const dt = clamp((t - last) / 1000, 0, 0.05);
+      last = t;
+      update(dt);
+      if (dirty || trail.length) { dirty = false; draw(); }
+    }
+    function start() {
+      if (raf) return;
+      last = performance.now();
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      cancelAnimationFrame(raf);
+      raf = 0;
+      if (aim) { aim = null; canvas.classList.remove('is-aiming'); state = 'ready'; }
+      showKey = false;
+    }
+    function render() {
+      if (!built) return;
+      dirty = true;
+      if (!raf) draw();
+    }
+    function build() {
+      if (built) return;
+      built = true;
+      sync();
+      draw();
+    }
+
+    /* Pull back anywhere on the court, like a slingshot. */
+    const toCourt = (e) => {
+      const r = canvas.getBoundingClientRect();
+      return [((e.clientX - r.left) * CW) / r.width, ((e.clientY - r.top) * CH) / r.height];
+    };
+    canvas.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || (state !== 'ready' && state !== 'drop')) return;
+      e.preventDefault();
+      canvas.setPointerCapture(e.pointerId);
+      settle();
+      const [x, y] = toCourt(e);
+      aim = { id: e.pointerId, x, y, vx: 0, vy: 0 };
+      state = 'aim';
+      showKey = false;
+      canvas.classList.add('is-aiming');
+    });
+    canvas.addEventListener('pointermove', (e) => {
+      if (!aim || e.pointerId !== aim.id) return;
+      const [x, y] = toCourt(e);
+      let dx = aim.x - x, dy = aim.y - y;
+      const d = Math.hypot(dx, dy);
+      if (d > PULL) { dx *= PULL / d; dy *= PULL / d; }
+      aim.vx = (dx / PULL) * VMAX;
+      aim.vy = (dy / PULL) * VMAX;
+      dirty = true;
+    });
+    const release = (e) => {
+      if (!aim || e.pointerId !== aim.id) return;
+      const { vx, vy } = aim;
+      aim = null;
+      canvas.classList.remove('is-aiming');
+      if (e.type === 'pointerup' && Math.hypot(vx, vy) > VMAX * 0.1) launch(vx, vy);
+      else settle();
+    };
+    canvas.addEventListener('pointerup', release);
+    canvas.addEventListener('pointercancel', release);
+    canvas.addEventListener('lostpointercapture', release);
+
+    // Keyboard: arrows aim, Space or Enter shoots.
+    function keydown(e) {
+      if (state !== 'ready' && state !== 'drop') return false;
+      if (e.key === 'ArrowLeft') keyA = Math.min(1.5, keyA + 0.03);
+      else if (e.key === 'ArrowRight') keyA = Math.max(0.15, keyA - 0.03);
+      else if (e.key === 'ArrowUp') keyP = Math.min(1, keyP + 0.02);
+      else if (e.key === 'ArrowDown') keyP = Math.max(0.2, keyP - 0.02);
+      else if ((e.key === ' ' || e.key === 'Enter') && !e.target.closest('button, a')) {
+        e.preventDefault();
+        if (!e.repeat) launch(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
+        return true;
+      } else return false;
+      e.preventDefault();
+      if (state === 'drop') settle();
+      showKey = true;
+      dirty = true;
+      return true;
+    }
+
+    return {
+      build, start, stop, render, keydown,
+      get active() { return !win.hidden && win.classList.contains('is-active'); },
+    };
+  })();
+
+  /* ==========================================================
      Desktop icons
   ========================================================== */
   let lastPointer = 'mouse';
@@ -1562,6 +2543,323 @@
   });
 
   /* ==========================================================
+     Screen saver — after a while with nothing happening, the
+     statement comes apart into pixels, and the pixels keep
+     regrouping: the glyph, words, the time, a volcano, a ball,
+     and whatever you drew in Paint. Any input wakes the desk.
+  ========================================================== */
+  const Saver = (() => {
+    const canvas = $('#saver');
+    const ctx = canvas.getContext('2d');
+    const IDLE = 90 * 1000, HOLD = 2.8, FLY = 1.5;
+    const WORDS = [
+      ['Adiel', 700, 'normal'],
+      ['brand', 500, 'condensed'],
+      ['identity', 400, 'normal'],
+      ['type', 700, 'condensed'],
+      ['naming', 600, 'semi-condensed'],
+      ['motion', 400, 'condensed'],
+      ['hello', 500, 'normal'],
+    ];
+    const PLAN = ['Glyph', 0, 1, 2, 'Volcano', 3, 'clock', 4, 'Ball', 'doodle', 5, 'Star', 6];
+    const MODES = ['sweep', 'swirl', 'burst', 'hop'];
+    const clockFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+    const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+    let on = false, raf = 0, lastInput = performance.now(), startedAt = 0, anchor = null;
+    let cell = 8, cols = 0, rows = 0, dpr = 1, N = 0, cache = {};
+    let X, Y, SX, SY, CX, CY, TX, TY, D;
+    let at = 0, phase = 'hold', t0 = 0, spread = 0, hold = HOLD, caret = null, shown = -1, fresh = true;
+
+    function measure() {
+      dpr = Math.min(2, window.devicePixelRatio || 1);
+      canvas.width = Math.round(innerWidth * dpr);
+      canvas.height = Math.round(innerHeight * dpr);
+      cell = clamp(Math.round(Math.min(innerWidth, innerHeight) / 100), 4, 12);
+      cols = Math.ceil(innerWidth / cell);
+      rows = Math.ceil(innerHeight / cell);
+    }
+
+    /* Shapes are lists of grid cells: x0, y0, x1, y1, … */
+    function raster(paint) {
+      const c = document.createElement('canvas');
+      c.width = cols; c.height = rows;
+      const g = c.getContext('2d', { willReadFrequently: true });
+      const caretBox = paint(g) || null;
+      const d = g.getImageData(0, 0, cols, rows).data;
+      const pts = [];
+      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (d[(y * cols + x) * 4 + 3] > 127) pts.push(x, y);
+      return { pts, caret: caretBox };
+    }
+    const family = () => getComputedStyle(document.body).fontFamily;
+    function word(text, weight, stretch) {
+      return raster((g) => {
+        const size = (px) => {
+          g.font = weight + ' ' + px + 'px ' + family();
+          if ('fontStretch' in g) g.fontStretch = stretch;
+          if ('letterSpacing' in g) g.letterSpacing = -0.03 * px + 'px';
+        };
+        size(100);
+        let m = g.measureText(text);
+        const px = 100 * Math.min(
+          (cols * 0.74) / (m.actualBoundingBoxLeft + m.actualBoundingBoxRight),
+          (rows * 0.34) / (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent));
+        size(px);
+        m = g.measureText(text);
+        const x = (cols - m.actualBoundingBoxLeft - m.actualBoundingBoxRight) / 2 + m.actualBoundingBoxLeft;
+        const y = rows / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
+        g.fillText(text, x, y);
+        // The statement's caret, at the same proportions.
+        return { x: Math.round(x + m.actualBoundingBoxRight + px * 0.07), y: Math.round(y - px * 0.74), w: Math.max(1, Math.round(px * 0.07)), h: Math.round(px * 0.84) };
+      });
+    }
+    function sprite(art) {
+      const h = art.length, w = art[0].length;
+      const k = Math.max(1, Math.floor(Math.min((rows * 0.5) / h, (cols * 0.5) / w)));
+      const ox = Math.floor((cols - w * k) / 2), oy = Math.floor((rows - h * k) / 2);
+      const pts = [];
+      art.forEach((r, j) => {
+        for (let i = 0; i < w; i++) {
+          if (r[i] !== '#') continue;
+          for (let q = 0; q < k * k; q++) pts.push(ox + i * k + (q % k), oy + j * k + Math.floor(q / k));
+        }
+      });
+      return { pts, caret: null };
+    }
+    function doodle() {
+      const pic = Paint.picture();
+      if (!pic) return null;
+      const { bits, w, h } = pic;
+      let x0 = w, y0 = h, x1 = -1, y1 = -1;
+      for (let y = 0; y < h; y++) {
+        for (let x = 0; x < w; x++) {
+          if (!bits[y * w + x]) continue;
+          if (x < x0) x0 = x;
+          if (x > x1) x1 = x;
+          if (y < y0) y0 = y;
+          if (y > y1) y1 = y;
+        }
+      }
+      const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
+      const s = Math.min((cols * 0.8) / bw, (rows * 0.62) / bh, 2); // grid cells per drawing pixel
+      const gw = Math.max(1, Math.round(bw * s)), gh = Math.max(1, Math.round(bh * s));
+      const ox = Math.floor((cols - gw) / 2), oy = Math.floor((rows - gh) / 2);
+      const pts = [];
+      for (let gy = 0; gy < gh; gy++) {
+        for (let gx = 0; gx < gw; gx++) {
+          const sx0 = x0 + Math.floor(gx / s), sx1 = Math.max(sx0 + 1, x0 + Math.floor((gx + 1) / s));
+          const sy0 = y0 + Math.floor(gy / s), sy1 = Math.max(sy0 + 1, y0 + Math.floor((gy + 1) / s));
+          let n = 0, t = 0;
+          for (let y = sy0; y < sy1 && y <= y1; y++) for (let x = sx0; x < sx1 && x <= x1; x++) { t++; n += bits[y * w + x]; }
+          if (t && n / t >= 0.2) pts.push(ox + gx, oy + gy);
+        }
+      }
+      return { pts, caret: null };
+    }
+    // The statement as it sits on screen right now, word by word.
+    function statement() {
+      const h1 = $('#statement');
+      const box = h1.getBoundingClientRect();
+      if (box.bottom < 0 || box.top > innerHeight) return null;
+      const cs = getComputedStyle(h1);
+      return raster((g) => {
+        g.font = cs.fontWeight + ' ' + parseFloat(cs.fontSize) / cell + 'px ' + cs.fontFamily;
+        const ls = parseFloat(cs.letterSpacing);
+        if ('letterSpacing' in g && isFinite(ls)) g.letterSpacing = ls / cell + 'px';
+        g.textBaseline = 'middle';
+        const walk = document.createTreeWalker(h1, NodeFilter.SHOW_TEXT);
+        const range = document.createRange();
+        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
+          const re = /\S+/g;
+          let m;
+          while ((m = re.exec(n.nodeValue))) {
+            range.setStart(n, m.index);
+            range.setEnd(n, m.index + m[0].length);
+            const r = range.getClientRects()[0];
+            if (r) g.fillText(m[0], r.left / cell, (r.top + r.height / 2) / cell);
+          }
+        }
+      });
+    }
+    function shapeFor(key) {
+      if (key === 'clock') return word(clockFmt.format(new Date()), 500, 'normal');
+      if (key === 'doodle') return doodle();
+      return cache[key];
+    }
+
+    /* Particles */
+    function alloc(n) {
+      N = n;
+      [X, Y, SX, SY, CX, CY, TX, TY, D] = Array.from({ length: 9 }, () => new Float32Array(n));
+    }
+    function shuffle(a) {
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const t = a[i]; a[i] = a[j]; a[j] = t;
+      }
+      return a;
+    }
+    // Every particle gets a cell of the shape; extras double up.
+    function targets(M) {
+      if (M >= N) return shuffle(Array.from({ length: M }, (_, i) => i)).slice(0, N);
+      return shuffle(Array.from({ length: N }, (_, i) => (i < M ? i : Math.floor(Math.random() * M))));
+    }
+    function retarget(shape, mode) {
+      const P = shape.pts;
+      let order = targets(P.length / 2);
+      const who = Array.from({ length: N }, (_, i) => i);
+      if (mode === 'sweep') { // left-most particles go to the left-most cells
+        who.sort((a, b) => X[a] - X[b] || Y[a] - Y[b]);
+        order = order.sort((a, b) => P[2 * a] - P[2 * b] || P[2 * a + 1] - P[2 * b + 1]);
+      }
+      spread = mode === 'sweep' ? 0.8 : mode === 'hop' ? 0.6 : 0.3;
+      const mx = cols / 2, my = rows / 2;
+      for (let k = 0; k < N; k++) {
+        const i = who[k], j = order[k];
+        const sx = X[i], sy = Y[i], tx = P[2 * j], ty = P[2 * j + 1];
+        let cx = (sx + tx) / 2, cy = (sy + ty) / 2;
+        if (mode === 'swirl') { // swing round the middle of the screen
+          const dx = cx - mx, dy = cy - my;
+          cx = mx - dy * 0.9 + dx * 0.1;
+          cy = my + dx * 0.9 + dy * 0.1;
+        } else if (mode === 'burst') { // fly out first
+          cx = sx + (sx - mx) * 1.2;
+          cy = sy + (sy - my) * 1.2;
+        } else if (mode === 'hop') { // arc over, like a jump shot
+          cy = Math.min(sy, ty) - rows * (0.2 + Math.random() * 0.25);
+        }
+        SX[i] = sx; SY[i] = sy; TX[i] = tx; TY[i] = ty; CX[i] = cx; CY[i] = cy;
+        D[i] = mode === 'sweep' ? (tx / cols) * spread : mode === 'hop' ? (sx / cols) * spread : Math.random() * spread;
+      }
+    }
+    function next(now) {
+      let shape = null;
+      for (let tries = 0; tries < PLAN.length && !(shape && shape.pts.length); tries++) {
+        shape = shapeFor(PLAN[at]);
+        at = (at + 1) % PLAN.length;
+      }
+      if (!shape || !shape.pts.length) return;
+      caret = shape.caret;
+      // The page's own words always blow apart first; after that, mix it up.
+      retarget(shape, fresh ? 'burst' : MODES[Math.floor(Math.random() * MODES.length)]);
+      fresh = false;
+      t0 = now;
+      shown = -1;
+      if (reduced.matches) { X.set(TX); Y.set(TY); phase = 'hold'; hold = 4; } else phase = 'fly';
+    }
+
+    function draw(withCaret) {
+      const { desk, deskInk, accent } = Colors.get();
+      const s = cell * dpr, size = cell >= 6 ? s - dpr : s;
+      ctx.fillStyle = rgb(desk);
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = rgb(deskInk);
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
+      ctx.fill();
+      if (withCaret) {
+        ctx.fillStyle = rgb(accent);
+        ctx.beginPath();
+        for (let y = 0; y < caret.h; y++) for (let x = 0; x < caret.w; x++) ctx.rect((caret.x + x) * s, (caret.y + y) * s, size, size);
+        ctx.fill();
+      }
+    }
+    function frame(now) {
+      raf = requestAnimationFrame(frame);
+      const t = (now - t0) / 1000;
+      if (phase === 'fly') {
+        if (t < FLY + spread) {
+          for (let i = 0; i < N; i++) {
+            const u = ease(clamp((t - D[i]) / FLY, 0, 1)), v = 1 - u;
+            X[i] = v * v * SX[i] + 2 * v * u * CX[i] + u * u * TX[i];
+            Y[i] = v * v * SY[i] + 2 * v * u * CY[i] + u * u * TY[i];
+          }
+          draw(false);
+          return;
+        }
+        X.set(TX); Y.set(TY);
+        phase = 'hold'; hold = HOLD; t0 = now; shown = -1;
+        return;
+      }
+      if (t >= hold) { next(now); draw(false); return; }
+      // Only redraw when the caret blinks.
+      const blink = caret && !reduced.matches ? Math.floor(t / 0.55) % 2 : 0;
+      if (blink !== shown) { shown = blink; draw(!!caret && blink === 0); }
+    }
+
+    function start() {
+      if (on) return;
+      on = true;
+      closeMenu();
+      Piano.releaseAll();
+      Paint.commit();
+      measure();
+      cache = {};
+      let most = 0;
+      PLAN.forEach((key) => {
+        if (key === 'clock' || key === 'doodle') return;
+        const s = typeof key === 'number' ? word(...WORDS[key]) : sprite(STAMPS[key]);
+        cache[key] = s;
+        most = Math.max(most, s.pts.length / 2);
+      });
+      alloc(clamp(most, 400, 6000));
+      // Start from the statement where it sits, or from static if it's off screen.
+      const first = statement();
+      const M = first ? first.pts.length / 2 : 0;
+      const pick = M ? targets(M) : null;
+      for (let i = 0; i < N; i++) {
+        if (pick) { X[i] = first.pts[2 * pick[i]]; Y[i] = first.pts[2 * pick[i] + 1]; }
+        else { X[i] = Math.floor(Math.random() * cols); Y[i] = Math.floor(Math.random() * rows); }
+      }
+      at = 0; caret = null; phase = 'hold'; hold = 0.8; shown = -1; fresh = true;
+      startedAt = t0 = performance.now();
+      anchor = null;
+      canvas.hidden = false;
+      draw(false);
+      raf = requestAnimationFrame(frame);
+    }
+    function stop() {
+      if (!on) return;
+      on = false;
+      cancelAnimationFrame(raf);
+      canvas.hidden = true;
+      lastInput = performance.now();
+    }
+
+    // Any key or click wakes the desk and is swallowed; so is a real mouse move.
+    let swallow = 0;
+    function wake(e) {
+      lastInput = performance.now();
+      if (!on) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if (e.type === 'pointerdown') swallow = lastInput + 800; // and the click that follows
+      stop();
+    }
+    addEventListener('pointerdown', wake, true);
+    addEventListener('keydown', wake, true);
+    addEventListener('click', (e) => {
+      if (performance.now() > swallow) return;
+      swallow = 0;
+      e.preventDefault();
+      e.stopPropagation();
+    }, true);
+    addEventListener('wheel', () => { lastInput = performance.now(); stop(); }, { capture: true, passive: true });
+    addEventListener('pointermove', (e) => {
+      lastInput = performance.now();
+      if (!on || lastInput - startedAt < 600) return;
+      if (!anchor) { anchor = [e.clientX, e.clientY]; return; }
+      if (Math.abs(e.clientX - anchor[0]) + Math.abs(e.clientY - anchor[1]) > 12) stop();
+    }, { capture: true, passive: true });
+    addEventListener('resize', stop);
+    document.addEventListener('visibilitychange', () => { lastInput = performance.now(); });
+    setInterval(() => {
+      if (!on && !document.hidden && alertBox.hidden && performance.now() - lastInput > IDLE) start();
+    }, 1000);
+
+    return { start, stop };
+  })();
+
+  /* ==========================================================
      Global input
   ========================================================== */
   const CLICKABLE = 'button:not([aria-disabled="true"]), a[href], .icon, .titlebar, label.checkbox';
@@ -1584,9 +2882,16 @@
   });
   document.addEventListener('keydown', (e) => {
     Sound.unlock();
+    const typing = e.target.closest('input:not([type="checkbox"]), textarea, [contenteditable]');
+    if ((e.metaKey || e.ctrlKey) && e.code === 'KeyZ' && !e.shiftKey && !typing && Paint.active) {
+      e.preventDefault();
+      Paint.undo();
+      return;
+    }
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !alertBox.hidden) return;
-    if (e.target.closest('input:not([type="checkbox"]), textarea, [contenteditable]')) return;
+    if (typing) return;
     if (Piano.active && Piano.keydown(e)) return;
+    if (Hoops.active && Hoops.keydown(e)) return;
     if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
     if (e.key === 'Escape') {
       if (openRec) { closeMenu(true); return; }
