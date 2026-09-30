@@ -544,6 +544,68 @@
   .hoops-status { min-height: 17px; margin-top: 8px; font-size: 12px; }
   .hoops-hint { margin-top: 2px; font-size: 11px; color: var(--graphite); }
 
+  /* Piano keys Bez wants you to play: a blinking dot, like the caret */
+  .key.is-target::after {
+    content: ""; position: absolute; left: 50%; bottom: 22px;
+    width: 8px; height: 8px; margin-left: -4px;
+    background: var(--accent);
+    animation: blink 1.1s steps(1, end) infinite;
+  }
+  .bk.is-target::after { bottom: 16px; width: 6px; height: 6px; margin-left: -3px; }
+
+  /* Bez, an anchor point whose Bézier handles are his arms */
+  .bez {
+    position: fixed; z-index: 48;
+    right: max(18px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    width: 88px; height: 72px;
+  }
+  .bez-me { display: block; width: 88px; height: 72px; cursor: default; touch-action: none; }
+  .bez-me canvas { display: block; width: 88px; height: 72px; image-rendering: pixelated; }
+  .bez-me:focus-visible { outline-offset: -6px; }
+  .bez.is-in .bez-me { animation: bez-in .36s steps(6, end) both; }
+  .bez.is-out .bez-me { animation: bez-in .3s steps(5, end) reverse both; }
+  .bez.is-out .balloon { display: none; }
+  .bez.is-hop .bez-me { animation: bez-hop .34s steps(4, end); }
+  @keyframes bez-in { from { transform: translateY(96px); } to { transform: none; } }
+  @keyframes bez-hop { 50% { transform: translateY(-10px); } }
+  /* The balloon is placed by script so it stays on screen wherever Bez is dragged. */
+  .balloon {
+    position: absolute; left: 0; bottom: calc(100% + 10px);
+    width: min(292px, calc(100vw - 28px));
+    padding: 12px 14px;
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--ink); border-radius: 12px;
+    box-shadow: var(--pop-shadow);
+  }
+  .is-flip-y .balloon { bottom: auto; top: calc(100% + 10px); }
+  .b-tail { position: absolute; left: 0; bottom: -11px; width: 12px; height: 11px; }
+  .is-flip-x .b-tail { transform: scaleX(-1); }
+  .is-flip-y .b-tail { bottom: auto; top: -11px; transform: scaleY(-1); }
+  .is-flip-x.is-flip-y .b-tail { transform: scale(-1, -1); }
+  .b-tail .t-ink { fill: var(--ink); }
+  .b-tail .t-fill { fill: var(--paper); }
+  .b-text p + p { margin-top: 6px; }
+  .b-text b { font-weight: 700; }
+  .b-hint { color: var(--graphite); }
+  .b-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; margin-top: 12px; }
+  .b-list { margin: 10px -6px 0; padding: 0; list-style: none; }
+  .b-item {
+    display: flex; justify-content: space-between; align-items: center; gap: 12px;
+    width: 100%; height: 22px; padding: 0 6px;
+    text-align: left; cursor: default;
+  }
+  .b-item:hover, .b-item:focus-visible { background: var(--hl); color: var(--on-hl); outline: none; }
+  .b-item small { font-size: 11px; font-weight: 600; color: inherit; opacity: .7; }
+  .notes { display: flex; flex-wrap: wrap; gap: 2px; margin-top: 10px; }
+  .note {
+    display: grid; justify-items: center; gap: 2px; min-width: 21px; padding: 3px 2px;
+    font: 600 12px/1 var(--mono);
+  }
+  .note small { font-size: 10px; font-weight: 500; color: var(--graphite); }
+  .note.is-done { color: var(--graphite); }
+  .note.is-now { background: var(--ink); color: var(--paper); }
+  .note.is-now small { color: var(--paper); }
+
   /* Screen saver */
   .saver { position: fixed; inset: 0; z-index: 90; display: block; width: 100%; height: 100%; background: var(--desk-color); cursor: none; }
 
@@ -611,8 +673,9 @@
   @keyframes redraw { from { clip-path: inset(0 0 100% 0); } to { clip-path: inset(0); } }
 
   @media (prefers-reduced-motion: reduce) {
-    .caret { animation: none; }
+    .caret, .key.is-target::after { animation: none; }
     .chip, .chip::after { transition: none; }
+    .bez .bez-me { animation: none !important; }
   }
 </style>
 </head>
@@ -640,6 +703,7 @@
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="paint">Paint</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="hoops">Hoops</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-saver>Screen Saver</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-bez>Ask Bez <span aria-hidden="true">?</span></button></li>
         <li role="separator" class="sep"></li>
         <li role="none"><a class="mi" role="menuitem" href="https://hex.inc" target="_blank" rel="noopener">Visit hex.inc</a></li>
         <li role="separator" class="sep"></li>
@@ -887,6 +951,19 @@
   <div class="wactions"><button class="btn is-default" type="button">OK</button></div>
 </section>
 
+<!-- Bez -->
+<div class="bez" id="bez" hidden>
+  <section class="balloon" id="bez-balloon" aria-label="Bez says" hidden>
+    <div class="b-text" id="bez-text" aria-live="polite"></div>
+    <div id="bez-extra"></div>
+    <div class="b-actions" id="bez-actions"></div>
+    <svg class="b-tail" id="bez-tail" viewBox="0 0 12 11" shape-rendering="crispEdges" aria-hidden="true"></svg>
+  </section>
+  <button class="bez-me" id="bez-me" type="button" aria-label="Bez, your assistant" aria-controls="bez-balloon" aria-expanded="false" title="Bez. Drag him anywhere.">
+    <canvas width="44" height="36"></canvas>
+  </button>
+</div>
+
 <canvas class="saver" id="saver" aria-hidden="true" hidden></canvas>
 <div class="fx" aria-hidden="true"></div>
 <div class="bezel" aria-hidden="true"></div>
@@ -1007,6 +1084,10 @@
       },
       swish() { hit({ f: 5200, q: 0.5, gain: 0.08, dur: 0.24 }); hit({ f: 8000, q: 0.8, gain: 0.04, dur: 0.18, at: 0.04 }); },
       score() { tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.1, at: 0.08 }); tone({ f: 1175, type: 'triangle', gain: 0.03, dur: 0.18, at: 0.16 }); },
+      // Bez
+      bezIn() { tone({ f: 660, f2: 990, gain: 0.04, dur: 0.12 }); tone({ f: 1320, type: 'triangle', gain: 0.025, dur: 0.1, at: 0.09 }); },
+      bezOut() { tone({ f: 990, f2: 560, gain: 0.035, dur: 0.14 }); },
+      bezYay() { [523, 659, 784, 1047].forEach((f, i) => tone({ f, type: 'triangle', gain: 0.03, dur: 0.12, at: i * 0.07 })); },
     };
     function play(name, k) { if (sfxOn && ctx && FX[name]) FX[name](k); }
 
@@ -1262,6 +1343,7 @@
     Portrait.render();
     Paint.render();
     Hoops.render();
+    Bez.render();
     updateDock();
   }
   function setTheme(id) {
@@ -1348,11 +1430,12 @@
       const item = e.target.closest('.mi');
       if (!item) return;
       const { win } = item.dataset;
-      const saver = item.hasAttribute('data-saver');
-      if (!win && !saver) { closeMenu(); return; } // links navigate normally
+      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez');
+      if (!win && !saver && !bez) { closeMenu(); return; } // links navigate normally
       blinkThen(rec, item, () => {
         closeMenu();
         if (saver) Saver.start();
+        else if (bez) Bez.summon(true);
         else openWin(W[win], { scroll: true });
       });
     });
@@ -1438,9 +1521,9 @@
   const hooks = {
     readme: { after: () => startProgress(), close: () => stopProgress() },
     about: { before: () => Portrait.load() },
-    piano: { before: () => Piano.layout(), after: () => Piano.warm(), close: () => Piano.releaseAll() },
+    piano: { before: () => Piano.layout(), after: () => { Piano.warm(); Bez.pianoOpened(); }, close: () => { Piano.releaseAll(); Bez.pianoClosed(); } },
     paint: { before: () => Paint.build(), close: () => Paint.commit() },
-    hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => Hoops.stop() },
+    hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => { Hoops.stop(); Bez.hoopsClosed(); } },
   };
 
   function openWin(win, opts = {}) {
@@ -1532,6 +1615,7 @@
       if (!W.piano.hidden) Piano.layout();
       if (!W.readme.hidden) renderProgress();
       Paint.commit();
+      Bez.keepOnScreen();
     });
   });
 
@@ -1655,11 +1739,12 @@
     const WHITE = [0, 2, 4, 5, 7, 9, 11];
     const CODES = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, KeyG: 7, KeyY: 8, KeyH: 9, KeyU: 10, KeyJ: 11, KeyK: 12, KeyO: 13, KeyL: 14, KeyP: 15, Semicolon: 16, Quote: 17 };
     const LABELS = ['A', 'W', 'S', 'E', 'D', 'F', 'T', 'G', 'Y', 'H', 'U', 'J', 'K', 'O', 'L', 'P', ';', '\''];
-    let base = 60, built = false, warmed = false;
+    let base = 60, built = false, warmed = false, targets = [], auto = 0;
     const voices = new Map();
     const held = [];
     const down = new Map();
     const ptr = new Map();
+    const heard = new Set();
     const octaveName = (m) => 'C' + (Math.floor(m / 12) - 1);
 
     function makeKey(off, cls) {
@@ -1698,6 +1783,7 @@
       keysEl.style.setProperty('--bw', bw + 'px');
       win.style.setProperty('--kbw', (kw * 15 + 2) + 'px');
       $$('.bk', keysEl).forEach((k) => { k.style.left = ((+k.dataset.slot + 1) * kw - 1 - (bw - 1) / 2) + 'px'; });
+      markTargets();
     }
     function loadSamples() {
       statusEl.textContent = 'Loading the grand piano…';
@@ -1719,6 +1805,7 @@
     }
     function press(off, src, vel) {
       release(src);
+      if (!src.startsWith('bez')) heard.forEach((fn) => fn(base + off));
       const v = Sound.note(base + off, vel);
       if (!v) return;
       voices.set(src, { off, v });
@@ -1739,7 +1826,22 @@
       base = next;
       rangeEl.textContent = octaveName(base) + '–' + octaveName(base + 24);
       if (warmed) Sound.preload(base, base + 24);
+      markTargets();
     }
+
+    /* For Bez: which keys to light, notes played for you, and what you play. */
+    function markTargets() {
+      $$('.key', keysEl).forEach((k) => k.classList.toggle('is-target', targets.includes(base + +k.dataset.off)));
+    }
+    function target(midis) { targets = midis; markTargets(); }
+    function play(midi, ms) {
+      const off = midi - base, src = 'bez' + auto++;
+      if (off < 0 || off > 24) { const v = Sound.note(midi, 0.7); if (v) setTimeout(() => v.stop(0.3), ms); return; }
+      press(off, src, 0.7);
+      setTimeout(() => release(src), ms);
+    }
+    const label = (midi) => LABELS[midi - base] || '';
+    const home = () => shift((60 - base) / 12);
 
     sustain.addEventListener('change', () => { if (!sustain.checked) held.splice(0).forEach((v) => v.stop(0.5)); });
     $$('[data-oct]', win).forEach((b) => b.addEventListener('click', () => shift(+b.dataset.oct)));
@@ -1795,7 +1897,9 @@
     function keyup(e) { if (e.code in CODES) release('k' + e.code); }
 
     return {
-      layout, warm, releaseAll, keydown, keyup,
+      layout, warm, releaseAll, keydown, keyup, target, play, label, home,
+      onNote: (fn) => heard.add(fn),
+      get base() { return base; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
   })();
@@ -2191,7 +2295,8 @@
     };
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
     const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, a: 0 };
-    let built = false, state = 'ready', shot = null, aim = null;
+    const watchers = new Set(), solved = new Map();
+    let built = false, state = 'ready', shot = null, aim = null, assist = false;
     let keyA = 0.95, keyP = 0.72, showKey = false;
     let score = 0, streak = 0, best = parseInt(store.get(KEY), 10) || 0;
     let net = 0, netT = 0, wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0;
@@ -2208,57 +2313,111 @@
     }
     const thump = (name, v) => Sound.play(name, clamp(v / 320, 0.15, 1));
 
-    /* Physics */
-    function hitRect([x0, y0, x1, y1]) {
-      const cx = clamp(ball.x, x0, x1 + 1), cy = clamp(ball.y, y0, y1 + 1);
-      const dx = ball.x - cx, dy = ball.y - cy, d = Math.hypot(dx, dy);
+    /* Physics. It runs on the real ball, and on ghost balls when Bez
+       works out a shot, so it takes the body and shot record to use. */
+    function hitRect(b, [x0, y0, x1, y1]) {
+      const cx = clamp(b.x, x0, x1 + 1), cy = clamp(b.y, y0, y1 + 1);
+      const dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy);
       if (d >= R || d === 0) return 0;
       const nx = dx / d, ny = dy / d;
-      ball.x = cx + nx * R; ball.y = cy + ny * R;
-      const vn = ball.vx * nx + ball.vy * ny;
+      b.x = cx + nx * R; b.y = cy + ny * R;
+      const vn = b.vx * nx + b.vy * ny;
       if (vn >= 0) return 0;
-      ball.vx -= 1.6 * vn * nx; ball.vy -= 1.6 * vn * ny;
+      b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny;
       return -vn;
     }
-    function hitPoint(x, y, r) {
-      const dx = ball.x - x, dy = ball.y - y, d = Math.hypot(dx, dy);
+    function hitPoint(b, x, y, r) {
+      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy);
       if (d >= R + r || d === 0) return 0;
       const nx = dx / d, ny = dy / d;
-      ball.x = x + nx * (R + r); ball.y = y + ny * (R + r);
-      const vn = ball.vx * nx + ball.vy * ny;
+      b.x = x + nx * (R + r); b.y = y + ny * (R + r);
+      const vn = b.vx * nx + b.vy * ny;
       if (vn >= 0) return 0;
-      ball.vx -= 1.5 * vn * nx; ball.vy -= 1.5 * vn * ny;
+      b.vx -= 1.5 * vn * nx; b.vy -= 1.5 * vn * ny;
       return -vn;
     }
-    function step(h) {
-      const py = ball.y;
-      ball.vy += GRAV * h;
-      ball.x += ball.vx * h;
-      ball.y += ball.vy * h;
-      ball.a += (ball.vx * h) / R;
-      if (ball.y >= FLOOR - R) {
-        ball.y = FLOOR - R;
-        if (ball.vy > 0) {
-          if (ball.vy > 45) thump('bounce', ball.vy);
-          ball.vy = ball.vy > 32 ? -ball.vy * 0.62 : 0;
-          ball.vx *= 0.88;
+    const newShot = (x, vx = 0, vy = 0) => ({
+      from: x, rim: false, board: false, scored: false, t: 0,
+      apex: FLOOR, cross: null, first: null, a: Math.atan2(-vy, vx), p: Math.hypot(vx, vy) / VMAX,
+    });
+    // One step for body b; returns true on the step the ball drops through the hoop.
+    function step(b, h, s, loud) {
+      const py = b.y;
+      b.vy += GRAV * h;
+      b.x += b.vx * h;
+      b.y += b.vy * h;
+      b.a += (b.vx * h) / R;
+      if (b.y >= FLOOR - R) {
+        b.y = FLOOR - R;
+        if (b.vy > 0) {
+          if (loud && b.vy > 45) thump('bounce', b.vy);
+          b.vy = b.vy > 32 ? -b.vy * 0.62 : 0;
+          b.vx *= 0.88;
         }
-        if (ball.vy === 0) ball.vx -= ball.vx * Math.min(1, 1.6 * h); // rolling
+        if (b.vy === 0) b.vx -= b.vx * Math.min(1, 1.6 * h); // rolling
       }
-      if (ball.x < R) { ball.x = R; ball.vx = Math.abs(ball.vx) * 0.6; }
-      if (ball.x > CW - R) { ball.x = CW - R; ball.vx = -Math.abs(ball.vx) * 0.6; }
-      const b = hitRect(BOARD);
-      if (b) { if (shot) shot.board = true; if (b > 30) thump('board', b); }
-      const p = Math.max(hitRect(ARM), hitRect(POLE));
-      if (p > 30) thump('board', p);
-      const r = hitPoint(RIM_F, RIM_Y + 1, 1.5);
-      if (r) { if (shot) shot.rim = true; if (r > 25) thump('rim', r); }
-      if (shot && !shot.scored && py < RIM_Y + 1 && ball.y >= RIM_Y + 1 && ball.vy > 0 && ball.x > RIM_F && ball.x < BOARD[0]) scored();
+      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * 0.6; }
+      if (b.x > CW - R) { b.x = CW - R; b.vx = -Math.abs(b.vx) * 0.6; }
+      const hb = hitRect(b, BOARD);
+      if (hb) { if (s) { s.board = true; s.first = s.first || 'board'; } if (loud && hb > 30) thump('board', hb); }
+      const hp = Math.max(hitRect(b, ARM), hitRect(b, POLE));
+      if (loud && hp > 30) thump('board', hp);
+      const hr = hitPoint(b, RIM_F, RIM_Y + 1, 1.5);
+      if (hr) { if (s) { s.rim = true; s.first = s.first || 'rim'; } if (loud && hr > 25) thump('rim', hr); }
+      if (!s) return false;
+      if (b.y < s.apex) s.apex = b.y;
+      const down = py < RIM_Y + 1 && b.y >= RIM_Y + 1 && b.vy > 0;
+      if (down && s.cross === null) s.cross = b.x;
+      if (down && !s.scored && b.x > RIM_F && b.x < BOARD[0]) { s.scored = true; return true; }
+      return false;
     }
+    // What happened, in coaching terms.
+    function verdict(s) {
+      if (s.scored) return !s.rim && !s.board ? 'swish' : s.rim ? 'roll' : 'bank';
+      if (s.apex > RIM_Y - 3) return 'low';
+      if (s.first) return s.first === 'board' ? 'long' : 'rim';
+      return s.cross !== null && s.cross >= BOARD[0] ? 'long' : 'short';
+    }
+    // Fly a ghost ball silently until it scores or clearly can't.
+    function simulate(x, vx, vy) {
+      const b = { x, y: FLOOR - R, vx, vy, a: 0 }, s = newShot(x, vx, vy), h = 1 / 480;
+      for (let t = 0; t < 3; t += h) {
+        if (step(b, h, s, false)) break;
+        if (s.cross !== null && b.y > RIM_Y + 16) break;
+        if (t > 0.1 && b.y >= FLOOR - R) break;
+      }
+      return s;
+    }
+    // Search angle × pull for makes from x, and take the middle of the widest band.
+    function solve(x) {
+      x = Math.round(x);
+      if (solved.has(x)) return solved.get(x);
+      const as = [], ps = [];
+      for (let a = 0.6; a <= 1.4; a += 0.025) as.push(a);
+      for (let p = 0.35; p <= 1.0001; p += 0.015) ps.push(p);
+      const grid = as.map((a) => ps.map((p) => {
+        const s = simulate(x, Math.cos(a) * p * VMAX, -Math.sin(a) * p * VMAX);
+        return s.scored ? (!s.rim && !s.board ? 2 : 1) : 0;
+      }));
+      let best = null, most = 0;
+      grid.forEach((row, i) => row.forEach((v, j) => {
+        if (!v) return;
+        let n = v * 3;
+        for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) n += (grid[i + di] && grid[i + di][j + dj]) || 0;
+        if (n > most) { most = n; best = { a: as[i], p: ps[j] }; }
+      }));
+      solved.set(x, best);
+      return best;
+    }
+    const deg = (a) => Math.round((a * 180) / Math.PI);
+    const readout = (vx, vy) => 'Angle ' + deg(Math.atan2(-vy, vx)) + '° · Power ' + Math.round((Math.hypot(vx, vy) / VMAX) * 100) + '%';
     function scored() {
-      shot.scored = true;
       const pts = shot.from < THREE ? 3 : 2;
       const clean = !shot.rim && !shot.board;
+      net = 1;
+      Sound.play('swish');
+      Sound.play('score');
+      if (shot.bez) { say('Bez: ' + pick(clean ? LINES.swish : LINES.roll) + ' Your turn.'); return; }
       score += pts;
       streak++;
       if (streak > best) { best = streak; store.set(KEY, String(best)); }
@@ -2270,17 +2429,18 @@
       else if (pts === 3) line = pick(LINES.three);
       else line = pick(clean ? LINES.swish : shot.rim ? LINES.roll : LINES.bank);
       say(line + ' +' + pts);
-      Sound.play('swish');
-      Sound.play('score');
       sync(true);
     }
     function shotEnd() {
-      if (!shot.scored) {
+      if (shot.bez && !shot.scored) say('Even Bez misses. Your turn.');
+      else if (!shot.scored) {
         const lost = streak >= 3;
         streak = 0;
         say(pick(shot.rim ? LINES.clank : shot.board ? LINES.glass : LINES.air) + (lost ? ' Streak over.' : ''));
         sync();
       }
+      const report = { from: shot.from, a: shot.a, p: shot.p, scored: shot.scored, kind: verdict(shot), bez: !!shot.bez };
+      watchers.forEach((fn) => fn(report));
       shot = null;
       trail = [];
       state = 'wait';
@@ -2301,10 +2461,11 @@
       state = 'ready';
       dirty = true;
     }
-    function launch(vx, vy) {
+    function launch(vx, vy, bez) {
       settle();
       ball.vx = vx; ball.vy = vy;
-      shot = { from: ball.x, rim: false, board: false, scored: false, t: 0 };
+      shot = newShot(ball.x, vx, vy);
+      shot.bez = !!bez;
       state = 'flight';
       rest = 0;
       showKey = false;
@@ -2315,7 +2476,7 @@
       if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(); return; }
       if (state !== 'flight' && state !== 'drop') return;
       const n = Math.max(1, Math.ceil(dt * 480));
-      for (let i = 0; i < n; i++) step(dt / n);
+      for (let i = 0; i < n; i++) if (step(ball, dt / n, shot, true)) scored();
       dirty = true;
       const still = ball.y >= FLOOR - R - 0.01 && ball.vy === 0 && Math.abs(ball.vx) < 5;
       rest = still ? rest + dt : 0;
@@ -2356,9 +2517,10 @@
         }
       }
     }
+    // Aim dots: the first moment of the arc, or all of it with training wheels on.
     function dots(vx, vy) {
       let x = ball.x, y = ball.y;
-      for (let i = 1; i <= 21; i++) {
+      for (let i = 1; i <= (assist ? 120 : 21) && y <= FLOOR - R; i++) {
         vy += GRAV / 60; x += vx / 60; y += vy / 60;
         if (i % 3 === 0) { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); }
       }
@@ -2454,6 +2616,7 @@
       if (d > PULL) { dx *= PULL / d; dy *= PULL / d; }
       aim.vx = (dx / PULL) * VMAX;
       aim.vy = (dy / PULL) * VMAX;
+      say(readout(aim.vx, aim.vy));
       dirty = true;
     });
     const release = (e) => {
@@ -2483,12 +2646,45 @@
       e.preventDefault();
       if (state === 'drop') settle();
       showKey = true;
+      say(readout(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX));
       dirty = true;
       return true;
     }
 
+    /* For Bez: shot reports, a worked-out shot from any spot, and a demonstration. */
+    function recommend(x) {
+      const s = solve(x);
+      return s && { deg: deg(s.a), pct: Math.round(s.p * 100) };
+    }
+    function demo() {
+      if (state !== 'ready' && state !== 'drop') return null;
+      settle();
+      const s = solve(ball.x);
+      if (!s) return null;
+      const vx = Math.cos(s.a) * s.p * VMAX, vy = -Math.sin(s.a) * s.p * VMAX;
+      const mine = { id: 'bez', vx: 0, vy: 0 }, t0 = performance.now();
+      aim = mine;
+      state = 'aim';
+      showKey = false;
+      // Pull back slowly so you can see it, hold, then let go.
+      const pull = () => {
+        if (aim !== mine) return;
+        const k = Math.min(1, (performance.now() - t0) / 700);
+        mine.vx = vx * k; mine.vy = vy * k;
+        say(readout(mine.vx, mine.vy));
+        dirty = true;
+        if (k < 1) requestAnimationFrame(pull);
+        else setTimeout(() => { if (aim === mine) { aim = null; launch(vx, vy, true); } }, 450);
+      };
+      requestAnimationFrame(pull);
+      return { deg: deg(s.a), pct: Math.round(s.p * 100) };
+    }
+
     return {
-      build, start, stop, render, keydown,
+      build, start, stop, render, keydown, recommend, demo,
+      onShot: (fn) => watchers.add(fn),
+      set assist(on) { assist = on; dirty = true; },
+      get assist() { return assist; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
   })();
@@ -2860,6 +3056,464 @@
   })();
 
   /* ==========================================================
+     Bez — the desk's assistant: an anchor point whose Bézier
+     handles are his arms. He teaches songs on the Piano one lit
+     key at a time, and coaches your jump shot in Hoops. He only
+     drops in uninvited once per toy, and never again if asked.
+  ========================================================== */
+  const Bez = (() => {
+    const el = $('#bez');
+    const me = $('#bez-me');
+    const canvas = $('canvas', me);
+    const g = canvas.getContext('2d');
+    const SW = canvas.width, SH = canvas.height;
+    const img = g.createImageData(SW, SH);
+    const px = new Uint8Array(SW * SH); // 0 clear, 1 ink, 2 paper, 3 accent
+    const balloon = $('#bez-balloon'), tail = $('#bez-tail');
+    const textEl = $('#bez-text'), extraEl = $('#bez-extra'), actionsEl = $('#bez-actions');
+    const KEY = 'adiel-bez';
+    const NOTE = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+    const PITCH = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+    const name = (m) => NOTE[m % 12];
+    const deg = (a) => Math.round((a * 180) / Math.PI);
+    const pick = (a) => a[Math.floor(Math.random() * a.length)];
+    // Songs are written as notes with an optional length in beats: "E4 D4 C4:2".
+    const song = (s) => s.trim().split(/\s+/).map((t) => {
+      const [, l, sharp, o, d] = t.match(/^([A-G])(#?)(\d)(?::([\d.]+))?$/);
+      return [12 * (+o + 1) + PITCH[l] + (sharp ? 1 : 0), d ? +d : 1];
+    });
+    const LESSONS = [
+      { id: 'five', name: 'Five fingers', beat: 0.4,
+        intro: 'Thumb on C, then one finger per key up to G, and back down.',
+        notes: song('C4 D4 E4 F4 G4 F4 E4 D4 C4:2') },
+      { id: 'scale', name: 'C major scale', beat: 0.32,
+        intro: 'Every white key from C to the next C, and back. No black keys.',
+        notes: song('C4 D4 E4 F4 G4 A4 B4 C5:2 B4 A4 G4 F4 E4 D4 C4:2') },
+      { id: 'mary', name: 'Mary Had a Little Lamb', beat: 0.34,
+        intro: 'Three keys do nearly all the work here: E, D and C.',
+        notes: song('E4 D4 C4 D4 E4 E4 E4:2 D4 D4 D4:2 E4 G4 G4:2 E4 D4 C4 D4 E4 E4 E4 E4 D4 D4 E4 D4 C4:4') },
+      { id: 'twinkle', name: 'Twinkle, Twinkle', beat: 0.36,
+        intro: 'A leap from C up to G, then a slow walk back down.',
+        notes: song('C4 C4 G4 G4 A4 A4 G4:2 F4 F4 E4 E4 D4 D4 C4:2') },
+      { id: 'ode', name: 'Ode to Joy', beat: 0.34,
+        intro: 'Beethoven, 1824. It hardly leaves five keys.',
+        notes: song('E4 E4 F4 G4 G4 F4 E4 D4 C4 C4 D4 E4 E4:1.5 D4:0.5 D4:2 E4 E4 F4 G4 G4 F4 E4 D4 C4 C4 D4 E4 D4:1.5 C4:0.5 C4:2') },
+      { id: 'elise', name: 'Für Elise', beat: 0.2,
+        intro: 'Beethoven again. The famous wobble uses a black key, D♯, which is P.',
+        notes: song('E5 D#5 E5 D#5 E5 B4 D5 C5 A4:3 C4 E4 A4 B4:3 E4 G#4 B4 C5:3 E4 E5 D#5 E5 D#5 E5 B4 D5 C5 A4:4') },
+    ];
+    const TIPS = {
+      low: ['That one never got above the rim. Pull back further.', 'Needs more legs. Pull back further.'],
+      short: ['Short. Same angle, a little more pull.', 'Just short. Give it a bit more.'],
+      rim: ['Front rim. So close: add a touch of arc.', 'Rim! Nudge the angle up a little.'],
+      long: ['Too hot, off the back. Ease up a little.', 'A bit strong. Pull back less.'],
+    };
+    const TAIL = [
+      '#..........#', ' #.........#', '  #........#', '   #.......#', '    #......#', '     #.....#',
+      '      #....#', '       #...#', '        #..#', '         #.#', '          ##',
+    ];
+    tail.innerHTML = '<path class="t-fill" d="' + pixPath(TAIL, '.') + '"/><path class="t-ink" d="' + pixPath(TAIL, '#') + '"/>';
+
+    const saved = (() => { try { return JSON.parse(store.get(KEY)) || {}; } catch (e) { return {}; } })();
+    saved.met = saved.met || {};
+    saved.done = saved.done || [];
+    const keep = () => store.set(KEY, JSON.stringify(saved));
+    let shown = false, mode = null, lesson = null, misses = 0, offer = 0, ticker = 0;
+    let mood = 'idle', moodUntil = 0, talkUntil = 0, blinkAt = 0, blinkUntil = 0;
+
+    /* Drawing Bez: handles behind, the anchor square in front, then a face. */
+    const put = (x, y, v) => {
+      x = Math.round(x); y = Math.round(y);
+      if (x >= 0 && y >= 0 && x < SW && y < SH) px[y * SW + x] = v;
+    };
+    function handle(cx, cy, d) {
+      const a = (d * Math.PI) / 180, kx = Math.round(cx + Math.cos(a) * 15), ky = Math.round(cy - Math.sin(a) * 15);
+      for (let i = 0; i <= 15; i++) put(cx + ((kx - cx) * i) / 15, cy + ((ky - cy) * i) / 15, 1);
+      for (let j = -2; j <= 2; j++) for (let i = -2; i <= 2; i++) {
+        const r = i * i + j * j;
+        if (r <= 5) put(kx + i, ky + j, r >= 4 ? 1 : 3);
+      }
+    }
+    // Which way to point: at the key to play, or at the court.
+    function pointing() {
+      const t = lesson ? $('.key.is-target', W.piano) : mode === 'coach' && !W.hoops.hidden ? $('#court') : null;
+      if (!t || !t.getClientRects().length) return null;
+      const a = t.getBoundingClientRect(), b = canvas.getBoundingClientRect();
+      const d = deg(Math.atan2(b.top + b.height / 2 - (a.top + a.height / 2), a.left + a.width / 2 - (b.left + b.width / 2)));
+      return (d + 360) % 360;
+    }
+    function pose(t) {
+      const still = reduced.matches, s = t / 1000, sway = still ? 0 : Math.sin(s * 1.6) * 5;
+      const p = { l: 205 + sway, r: -25 - sway, eyes: 'open', mouth: 'smile', look: 0 };
+      if (t > moodUntil) mood = lesson || mode === 'coach' ? 'point' : 'idle';
+      if (mood === 'wave') { p.r = 55 + (still ? 0 : Math.sin(s * 14) * 22); p.eyes = 'happy'; p.mouth = 'grin'; }
+      else if (mood === 'cheer') { p.l = 122; p.r = 58; p.eyes = 'happy'; p.mouth = 'grin'; }
+      else if (mood === 'oops') { p.l = 225; p.r = -45; p.eyes = 'squint'; p.mouth = 'flat'; }
+      else if (mood === 'think') { p.r = 105; p.eyes = 'up'; p.mouth = 'flat'; }
+      else if (mood === 'conduct') { p.r = 35 + (still ? 0 : Math.sin(s * 9) * 30); p.eyes = 'happy'; }
+      else if (mood === 'point') {
+        const d = pointing();
+        if (d !== null) {
+          if (d > 90 && d < 270) p.l = d; else p.r = d;
+          p.look = d > 90 && d < 270 ? -1 : 1;
+        }
+      }
+      if (t < talkUntil && Math.floor(t / 110) % 2) p.mouth = 'open';
+      if (t > blinkAt) { blinkUntil = t + 140; blinkAt = t + 2500 + Math.random() * 3000; }
+      if (t < blinkUntil && p.eyes === 'open') p.eyes = 'shut';
+      return p;
+    }
+    function draw() {
+      const t = performance.now(), p = pose(t);
+      const cx = 22, cy = 18 + (reduced.matches ? 0 : Math.floor(t / 600) % 2);
+      px.fill(0);
+      handle(cx, cy, p.l);
+      handle(cx, cy, p.r);
+      for (let y = -7; y <= 6; y++) for (let x = -7; x <= 6; x++) put(cx + x, cy + y, x === -7 || x === 6 || y === -7 || y === 6 ? 1 : 2);
+      [-4, 2].forEach((ex, side) => {
+        const x = cx + ex + p.look, y = cy - 3;
+        if (p.eyes === 'open') { for (let j = 0; j < 3; j++) { put(x, y + j, 1); put(x + 1, y + j, 1); } }
+        else if (p.eyes === 'shut') { put(x, y + 2, 1); put(x + 1, y + 2, 1); }
+        else if (p.eyes === 'up') { put(x, y - 1, 1); put(x + 1, y - 1, 1); put(x, y, 1); put(x + 1, y, 1); }
+        else if (p.eyes === 'happy') { put(x - 1, y + 2, 1); put(x, y + 1, 1); put(x + 1, y + 1, 1); put(x + 2, y + 2, 1); }
+        else { const o = side ? 1 : 0; put(x + o, y, 1); put(x + 1 - o, y + 1, 1); put(x + o, y + 2, 1); } // > <
+      });
+      const m = { smile: ['-2,2', '-1,3', '0,3', '1,2'], flat: ['-2,3', '-1,3', '0,3', '1,3'],
+        open: ['-1,2', '0,2', '-2,3', '-1,3', '0,3', '1,3', '-1,4', '0,4'],
+        grin: ['-3,2', '-2,2', '-1,2', '0,2', '1,2', '2,2', '-2,3', '-1,3', '0,3', '1,3', '-1,4', '0,4'] }[p.mouth];
+      m.forEach((xy) => { const [x, y] = xy.split(','); put(cx + +x, cy + +y, 1); });
+      const { ink, paper, accent } = Colors.get(), d = img.data;
+      for (let i = 0, j = 0; i < px.length; i++, j += 4) {
+        const v = px[i];
+        if (!v) { d[j + 3] = 0; continue; }
+        const c = v === 1 ? ink : v === 2 ? paper : accent;
+        d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2]; d[j + 3] = 255;
+      }
+      g.putImageData(img, 0, 0);
+    }
+    const act = (m, ms) => { mood = m; moodUntil = performance.now() + ms; };
+    function hop() {
+      if (reduced.matches) return;
+      el.classList.remove('is-hop');
+      void el.offsetWidth;
+      el.classList.add('is-hop');
+    }
+
+    /* The balloon */
+    function place() {
+      if (balloon.hidden || el.hidden) return;
+      const b = el.getBoundingClientRect(), w = balloon.offsetWidth, h = balloon.offsetHeight;
+      const cx = b.left + b.width / 2;
+      let left = cx + 30 - w, flipX = false;       // to Bez's left, tail near its right end…
+      if (left < 8) { left = cx - 30; flipX = true; } // …or to his right when there's no room
+      left = clamp(left, 8, Math.max(8, innerWidth - 8 - w));
+      balloon.style.left = left - b.left + 'px';
+      tail.style.left = clamp(flipX ? cx + 6 - left : cx - 18 - left, 14, w - 26) + 'px';
+      el.classList.toggle('is-flip-x', flipX);
+      el.classList.toggle('is-flip-y', b.top - h - 12 < menubar.offsetHeight + 6);
+    }
+    function say(html, { extra = null, actions = [], quiet = false, focus = false } = {}) {
+      textEl.innerHTML = html;
+      extraEl.replaceChildren(...(extra ? [extra] : []));
+      actionsEl.replaceChildren(...actions.map(([label, fn]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'btn btn-sm';
+        b.textContent = label;
+        b.addEventListener('click', fn);
+        return b;
+      }));
+      balloon.hidden = false;
+      me.setAttribute('aria-expanded', 'true');
+      if (!quiet) talkUntil = performance.now() + Math.min(1600, 300 + textEl.textContent.length * 16);
+      place();
+      if (focus) { const b = $('button', balloon); if (b) b.focus({ preventScroll: true }); }
+    }
+    function hush() {
+      balloon.hidden = true;
+      me.setAttribute('aria-expanded', 'false');
+    }
+
+    /* Coming and going */
+    function appear() {
+      clearTimeout(offer);
+      if (shown) return;
+      shown = true;
+      el.hidden = false;
+      el.classList.remove('is-out', 'is-hop');
+      el.classList.add('is-in');
+      setTimeout(() => el.classList.remove('is-in'), 400);
+      Sound.play('bezIn');
+      act('wave', 1500);
+      draw();
+      ticker = setInterval(draw, 100);
+    }
+    function leave() {
+      if (!shown) return;
+      endLesson();
+      mode = null;
+      if (Hoops.assist) Hoops.assist = false;
+      if (el.contains(document.activeElement)) (activeWin() || $('#menu-adiel')).focus({ preventScroll: true });
+      hush();
+      Sound.play('bezOut');
+      el.classList.add('is-out');
+      setTimeout(() => {
+        shown = false;
+        el.hidden = true;
+        el.classList.remove('is-out');
+        clearInterval(ticker);
+      }, reduced.matches ? 0 : 320);
+    }
+    const quiet = () => { saved.quiet = 1; keep(); leave(); };
+
+    function home(focus) {
+      endLesson();
+      mode = null;
+      say('<p>Hi, I’m <b>Bez</b>. I’m an anchor point; these handles are my arms.</p><p>I can teach you a song on the Piano, or help with your jump shot in Hoops.</p>',
+        { actions: [['Piano lessons', () => songs(true)], ['Hoops coaching', coach], ['Bye', leave]], focus });
+    }
+    // Opened from the menu, the ? key or by clicking him: help with whatever is in front.
+    function summon(focus) {
+      appear();
+      const top = activeWin();
+      if (lesson) showLesson();
+      else if (top === W.piano) songs(focus);
+      else if (top === W.hoops) coach();
+      else home(focus);
+    }
+    function toggle() {
+      if (shown && !balloon.hidden) hush();
+      else summon(true);
+    }
+
+    /* Piano lessons: no clock, Bez waits for each key. */
+    function songs(focus) {
+      endLesson();
+      mode = null;
+      const list = document.createElement('ul');
+      list.className = 'b-list';
+      LESSONS.forEach((L, i) => {
+        const li = document.createElement('li'), b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'b-item';
+        b.innerHTML = '<span>' + (i + 1) + '. ' + L.name + '</span><small>' + (saved.done.includes(L.id) ? 'Done ✓' : L.notes.length + ' notes') + '</small>';
+        b.addEventListener('click', () => begin(i));
+        li.append(b);
+        list.append(li);
+      });
+      act('think', 900);
+      say('<p>Pick a song. I’ll light up each key and wait for you to press it. There’s no clock.</p>',
+        { extra: list, actions: [['Back', () => home(true)], ['Bye', leave]], focus });
+    }
+    function begin(i) {
+      endLesson();
+      mode = 'lesson';
+      lesson = { i, at: 0, slips: 0, hint: LESSONS[i].intro, timers: null };
+      openWin(W.piano);
+      Piano.home();
+      showLesson();
+    }
+    function showLesson() {
+      const L = LESSONS[lesson.i], at = lesson.at, n = L.notes.length, want = L.notes[at][0];
+      Piano.target([want]);
+      const strip = document.createElement('div');
+      strip.className = 'notes';
+      strip.setAttribute('aria-hidden', 'true');
+      const from = clamp(at - 3, 0, Math.max(0, n - 10));
+      L.notes.slice(from, from + 10).forEach(([m], k) => {
+        const cell = document.createElement('span');
+        cell.className = 'note' + (from + k < at ? ' is-done' : from + k === at ? ' is-now' : '');
+        cell.innerHTML = name(m) + '<small>' + (Piano.label(m) || '·') + '</small>';
+        strip.append(cell);
+      });
+      const key = Piano.label(want), off = want - Piano.base;
+      const where = off < 0 || off > 24 ? 'It’s off this keyboard: press Z or X to shift octaves.'
+        : key ? 'Press <b>' + key + '</b> or click the blinking key.' : 'Click the blinking key.';
+      say('<p><b>' + L.name + '</b> · ' + (at + 1) + ' of ' + n + '</p>' + (lesson.hint ? '<p class="b-hint">' + lesson.hint + '</p>' : '') +
+        '<p>Next: <b>' + name(want) + '</b>. ' + where + '</p>',
+        { extra: strip, quiet: at > 0, actions: [['Hear it', hear], ['Restart', () => begin(lesson.i)], ['Songs', () => songs(true)]] });
+    }
+    function finish() {
+      const { i, slips } = lesson, L = LESSONS[i];
+      if (!saved.done.includes(L.id)) { saved.done.push(L.id); keep(); }
+      endLesson();
+      act('cheer', 1800);
+      hop();
+      Sound.play('bezYay');
+      const actions = [['Again', () => begin(i)]];
+      if (i + 1 < LESSONS.length) actions.push(['Next song', () => begin(i + 1)]);
+      actions.push(['Songs', () => songs(true)]);
+      say('<p><b>' + (slips ? 'Done!' : 'Clean run!') + '</b> ' + L.name + (slips ? ', with ' + slips + (slips === 1 ? ' slip.' : ' slips.') : ', not one slip.') + '</p>' +
+        '<p>' + (slips > 3 ? 'Once more and it’ll be in your fingers.' : 'Nice hands.') + '</p>', { actions });
+    }
+    // Bez plays it through first, conducting.
+    function hear() {
+      if (!lesson) return;
+      stopDemo();
+      const L = LESSONS[lesson.i];
+      openWin(W.piano);
+      Piano.home();
+      let t = 250;
+      lesson.timers = L.notes.map(([m, d]) => {
+        const ms = d * L.beat * 1000, at = t;
+        t += ms;
+        return setTimeout(() => Piano.play(m, ms * 0.9), at);
+      });
+      lesson.timers.push(setTimeout(() => { if (lesson) { lesson.timers = null; lesson.hint = 'Your turn.'; showLesson(); } }, t + 300));
+      act('conduct', t + 300);
+      say('<p>Listen first: <b>' + L.name + '</b>.</p>', { actions: [['Stop', () => { stopDemo(); showLesson(); }]] });
+    }
+    function stopDemo() {
+      if (!lesson || !lesson.timers) return;
+      lesson.timers.forEach(clearTimeout);
+      lesson.timers = null;
+    }
+    function endLesson() {
+      if (!lesson) return;
+      stopDemo();
+      lesson = null;
+      if (mode === 'lesson') mode = null;
+      Piano.target([]);
+    }
+    Piano.onNote((m) => {
+      if (!lesson || lesson.timers) return;
+      const L = LESSONS[lesson.i], want = L.notes[lesson.at][0];
+      if (m === want) {
+        lesson.at++;
+        lesson.hint = '';
+        if (lesson.at >= L.notes.length) { finish(); return; }
+        hop();
+      } else {
+        lesson.slips++;
+        lesson.hint = m % 12 === want % 12 ? 'Right note, wrong octave. Look for the blinking one.' : 'That was ' + name(m) + '. We want ' + name(want) + '.';
+        act('oops', 700);
+      }
+      showLesson();
+    });
+
+    /* Hoops coaching */
+    // Focus stays on the court, so arrows and Space keep shooting.
+    function coach() {
+      endLesson();
+      mode = 'coach';
+      openWin(W.hoops);
+      coachSay('<p>Take a shot and I’ll tell you what I saw. Or I can show you one from where the ball is.</p>');
+    }
+    function coachSay(html, focus) {
+      say(html, { actions: [['Show me', showMe], [Hoops.assist ? 'Hide full arc' : 'Show full arc', wheels], ['Bye', leave]], focus });
+    }
+    function showMe() {
+      if (W.hoops.hidden) { openWin(W.hoops); setTimeout(showMe, 500); return; }
+      const r = Hoops.demo();
+      if (!r) { coachSay('<p>Hang on, the ball’s still moving.</p>'); return; }
+      act('point', 2600);
+      coachSay('<p>Watch the arc. From here I’d go about <b>' + r.deg + '°</b> at <b>' + r.pct + '%</b> power.</p>');
+    }
+    function wheels() {
+      Hoops.assist = !Hoops.assist;
+      coachSay(Hoops.assist
+        ? '<p>Full arc on: you’ll see the whole flight while you aim. Drop it into the net.</p>'
+        : '<p>Full arc off. Back to feel.</p>');
+    }
+    Hoops.onShot((s) => {
+      if (s.bez) {
+        if (mode === 'coach' && shown) coachSay(s.scored ? '<p>See? Your turn. Match that angle and pull.</p>' : '<p>Ha, even I miss. The idea stands: that arc, that pull.</p>');
+        return;
+      }
+      if (mode !== 'coach' || !shown) {
+        misses = s.scored ? 0 : misses + 1;
+        if (misses >= 3 && !shown && !saved.quiet && !saved.met.hoops) {
+          saved.met.hoops = 1;
+          keep();
+          appear();
+          say('<p>Rough stretch, huh? Want a few pointers?</p>', { actions: [['Yes please', coach], ['I got this', leave], ['Don’t ask again', quiet]] });
+        }
+        return;
+      }
+      const you = 'You: ' + deg(s.a) + '° at ' + Math.round(s.p * 100) + '%.';
+      if (s.scored) {
+        act('cheer', 1400);
+        hop();
+        coachSay('<p><b>' + pick(['That’s the one.', 'Money.', 'Pure.']) + '</b> ' + you + ' Remember that pull.</p>');
+        return;
+      }
+      let tip = pick(TIPS[s.kind] || TIPS.short);
+      if (deg(s.a) < 42 && s.kind !== 'long') tip += ' It was flat, too: aim higher, 55–65°. A steeper ball sees a bigger hoop.';
+      const rec = Hoops.recommend(s.from);
+      act('think', 1100);
+      coachSay('<p>' + tip + '</p><p class="b-hint">' + you + (rec ? ' From that spot, try about ' + rec.deg + '° at ' + rec.pct + '%.' : '') + '</p>');
+    });
+
+    /* Dropping in, once per toy */
+    function pianoOpened() {
+      if (saved.quiet || saved.met.piano || shown) return;
+      saved.met.piano = 1;
+      keep();
+      offer = setTimeout(() => {
+        if (W.piano.hidden || shown) return;
+        appear();
+        say('<p>Oh, a piano! Want me to teach you a song? I’ll light up the keys.</p>',
+          { actions: [['Sure', () => songs(true)], ['Not now', leave], ['Don’t ask again', quiet]] });
+      }, 1200);
+    }
+    function pianoClosed() {
+      if (!lesson) return;
+      endLesson();
+      say('<p>Piano’s closed, so I stopped the lesson.</p>', { actions: [['Songs', () => songs(true)], ['Bye', leave]] });
+    }
+    function hoopsClosed() {
+      if (mode !== 'coach') return;
+      if (Hoops.assist) Hoops.assist = false;
+      home();
+    }
+
+    /* Drag him out of the way; a click without a drag opens his balloon. */
+    let drag = null;
+    me.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      delete me.dataset.dragged;
+      const r = el.getBoundingClientRect();
+      drag = { id: e.pointerId, x: e.clientX, y: e.clientY, ox: r.right - e.clientX, oy: r.bottom - e.clientY, moved: false };
+      me.setPointerCapture(e.pointerId);
+    });
+    me.addEventListener('pointermove', (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;
+      drag.moved = true;
+      el.style.right = clamp(innerWidth - e.clientX - drag.ox, 0, innerWidth - el.offsetWidth) + 'px';
+      el.style.bottom = clamp(innerHeight - e.clientY - drag.oy, 0, innerHeight - menubar.offsetHeight - el.offsetHeight) + 'px';
+      place();
+    });
+    const drop = (e) => {
+      if (!drag || e.pointerId !== drag.id) return;
+      if (drag.moved) me.dataset.dragged = '1';
+      drag = null;
+    };
+    me.addEventListener('pointerup', drop);
+    me.addEventListener('pointercancel', drop);
+    me.addEventListener('click', () => {
+      if (me.dataset.dragged) { delete me.dataset.dragged; return; }
+      toggle();
+    });
+    function keepOnScreen() {
+      if (el.style.right) el.style.right = clamp(parseFloat(el.style.right), 0, innerWidth - el.offsetWidth) + 'px';
+      if (el.style.bottom) el.style.bottom = clamp(parseFloat(el.style.bottom), 0, innerHeight - menubar.offsetHeight - el.offsetHeight) + 'px';
+      place();
+    }
+    function escape(e) {
+      if (!shown || balloon.hidden || !el.contains(e.target)) return false;
+      hush();
+      me.focus({ preventScroll: true });
+      return true;
+    }
+
+    return {
+      summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed,
+      render: () => { if (shown) draw(); },
+    };
+  })();
+
+  /* ==========================================================
      Global input
   ========================================================== */
   const CLICKABLE = 'button:not([aria-disabled="true"]), a[href], .icon, .titlebar, label.checkbox';
@@ -2874,7 +3528,7 @@
   }, true);
 
   document.addEventListener('pointerdown', (e) => {
-    if (!e.target.closest('.window, .menubar, .scrim, .alert')) setActive(null);
+    if (!e.target.closest('.window, .menubar, .scrim, .alert, .bez')) setActive(null);
   });
   document.addEventListener('click', (e) => {
     if (!e.target.closest('.mb-menu')) closeMenu();
@@ -2890,8 +3544,10 @@
     }
     if (e.defaultPrevented || e.metaKey || e.ctrlKey || e.altKey || !alertBox.hidden) return;
     if (typing) return;
+    if (e.key === 'Escape' && Bez.escape(e)) return;
     if (Piano.active && Piano.keydown(e)) return;
     if (Hoops.active && Hoops.keydown(e)) return;
+    if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
     if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
     if (e.key === 'Escape') {
       if (openRec) { closeMenu(true); return; }
