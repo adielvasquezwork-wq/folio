@@ -24,21 +24,13 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
 
 <script>
-  /* Pick the era and its display before first paint so there's no flash. */
+  /* Pick the theme before first paint so there's no flash. */
   (function () {
-    var d = document.documentElement, e, t;
-    var dark = matchMedia('(prefers-color-scheme: dark)').matches;
-    var eras = {
-      1984: ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'],
-      2005: ['blue', 'graphite'],
-      2026: ['light', 'dark']
-    };
+    var d = document.documentElement, t;
+    var ok = ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'];
     d.classList.add('js');
-    try { e = localStorage.getItem('adiel-era'); } catch (x) {}
-    if (!eras[e]) e = '1984';
-    try { t = localStorage.getItem(e === '1984' ? 'adiel-theme' : 'adiel-theme-' + e); } catch (x) {}
-    if (eras[e].indexOf(t) < 0) t = e === '2005' ? 'blue' : e === '2026' ? (dark ? 'dark' : 'light') : dark ? 'negative' : 'paper';
-    d.dataset.era = e;
+    try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
+    if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'negative' : 'paper';
     d.dataset.theme = t;
   })();
 </script>
@@ -549,8 +541,8 @@
     image-rendering: pixelated; touch-action: none; cursor: grab;
   }
   .court.is-aiming { cursor: grabbing; }
-  .hoops-status { min-height: 17px; max-width: 402px; margin-top: 8px; font-size: 12px; }
-  .hoops-hint { max-width: 402px; margin-top: 2px; font-size: 11px; color: var(--graphite); }
+  .hoops-status { min-height: 17px; margin-top: 8px; font-size: 12px; }
+  .hoops-hint { margin-top: 2px; font-size: 11px; color: var(--graphite); }
 
   /* Piano keys Bez wants you to play: a blinking dot, like the caret */
   .key.is-target::after {
@@ -647,443 +639,6 @@
   .zoom { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   .zoom i { position: absolute; border: 1px solid var(--ink); }
 
-  /* ============================================================
-     Eras. Everything above is 1984: one bit, six displays. Two
-     later eras change the whole machine (materials, type, motion,
-     sounds, and how the Piano, Hoops and Bez are drawn), each with
-     its own pair of displays. Same desk, three decades.
-  ============================================================ */
-
-  /* 2005 · Gel: candy buttons, pinstripes, brushed metal */
-  :root[data-era="2005"] {
-    --paper: #ffffff; --ink: #1b1b1b; --graphite: #6e6e6e;
-    --accent: #2f7de1; --on-accent: #ffffff;
-    --desk-color: #2a64b4; --desk-ink: #ffffff;
-    --bar-bg: #ececec; --bar-ink: #111111; --bar-dim: #8c8c8c;
-    --menu-bg: #ffffff; --menu-ink: #111111;
-    --hl: #2f6fe0; --on-hl: #ffffff;
-    --gel: #3f8ff0; --gel-hi: #d4e9ff; --gel-lo: #1c5cc2;
-    --win-shadow: 0 0 0 1px rgb(0 0 0 / .3), 0 14px 38px rgb(0 0 0 / .45);
-    --pop-shadow: 0 0 0 1px rgb(0 0 0 / .18), 0 8px 24px rgb(0 0 0 / .35);
-    --font: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
-    --bar: 22px;
-    --desk:
-      radial-gradient(130% 70% at 85% 115%, rgb(140 205 255 / .6), transparent 60%),
-      radial-gradient(80% 55% at 5% -5%, rgb(255 255 255 / .32), transparent 62%),
-      linear-gradient(165deg, transparent 38%, rgb(255 255 255 / .13) 47%, transparent 55%),
-      linear-gradient(165deg, transparent 54%, rgb(255 255 255 / .07) 60%, transparent 66%),
-      linear-gradient(180deg, #16438a, #2f78cc 58%, #6cb0ee);
-    color-scheme: light;
-  }
-  :root[data-era="2005"][data-theme="graphite"] {
-    --accent: #6c7a8c; --hl: #67768a;
-    --gel: #8b98aa; --gel-hi: #e6ebf1; --gel-lo: #5a6678;
-    --desk-color: #56606c;
-    --desk:
-      radial-gradient(130% 70% at 85% 115%, rgb(225 232 240 / .45), transparent 60%),
-      radial-gradient(80% 55% at 5% -5%, rgb(255 255 255 / .25), transparent 62%),
-      linear-gradient(165deg, transparent 38%, rgb(255 255 255 / .1) 47%, transparent 55%),
-      linear-gradient(180deg, #353c46, #687482 58%, #a6b0bc);
-  }
-
-  /* 2026 · Glass: translucent, soft, quiet */
-  :root[data-era="2026"] {
-    --paper: #ffffff; --ink: #1d1d1f; --graphite: #86868b;
-    --accent: #0a6cff; --on-accent: #ffffff;
-    --desk-color: #eceef2; --desk-ink: #1d1d1f;
-    --bar-bg: #f5f5f7; --bar-ink: #1d1d1f; --bar-dim: #a1a1a6;
-    --menu-bg: #ffffff; --menu-ink: #1d1d1f;
-    --hl: #0a6cff; --on-hl: #ffffff;
-    --glass: rgb(255 255 255 / .74); --glass-strong: rgb(250 250 252 / .9);
-    --hair: rgb(0 0 0 / .08); --fill-soft: rgb(0 0 0 / .05); --fill-mid: rgb(0 0 0 / .09);
-    --key-white: #ffffff; --key-black: #1d1d1f;
-    --win-shadow: 0 0 0 1px var(--hair), 0 28px 70px rgb(0 0 0 / .16), 0 4px 14px rgb(0 0 0 / .06);
-    --pop-shadow: 0 0 0 1px var(--hair), 0 14px 36px rgb(0 0 0 / .14);
-    --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Instrument Sans", sans-serif;
-    --bar: 30px;
-    --desk:
-      radial-gradient(55% 45% at 88% 6%, rgb(10 108 255 / .1), transparent 70%),
-      radial-gradient(50% 45% at 6% 96%, rgb(255 122 26 / .08), transparent 70%);
-    color-scheme: light;
-  }
-  :root[data-era="2026"][data-theme="dark"] {
-    --paper: #1c1c1e; --ink: #f5f5f7; --graphite: #98989d;
-    --accent: #3d8bff;
-    --desk-color: #0e0e10; --desk-ink: #f5f5f7;
-    --bar-bg: #1c1c1e; --bar-ink: #f5f5f7; --bar-dim: #6e6e73;
-    --menu-bg: #2c2c2e; --menu-ink: #f5f5f7;
-    --hl: #3d8bff;
-    --glass: rgb(36 36 38 / .74); --glass-strong: rgb(44 44 46 / .9);
-    --hair: rgb(255 255 255 / .1); --fill-soft: rgb(255 255 255 / .07); --fill-mid: rgb(255 255 255 / .13);
-    --key-white: #e5e5ea; --key-black: #0a0a0a;
-    --win-shadow: 0 0 0 1px var(--hair), 0 28px 70px rgb(0 0 0 / .55);
-    --pop-shadow: 0 0 0 1px var(--hair), 0 14px 36px rgb(0 0 0 / .5);
-    --desk:
-      radial-gradient(55% 45% at 88% 6%, rgb(61 139 255 / .16), transparent 70%),
-      radial-gradient(50% 45% at 6% 96%, rgb(255 122 26 / .1), transparent 70%);
-    color-scheme: dark;
-  }
-
-  /* Each era draws its own desktop icons; the other eras' versions hide. */
-  :root:not([data-era="2005"]) .ico-2005, :root:not([data-era="2026"]) .ico-2026,
-  [data-era="2005"] .ico-1984, [data-era="2026"] .ico-1984 { display: none !important; }
-  [data-era="2005"] .bezel, [data-era="2005"] .fx, [data-era="2026"] .fx { display: none; }
-
-  /* ---- 2005 ---- */
-  [data-era="2005"] .menubar {
-    background: linear-gradient(#fbfbfb, #ededed 48%, #e1e1e1 52%, #eaeaea);
-    border-bottom: 1px solid #8e8e8e;
-    box-shadow: 0 1px 3px rgb(0 0 0 / .25);
-    font-weight: 400; font-stretch: normal;
-  }
-  [data-era="2005"] .mb-title[aria-expanded="true"], [data-era="2005"] button.mb-title:active, [data-era="2005"] a.mb-title:active,
-  [data-era="2005"] .mi:hover, [data-era="2005"] .mi:focus-visible, [data-era="2005"] .mi.is-lit {
-    background: linear-gradient(#64a0f3, #2a68d6); color: #fff;
-  }
-  [data-era="2005"] .mb-title.is-disabled { font-weight: 400; }
-  [data-era="2005"] .glyph { border-radius: 3px; background: linear-gradient(#94caff, #2470dc); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .28); }
-  [data-era="2005"] .glyph .g-ink { fill: transparent; }
-  [data-era="2005"] .glyph .g-paper { fill: #fff; }
-  [data-era="2005"] .theme-btn {
-    height: 17px; margin-top: 0; padding: 0 9px 0 7px;
-    border: 0; border-radius: 9px;
-    background: linear-gradient(#ffffff, #ececec 48%, #dcdcdc 52%, #f1f1f1);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .38), 0 1px 1px rgb(0 0 0 / .12);
-    font-weight: 400;
-  }
-  [data-era="2005"] .theme-btn:active { transform: none; background: linear-gradient(#c9c9c9, #e4e4e4); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .45); }
-  [data-era="2005"] .menu {
-    border: 0; border-radius: 0 0 6px 6px;
-    background: rgb(255 255 255 / .96);
-    box-shadow: 0 0 0 1px rgb(0 0 0 / .14), 0 8px 22px rgb(0 0 0 / .35);
-    font-weight: 400;
-  }
-  [data-era="2005"] .mi { height: 20px; }
-  [data-era="2005"] .sep { height: 1px; margin: 5px 0; background: #dadada; }
-  [data-era="2005"] .statement { font-weight: 700; letter-spacing: -0.045em; text-shadow: 0 2px 9px rgb(0 0 0 / .35), 0 1px 1px rgb(0 0 0 / .3); }
-  [data-era="2005"] .caret { background: #fff; }
-  [data-era="2005"] .chip::after { border: 0; border-radius: 4px; background: #ffffe1; color: #111; box-shadow: 0 0 0 1px rgb(0 0 0 / .25), 0 3px 8px rgb(0 0 0 / .25); font-weight: 400; font-stretch: normal; }
-  [data-era="2005"] .icon .ico-2005 { width: 48px; height: 48px; filter: drop-shadow(0 2px 2px rgb(0 0 0 / .4)); }
-  [data-era="2005"] .icon-label {
-    padding: 0 6px; border-radius: 8px;
-    background: transparent; color: #fff;
-    font-weight: 700; font-stretch: normal; text-shadow: 0 1px 3px rgb(0 0 0 / .85);
-  }
-  [data-era="2005"] .icon.is-selected .ico-2005 { border-radius: 6px; background: rgb(0 0 0 / .28); }
-  [data-era="2005"] .icon.is-selected .icon-label { background: #2c5fc7; text-shadow: none; }
-
-  [data-era="2005"] .window {
-    border: 0; border-radius: 7px 7px 5px 5px;
-    background: repeating-linear-gradient(#ffffff 0 2px, #f1f1f1 2px 4px);
-  }
-  [data-era="2005"] .titlebar {
-    height: 22px; border-bottom: 1px solid #a1a1a1; border-radius: 7px 7px 0 0;
-    background: linear-gradient(#ebebeb, #cdcdcd);
-  }
-  [data-era="2005"] .window:not(.is-active) .titlebar { background: linear-gradient(#f7f7f7, #e8e8e8); border-bottom-color: #c6c6c6; }
-  [data-era="2005"] .window.is-active .titlebar::before { display: none; }
-  [data-era="2005"] .wtitle { padding: 0 60px; background: transparent; font-size: 13px; font-weight: 400; font-stretch: normal; line-height: 22px; text-shadow: 0 1px 0 rgb(255 255 255 / .7); }
-  [data-era="2005"] .window:not(.is-active) .wtitle { color: #8b8b8b; font-weight: 400; }
-  /* Traffic lights. Only the red one closes; the other two are for looks. */
-  [data-era="2005"] .closebox {
-    left: 8px; top: 5px; width: 12px; height: 12px;
-    border: 0; border-radius: 50%; visibility: visible;
-    background: radial-gradient(circle at 50% 26%, #ffd0c8 0 16%, #f3594b 54%, #b6261a);
-    box-shadow: inset 0 0 0 .5px rgb(0 0 0 / .5);
-  }
-  [data-era="2005"] .closebox::before {
-    content: ""; position: absolute; left: 20px; top: 0; width: 32px; height: 12px; pointer-events: none;
-    background:
-      radial-gradient(circle at 6px 3.4px, rgb(255 255 255 / .8) 0 1.4px, transparent 2.6px),
-      radial-gradient(circle at 6px 6px, #f7c330 0 4.4px, #9d6f05 5.4px, transparent 6px),
-      radial-gradient(circle at 26px 3.4px, rgb(255 255 255 / .8) 0 1.4px, transparent 2.6px),
-      radial-gradient(circle at 26px 6px, #50c444 0 4.4px, #23801b 5.4px, transparent 6px);
-  }
-  [data-era="2005"] .closebox svg { display: none; }
-  [data-era="2005"] .window:not(.is-active) .closebox, [data-era="2026"] .window:not(.is-active) .closebox { visibility: visible; }
-  [data-era="2005"] .closebox:active { filter: brightness(.75); }
-  [data-era="2005"][data-theme="graphite"] .closebox,
-  [data-era="2005"] .window:not(.is-active) .closebox { background: radial-gradient(circle at 50% 26%, #ffffff 0 16%, #b9c1cc 54%, #7c8796); }
-  [data-era="2005"][data-theme="graphite"] .closebox::before,
-  [data-era="2005"] .window:not(.is-active) .closebox::before {
-    background:
-      radial-gradient(circle at 6px 6px, #c3cad4 0 4.4px, #7c8796 5.4px, transparent 6px),
-      radial-gradient(circle at 26px 6px, #c3cad4 0 4.4px, #7c8796 5.4px, transparent 6px);
-  }
-  [data-era="2005"] .btn {
-    height: 21px; padding: 0 16px;
-    border: 0; border-radius: 11px;
-    background: linear-gradient(#ffffff, #f1f1f1 45%, #dedede 55%, #f6f6f6);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .33), 0 1px 2px rgb(0 0 0 / .18);
-    color: #111; font-size: 13px; font-weight: 400; font-stretch: normal;
-  }
-  [data-era="2005"] .btn:active { background: linear-gradient(#c8c8c8, #e8e8e8); color: #111; }
-  [data-era="2005"] .btn.is-default {
-    margin: 0; color: #0a1d38;
-    background: linear-gradient(var(--gel-hi), var(--gel) 48%, var(--gel-lo) 52%, var(--gel-hi));
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .4), 0 1px 2px rgb(0 0 0 / .2);
-    animation: gel-pulse 1.6s ease-in-out infinite alternate; /* the default button breathes */
-  }
-  @keyframes gel-pulse { to { filter: brightness(1.16) saturate(.85); } }
-  [data-era="2005"] .btn-sm { height: 18px; padding: 0 10px; border-radius: 9px; font-size: 11px; }
-  [data-era="2005"] .btn:focus-visible { outline: 3px solid rgb(63 143 240 / .55); outline-offset: 0; }
-  [data-era="2005"] .track { height: 14px; padding: 0; border: 0; border-radius: 7px; background: linear-gradient(#d8d8d8, #f8f8f8); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .3), inset 0 1px 2px rgb(0 0 0 / .2); overflow: hidden; }
-  [data-era="2005"] .fill {
-    border-radius: 7px;
-    background:
-      linear-gradient(rgb(255 255 255 / .55), rgb(255 255 255 / .08) 50%, rgb(0 0 0 / .06) 51%, rgb(255 255 255 / .22)),
-      linear-gradient(135deg, var(--gel-hi) 25%, var(--gel) 25% 50%, var(--gel-hi) 50% 75%, var(--gel) 75%) 0 0 / 16px 16px;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25);
-    animation: barber .7s linear infinite; /* the barber pole */
-  }
-  @keyframes barber { to { background-position: 0 0, 16px 0; } }
-  [data-era="2005"] .scroll::-webkit-scrollbar { width: 15px; }
-  [data-era="2005"] .scroll::-webkit-scrollbar-track { border-left: 1px solid #c8c8c8; background: linear-gradient(90deg, #dedede, #f8f8f8); }
-  [data-era="2005"] .scroll::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: linear-gradient(90deg, var(--gel-lo), var(--gel) 40%, var(--gel-hi) 52%, var(--gel)) padding-box; }
-  [data-era="2005"] .rule { background: #d6d6d6; }
-  [data-era="2005"] .comments { border-color: #bdbdbd; border-radius: 4px; background: #fff; box-shadow: inset 0 1px 2px rgb(0 0 0 / .08); }
-  [data-era="2005"] .portrait { border-color: #a5a5a5; border-radius: 4px; box-shadow: 0 2px 6px rgb(0 0 0 / .22); }
-  [data-era="2005"] .mini { border: 0; border-radius: 9px; background: linear-gradient(#fff, #e6e6e6 48%, #d6d6d6 52%, #f0f0f0); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .35); }
-  [data-era="2005"] .mini:active { background: linear-gradient(#c8c8c8, #e8e8e8); color: var(--ink); }
-  [data-era="2005"] .checkbox .box { border-color: #8a8a8a; border-radius: 3px; background: linear-gradient(#fff, #e4e4e4); }
-  [data-era="2005"] .checkbox input:checked + .box { border-color: var(--gel-lo); background: linear-gradient(var(--gel-hi), var(--gel)); }
-  /* The Piano is brushed metal, like the music apps of the day. */
-  [data-era="2005"] #piano {
-    background:
-      repeating-linear-gradient(0deg, rgb(255 255 255 / .1) 0 1px, rgb(0 0 0 / .035) 1px 2px, transparent 2px 3px),
-      linear-gradient(#dcdcdc, #b6b6b6);
-  }
-  [data-era="2005"] #piano .titlebar { background: transparent; border-bottom-color: transparent; }
-  [data-era="2005"] .keys { border-color: #2b2b2b; border-radius: 3px; background: #2b2b2b; box-shadow: 0 2px 6px rgb(0 0 0 / .35); }
-  [data-era="2005"] .wk { border-right-color: #9b9b9b; border-radius: 0 0 4px 4px; background: linear-gradient(#ffffff, #f4f4f4 72%, #d9d9d9); box-shadow: inset 0 -4px 0 rgb(0 0 0 / .06); }
-  [data-era="2005"] .bk { border: 0; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, #3c3c3c, #121212 30% 70%, #2b2b2b); box-shadow: inset 0 -5px 0 #2e2e2e, 0 2px 3px rgb(0 0 0 / .45); }
-  [data-era="2005"] .wk.is-down { background: linear-gradient(#e2efff, #a8cffd); }
-  [data-era="2005"] .bk.is-down { background: linear-gradient(var(--gel), var(--gel-lo)); }
-  [data-era="2005"] .key.is-down .key-label { background: transparent; color: var(--ink); }
-  [data-era="2005"] .bk .key-label, [data-era="2005"] .bk.is-down .key-label { color: #c8c8c8; }
-  [data-era="2005"] .key.is-target::after {
-    width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
-    background: radial-gradient(circle at 50% 30%, #fff 0 15%, var(--gel) 58%, var(--gel-lo));
-    box-shadow: 0 0 6px var(--gel);
-    animation: gel-pulse .8s ease-in-out infinite alternate;
-  }
-  [data-era="2005"] .tools { border-color: #929292; border-radius: 4px; background: #b4b4b4; overflow: hidden; }
-  [data-era="2005"] .tool { background: linear-gradient(#ffffff, #e7e7e7); }
-  [data-era="2005"] .tool[aria-pressed="true"] { background: linear-gradient(var(--gel-hi), var(--gel)); }
-  [data-era="2005"] .tool[aria-pressed="true"] .i-ink { fill: #0a1d38; }
-  [data-era="2005"] .tool[aria-pressed="true"] .i-fill { fill: #fff; }
-  [data-era="2005"] .sheet, [data-era="2005"] .pat { border-color: #8e8e8e; }
-  [data-era="2005"] .pat { border-radius: 3px; }
-  [data-era="2005"] .pat[aria-pressed="true"] { border: 2px solid var(--gel); }
-  [data-era="2005"] .court { border-color: #8a8a8a; border-radius: 4px; }
-  [data-era="2005"] .hoops-bar b.is-lit { border-radius: 4px; background: var(--gel); color: #fff; }
-  /* Bez's balloon is a pale yellow help tag. */
-  [data-era="2005"] .balloon {
-    --paper: #ffffe1; --tail-ink: rgb(0 0 0 / .3);
-    border: 0; border-radius: 14px; background: var(--paper); color: #111;
-    box-shadow: 0 0 0 1px var(--tail-ink), 0 10px 28px rgb(0 0 0 / .35);
-  }
-  [data-era="2005"] .b-item { border-radius: 4px; }
-  [data-era="2005"] .note.is-now { border-radius: 4px; background: var(--gel); color: #fff; }
-  [data-era="2005"] .alert {
-    grid-template-columns: 48px 1fr;
-    border: 0; border-radius: 9px;
-    background: repeating-linear-gradient(#ffffff 0 2px, #f1f1f1 2px 4px);
-    box-shadow: 0 0 0 1px rgb(0 0 0 / .3), 0 18px 50px rgb(0 0 0 / .5);
-  }
-  [data-era="2005"] .alert .ico-2005 { width: 48px; height: 48px; }
-  [data-era="2005"] .alert h2 { font-stretch: normal; }
-
-  /* ---- 2026 ---- */
-  [data-era="2026"] .bezel { border-radius: 12px; }
-  [data-era="2026"] .menubar {
-    background: color-mix(in srgb, var(--bar-bg) 72%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
-    border-bottom: 1px solid var(--hair);
-    padding-left: max(10px, env(safe-area-inset-left, 0px));
-    font-weight: 500; font-stretch: normal;
-  }
-  [data-era="2026"] .mb-left { gap: 2px; padding: 4px 0; }
-  [data-era="2026"] .mb-title { border-radius: 6px; }
-  [data-era="2026"] .mb-title .name { font-weight: 700; }
-  [data-era="2026"] .mb-title[aria-expanded="true"], [data-era="2026"] button.mb-title:active, [data-era="2026"] a.mb-title:active {
-    background: var(--fill-mid); color: inherit;
-  }
-  [data-era="2026"] .mb-title.is-disabled { font-weight: 500; }
-  [data-era="2026"] .glyph .g-ink { rx: 3px; }
-  [data-era="2026"] .theme-btn { height: 22px; margin-top: 0; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; box-shadow: none; font-weight: 500; }
-  [data-era="2026"] .theme-btn:hover { background: var(--fill-soft); }
-  [data-era="2026"] .theme-btn:active { transform: none; box-shadow: none; background: var(--fill-mid); }
-  [data-era="2026"] .theme-btn svg { display: none; }
-  [data-era="2026"] .sfx { border-radius: 6px; height: 22px; }
-  [data-era="2026"] .sfx:active { background: var(--fill-mid); color: inherit; }
-  [data-era="2026"] .menu {
-    top: calc(100% + 6px); min-width: 220px; padding: 5px;
-    border: 0; border-radius: 11px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-  }
-  [data-era="2026"] .mi { height: 24px; padding: 0 10px 0 26px; border-radius: 6px; }
-  [data-era="2026"] .mi:hover, [data-era="2026"] .mi:focus-visible, [data-era="2026"] .mi.is-lit { background: var(--accent); color: #fff; }
-  [data-era="2026"] .sep { height: 1px; margin: 5px 9px; background: var(--hair); }
-  [data-era="2026"] .statement { font-family: var(--sans); font-weight: 600; letter-spacing: -0.05em; }
-  [data-era="2026"] .chip::after { border: 0; border-radius: 8px; background: var(--glass-strong); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); font-weight: 500; font-stretch: normal; }
-  [data-era="2026"] .icon { gap: 6px; }
-  [data-era="2026"] .icon .ico-2026 { width: 44px; height: 44px; filter: drop-shadow(0 3px 6px rgb(0 0 0 / .14)); }
-  [data-era="2026"] .icon-label { padding: 1px 7px; border-radius: 6px; background: transparent; color: var(--desk-ink); font-weight: 500; font-stretch: normal; }
-  [data-era="2026"] .icon.is-selected .ico-2026 { filter: drop-shadow(0 3px 6px rgb(0 0 0 / .14)) brightness(.82); }
-  [data-era="2026"] .icon.is-selected .icon-label { background: var(--accent); color: #fff; }
-
-  [data-era="2026"] .window {
-    border: 0; border-radius: 14px; overflow: hidden;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
-  }
-  [data-era="2026"] .titlebar { height: 38px; border-bottom: 0; }
-  [data-era="2026"] .window.is-active .titlebar::before { display: none; }
-  [data-era="2026"] .wtitle { background: transparent; font-size: 13px; font-weight: 600; font-stretch: normal; line-height: 38px; }
-  [data-era="2026"] .window:not(.is-active) .wtitle { color: var(--graphite); font-weight: 600; }
-  [data-era="2026"] .closebox {
-    left: 15px; top: 13px; width: 12px; height: 12px;
-    border: 0; border-radius: 50%; visibility: visible;
-    background: var(--fill-mid); box-shadow: none;
-    transition: background .15s;
-  }
-  [data-era="2026"] .closebox svg { display: none; }
-  [data-era="2026"] .closebox:hover, [data-era="2026"] .closebox:focus-visible { background: #ff5f57; }
-  [data-era="2026"] .wbody { padding-top: 4px; }
-  [data-era="2026"] .about { padding: 6px 22px 24px; }
-  [data-era="2026"] .btn {
-    height: 28px; padding: 0 15px;
-    border: 0; border-radius: 999px;
-    background: var(--fill-soft); color: var(--ink);
-    font-size: 13px; font-weight: 500; font-stretch: normal;
-    transition: background .15s, transform .1s;
-  }
-  [data-era="2026"] .btn:hover { background: var(--fill-mid); }
-  [data-era="2026"] .btn:active { transform: scale(.97); background: var(--fill-mid); color: var(--ink); }
-  [data-era="2026"] .btn.is-default { margin: 0; background: var(--accent); color: #fff; box-shadow: none; }
-  [data-era="2026"] .btn-sm { height: 24px; padding: 0 11px; font-size: 12px; }
-  [data-era="2026"] .btn:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
-  [data-era="2026"] .track { height: 6px; padding: 0; border: 0; border-radius: 3px; background: var(--fill-mid); overflow: hidden; }
-  [data-era="2026"] .fill { border-radius: 3px; background: var(--accent); transition: width .9s cubic-bezier(.2, .8, .2, 1); }
-  [data-era="2026"] .scroll::-webkit-scrollbar { width: 11px; }
-  [data-era="2026"] .scroll::-webkit-scrollbar-track { border: 0; background: transparent; }
-  [data-era="2026"] .scroll::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 6px; background: var(--fill-mid) padding-box; }
-  [data-era="2026"] .rule { background: var(--hair); }
-  [data-era="2026"] .comments { border: 0; border-radius: 12px; background: var(--fill-soft); }
-  [data-era="2026"] .portrait { border: 0; border-radius: 18px; background: var(--fill-soft); }
-  [data-era="2026"] .mini { width: 24px; height: 22px; border: 0; border-radius: 7px; background: var(--fill-soft); }
-  [data-era="2026"] .mini:active { background: var(--fill-mid); color: var(--ink); }
-  [data-era="2026"] .checkbox .box { width: 16px; height: 16px; border: 1.5px solid var(--bar-dim); border-radius: 5px; background: transparent; }
-  [data-era="2026"] .checkbox input:checked + .box { border-color: var(--accent); background: var(--accent); }
-  [data-era="2026"] .keys { border-color: transparent; border-radius: 10px; background: var(--fill-mid); overflow: hidden; }
-  [data-era="2026"] .wk { border-right-color: transparent; border-radius: 0 0 6px 6px; background: var(--key-white) padding-box; transition: background-color .1s; }
-  [data-era="2026"] .bk { border: 0; border-radius: 0 0 5px 5px; background: var(--key-black); transition: background-color .1s; }
-  [data-era="2026"] .key.is-down { background: var(--accent) padding-box; }
-  [data-era="2026"] .key.is-down .key-label { background: transparent; color: #fff; }
-  [data-era="2026"] .key-label { font-weight: 500; }
-  [data-era="2026"] .bk .key-label { color: rgb(255 255 255 / .6); }
-  [data-era="2026"] .key.is-target::after {
-    width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
-    background: var(--accent);
-    animation: halo 1.2s ease-in-out infinite;
-  }
-  @keyframes halo {
-    from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
-    to { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); }
-  }
-  [data-era="2026"] .tools { gap: 3px; border: 0; background: transparent; }
-  [data-era="2026"] .tool { height: 26px; border-radius: 7px; background: var(--fill-soft); }
-  [data-era="2026"] .tool[aria-pressed="true"] { background: var(--accent); }
-  [data-era="2026"] .tool[aria-pressed="true"] .i-ink { fill: #fff; }
-  [data-era="2026"] .tool[aria-pressed="true"] .i-fill { fill: var(--accent); }
-  [data-era="2026"] .sheet { border-color: var(--hair); border-radius: 10px; overflow: hidden; }
-  [data-era="2026"] .pat { border-color: var(--hair); border-radius: 6px; }
-  [data-era="2026"] .pat[aria-pressed="true"] { border: 2px solid var(--accent); padding: 1px; }
-  [data-era="2026"] .court { border-color: var(--hair); border-radius: 12px; }
-  [data-era="2026"] .hoops-bar b.is-lit { border-radius: 5px; background: var(--accent); color: #fff; }
-  [data-era="2026"] .balloon {
-    --paper: #ffffff; --tail-ink: var(--hair);
-    border: 0; border-radius: 16px; background: var(--paper);
-    box-shadow: 0 0 0 1px var(--hair), 0 18px 44px rgb(0 0 0 / .16);
-  }
-  [data-era="2026"][data-theme="dark"] .balloon { --paper: #2c2c2e; box-shadow: 0 0 0 1px var(--hair), 0 18px 44px rgb(0 0 0 / .5); }
-  [data-era="2026"] .b-item { border-radius: 6px; }
-  [data-era="2026"] .b-item:hover, [data-era="2026"] .b-item:focus-visible { background: var(--accent); color: #fff; }
-  [data-era="2026"] .note.is-now { border-radius: 6px; background: var(--accent); color: #fff; }
-  [data-era="2026"] .alert {
-    grid-template-columns: 44px 1fr;
-    border: 0; border-radius: 18px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-    box-shadow: var(--pop-shadow);
-  }
-  [data-era="2026"] .alert .ico-2026 { width: 44px; height: 44px; }
-  [data-era="2026"] .alert h2 { font-stretch: normal; }
-
-  /* Both later eras: smooth balloon tails, checkmarks, crisp-free canvases */
-  [data-era="2005"] .b-tail .t-px, [data-era="2026"] .b-tail .t-px,
-  [data-era="1984"] .b-tail .t-vec { display: none; }
-  .b-tail .t-vec-fill { fill: var(--paper); }
-  .b-tail .t-vec-line { fill: none; stroke: var(--tail-ink, var(--ink)); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-  [data-era="2005"] .checkbox .box svg, [data-era="2026"] .checkbox .box svg { display: none; }
-  [data-era="2005"] .checkbox input:checked + .box::after, [data-era="2026"] .checkbox input:checked + .box::after {
-    content: ""; width: 4px; height: 8px; margin-top: -2px;
-    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
-  }
-  [data-era="2005"] .court, [data-era="2026"] .court,
-  [data-era="2005"] .bez-me canvas, [data-era="2026"] .bez-me canvas { image-rendering: auto; }
-
-  /* Windows open and close with each era's own motion (1984 draws zoom rectangles). */
-  [data-era="2005"] .window.is-opening { animation: gel-open .3s cubic-bezier(.2, .9, .25, 1.12) both; }
-  [data-era="2026"] .window.is-opening { animation: glass-open .32s cubic-bezier(.2, .8, .2, 1) both; }
-  @keyframes gel-open { from { opacity: 0; transform: scale(.55); } }
-  @keyframes glass-open { from { opacity: 0; transform: scale(.96) translateY(8px); } }
-  .window.ghost { position: fixed; z-index: 44; margin: 0; pointer-events: none; }
-  [data-era="2005"] .window.ghost { animation: gel-close .22s ease-in both; }
-  [data-era="2026"] .window.ghost { animation: glass-close .2s ease both; }
-  @keyframes gel-close { to { opacity: 0; transform: scale(.6); } }
-  @keyframes glass-close { to { opacity: 0; transform: scale(.97); } }
-
-  /* Era menu, and the year that flashes up when you travel */
-  .mi[aria-checked]::before { content: ""; position: absolute; left: 9px; }
-  .mi[aria-checked="true"]::before { content: "✓"; }
-  .mi small { font-size: 11px; opacity: .65; }
-  .hud {
-    position: fixed; z-index: 96; left: 50%; top: 46%;
-    display: grid; justify-items: center; gap: 4px;
-    padding: 18px 30px 16px;
-    background: var(--paper); color: var(--ink);
-    border: 2px solid var(--ink); box-shadow: var(--pop-shadow);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: hud-1bit 1.4s steps(1, end) both;
-  }
-  .hud b { font-size: 64px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
-  .hud span { font-size: 13px; font-weight: 600; }
-  @keyframes hud-1bit { 0%, 99% { visibility: visible; } 100% { visibility: hidden; } }
-  [data-era="2005"] .hud {
-    width: 200px; height: 200px; place-content: center;
-    border: 0; border-radius: 28px; background: rgb(0 0 0 / .6); color: #fff; box-shadow: none;
-    animation: hud-fade 1.5s ease both;
-  }
-  [data-era="2026"] .hud {
-    padding: 22px 38px 18px; border: 0; border-radius: 30px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-    animation: hud-glass 1.5s cubic-bezier(.2, .8, .2, 1) both;
-  }
-  @keyframes hud-fade { 0% { opacity: 0; } 12%, 70% { opacity: 1; } 100% { opacity: 0; } }
-  @keyframes hud-glass { 0% { opacity: 0; transform: translate(-50%, -46%) scale(.94); } 14%, 70% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.98); } }
-
-  /* Travelling between eras: the new one opens out in a circle from the menu. */
-  .is-era-shift::view-transition-new(root) { animation: era-in .7s cubic-bezier(.65, 0, .35, 1) both; }
-  @keyframes era-in { from { clip-path: circle(0 at var(--ox, 0) var(--oy, 0)); } to { clip-path: circle(150vmax at var(--ox, 0) var(--oy, 0)); } }
-  [data-era="2005"]:not(.is-era-shift)::view-transition-new(root),
-  [data-era="2026"]:not(.is-era-shift)::view-transition-new(root) { animation: fade .3s ease both; }
-  @keyframes fade { from { opacity: 0; } }
-
   /* ------------------------------------------------------------
      Responsive + motion preferences
   ------------------------------------------------------------ */
@@ -1121,7 +676,6 @@
     .caret, .key.is-target::after { animation: none; }
     .chip, .chip::after { transition: none; }
     .bez .bez-me { animation: none !important; }
-    .btn.is-default, .fill, .key.is-target::after, .window.is-opening, .window.ghost { animation: none !important; }
   }
 </style>
 </head>
@@ -1129,93 +683,6 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-burst" viewBox="0 0 11 11"><path d="M5 0h1v4H5zM5 7h1v4H5zM0 5h4v1H0zM7 5h4v1H7zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM7 7h1v1H7zM8 8h1v1H8zM9 9h1v1H9zM9 1h1v1H9zM8 2h1v1H8zM7 3h1v1H7zM3 7h1v1H3zM2 8h1v1H2zM1 9h1v1H1z"/></symbol>
-
-  <!-- 2005 icons: glossy, lit from above -->
-  <defs>
-    <linearGradient id="g5-gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-    <radialGradient id="g5-blue" cx=".5" cy=".38" r=".68"><stop offset="0" stop-color="#bfe0ff"/><stop offset=".55" stop-color="#3a8ae8"/><stop offset="1" stop-color="#0d4cae"/></radialGradient>
-    <linearGradient id="g5-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e0e0e0"/></linearGradient>
-    <linearGradient id="g5-black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c5c5c"/><stop offset=".45" stop-color="#1c1c1c"/><stop offset="1" stop-color="#000"/></linearGradient>
-    <radialGradient id="g5-ball" cx=".38" cy=".3" r=".78"><stop offset="0" stop-color="#ffd2a4"/><stop offset=".5" stop-color="#f37a24"/><stop offset="1" stop-color="#9f420a"/></radialGradient>
-    <linearGradient id="g5-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9e8cb"/><stop offset="1" stop-color="#d5ab72"/></linearGradient>
-    <linearGradient id="g5-folder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3e3ff"/><stop offset="1" stop-color="#5aa2ec"/></linearGradient>
-    <linearGradient id="g5-folder-back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ec5fb"/><stop offset="1" stop-color="#3b82d4"/></linearGradient>
-    <linearGradient id="g6-about" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3abb9"/><stop offset="1" stop-color="#5c6575"/></linearGradient>
-    <linearGradient id="g6-paint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb340"/><stop offset=".5" stop-color="#ff3d6e"/><stop offset="1" stop-color="#7a5cff"/></linearGradient>
-    <linearGradient id="g6-hoops" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9d42"/><stop offset="1" stop-color="#f05f0e"/></linearGradient>
-    <linearGradient id="g6-work" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46a0ff"/><stop offset="1" stop-color="#0a66f0"/></linearGradient>
-  </defs>
-  <symbol id="e5-about" viewBox="0 0 48 48">
-    <circle cx="24" cy="25" r="20" fill="url(#g5-blue)" stroke="#0b3d8c"/>
-    <circle cx="24" cy="15" r="3.3" fill="#fff"/>
-    <rect x="20.7" y="20.5" width="6.6" height="16" rx="3.3" fill="#fff"/>
-    <ellipse cx="24" cy="13.5" rx="15" ry="8" fill="url(#g5-gloss)" opacity=".75"/>
-  </symbol>
-  <symbol id="e5-readme" viewBox="0 0 48 48">
-    <path d="M11 4h19l9 9v30a1.5 1.5 0 0 1-1.5 1.5h-25A1.5 1.5 0 0 1 11 43z" fill="url(#g5-paper)" stroke="#8a8a8a"/>
-    <path d="M30 4v7.5a1.5 1.5 0 0 0 1.5 1.5H39" fill="#d6d6d6" stroke="#8a8a8a" stroke-linejoin="round"/>
-    <path d="M16 20h17M16 24.5h17M16 29h17M16 33.5h11" stroke="#a6a6a6" stroke-width="1.6" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="e5-piano" viewBox="0 0 48 48">
-    <rect x="3" y="12" width="42" height="26" rx="4" fill="url(#g5-black)" stroke="#000"/>
-    <rect x="6" y="18.5" width="36" height="16.5" rx="1.5" fill="#fff"/>
-    <path d="M11.1 18.5v16.5M16.3 18.5v16.5M21.4 18.5v16.5M26.6 18.5v16.5M31.7 18.5v16.5M36.9 18.5v16.5" stroke="#9a9a9a" stroke-width=".8"/>
-    <path d="M9.4 18.5h3.4v9.5H9.4zM14.6 18.5H18V28h-3.4zM24.9 18.5h3.4V28h-3.4zM30 18.5h3.4V28H30zM35.2 18.5h3.4V28h-3.4z" fill="#141414"/>
-    <rect x="3.6" y="12.6" width="40.8" height="5" rx="2.5" fill="url(#g5-gloss)" opacity=".55"/>
-  </symbol>
-  <symbol id="e5-paint" viewBox="0 0 48 48">
-    <path d="M24 7C12 7 4 14.5 4 23.5 4 32 11 38 18 37c3.5-.5 3.6-3.6 6.5-3.6 3 0 4 3.6 8.5 3.6C39.5 37 44 31.5 44 24 44 14 35.5 7 24 7z" fill="url(#g5-wood)" stroke="#a07644"/>
-    <ellipse cx="16" cy="29" rx="3.4" ry="2.8" fill="#b88a52"/>
-    <circle cx="12.5" cy="20" r="3.4" fill="#e6463b"/>
-    <circle cx="20" cy="14" r="3.4" fill="#f5c12b"/>
-    <circle cx="29" cy="13.5" r="3.4" fill="#37b24a"/>
-    <circle cx="36.5" cy="19.5" r="3.4" fill="#2f7de1"/>
-    <path d="M11.4 18.8a1.2 1.2 0 1 0 0 .1M18.9 12.8a1.2 1.2 0 1 0 0 .1M27.9 12.3a1.2 1.2 0 1 0 0 .1M35.4 18.3a1.2 1.2 0 1 0 0 .1" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="1.4"/>
-    <path d="M44.5 5.5 29 29" stroke="#7a4a1e" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M30.4 27.1 27.6 31.4" stroke="#c7cbd1" stroke-width="3.8"/>
-    <path d="M27.4 31.2c-2 2.6-2.6 4.8-4.8 7.4 3.4-.9 5.6-3 6.6-5.9z" fill="#1d1d1d"/>
-  </symbol>
-  <symbol id="e5-hoops" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="19" fill="url(#g5-ball)" stroke="#7a3307"/>
-    <path d="M5 24h38M24 5v38M11.5 10.5c5.5 7 5.5 20 0 27M36.5 10.5c-5.5 7-5.5 20 0 27" fill="none" stroke="#5a2606" stroke-width="1.3"/>
-    <ellipse cx="20" cy="13.5" rx="10" ry="5.5" fill="url(#g5-gloss)" opacity=".8"/>
-  </symbol>
-  <symbol id="e5-work" viewBox="0 0 48 48">
-    <path d="M4 12.5A2.5 2.5 0 0 1 6.5 10h11l3.5 3.5h20.5A2.5 2.5 0 0 1 44 16v23.5a2.5 2.5 0 0 1-2.5 2.5h-35A2.5 2.5 0 0 1 4 39.5z" fill="url(#g5-folder-back)" stroke="#2d6cbd"/>
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17h35a2.5 2.5 0 0 1 2.5 2.5v20a2.5 2.5 0 0 1-2.5 2.5h-35A2.5 2.5 0 0 1 4 39.5z" fill="url(#g5-folder)" stroke="#2d6cbd"/>
-    <rect x="5" y="18" width="38" height="9" rx="2" fill="url(#g5-gloss)" opacity=".7"/>
-  </symbol>
-
-  <!-- 2026 icons: flat squircles -->
-  <symbol id="e6-about" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-about)"/>
-    <circle cx="22" cy="17.5" r="6" fill="#fff"/>
-    <path d="M10.5 35.5c1.5-6.5 6.2-9.5 11.5-9.5s10 3 11.5 9.5z" fill="#fff"/>
-  </symbol>
-  <symbol id="e6-readme" viewBox="0 0 44 44">
-    <rect x="2.5" y="2.5" width="39" height="39" rx="10.2" fill="#fff" stroke="#dedee3"/>
-    <rect x="11" y="11" width="15" height="3.4" rx="1.7" fill="#1d1d1f"/>
-    <path d="M12.2 19.7h19.6M12.2 24.7h19.6M12.2 29.7h19.6M12.2 34.7h11.6" stroke="#c7c7cc" stroke-width="2.4" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="e6-piano" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="#1d1d1f"/>
-    <path d="M9 13h26v19a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2z" fill="#fff"/>
-    <path d="M14.2 13v21M19.4 13v21M24.6 13v21M29.8 13v21" stroke="#1d1d1f" stroke-width="1.2"/>
-    <path d="M12.6 13h3.2v11h-3.2zM17.8 13H21v11h-3.2zM28.2 13h3.2v11h-3.2z" fill="#1d1d1f"/>
-  </symbol>
-  <symbol id="e6-paint" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-paint)"/>
-    <path d="M11 30c4-9 8-1 12-8s6-8 10-6" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="e6-hoops" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-hoops)"/>
-    <circle cx="22" cy="22" r="12" fill="none" stroke="#fff" stroke-width="2"/>
-    <path d="M10 22h24M22 10v24M14.2 13.5c3.6 4.6 3.6 12.4 0 17M29.8 13.5c-3.6 4.6-3.6 12.4 0 17" fill="none" stroke="#fff" stroke-width="2"/>
-  </symbol>
-  <symbol id="e6-work" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-work)"/>
-    <path d="M10 15.5a2.5 2.5 0 0 1 2.5-2.5h6l2.5 2.5h10.5a2.5 2.5 0 0 1 2.5 2.5v11.5a2.5 2.5 0 0 1-2.5 2.5h-19a2.5 2.5 0 0 1-2.5-2.5z" fill="#fff"/>
-  </symbol>
 </svg>
 
 <header class="menubar">
@@ -1245,14 +712,6 @@
     </div>
     <span class="mb-title is-disabled mb-work" aria-disabled="true" title="Coming soon">Work</span>
     <a class="mb-title" href="mailto:hello@adiel.design">Contact</a>
-    <div class="mb-menu">
-      <button class="mb-title" id="menu-era" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-era" title="Travel to another era (E)">Era</button>
-      <ul class="menu" id="m-era" role="menu" aria-labelledby="menu-era" hidden>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="1984" aria-checked="false"><span>1984</span><small>One-bit</small></button></li>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="2005" aria-checked="false"><span>2005</span><small>Gel</small></button></li>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="2026" aria-checked="false"><span>2026</span><small>Glass</small></button></li>
-      </ul>
-    </div>
   </nav>
   <div class="mb-right">
     <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
@@ -1289,7 +748,7 @@
     </header>
     <div class="wbody">
       <p class="w-lead">A new portfolio is in progress.</p>
-      <p class="w-sub">Selected work will be back here soon. Until then, open <span class="nowrap"><button class="inline-link" type="button" data-win="about">About Me</button>,</span> play the <span class="nowrap"><button class="inline-link" type="button" data-win="piano">Piano</button>,</span> draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <span class="nowrap"><button class="inline-link" type="button" data-win="hoops">Hoops</button>.</span></p>
+      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button>, play the <button class="inline-link" type="button" data-win="piano">Piano</button>, draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <button class="inline-link" type="button" data-win="hoops">Hoops</button>.</p>
       <div class="progress">
         <div class="track" role="progressbar" aria-label="Portfolio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61"><div class="fill" id="fill"></div></div>
         <span class="pct" id="pct" aria-hidden="true">61%</span>
@@ -1430,66 +889,52 @@
 
 <nav class="icons" aria-label="Desktop">
   <button class="icon" id="icon-about" type="button" data-open="about" aria-label="About Me">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M4 8h24v18H4z"/>
       <path class="i-ink" d="M4 7h24v1H4zM4 26h24v1H4zM3 8h1v18H3zM28 8h1v18h-1zM5 10h11v1H5zM5 22h11v1H5zM5 11h1v11H5zM15 11h1v11h-1zM9 12h3v1H9zM8 13h5v3H8zM9 16h3v1H9zM8 18h5v1H8zM7 19h7v3H7zM18 12h7v1h-7zM18 15h8v1h-8zM18 18h6v1h-6zM18 21h8v1h-8z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-about"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-about"/></svg>
     <span class="icon-label" aria-hidden="true">About Me</span>
   </button>
   <button class="icon" id="icon-readme" type="button" data-open="readme" aria-label="Read Me">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M7 3h13v26H7zM20 9h6v20h-6zM21 4h1v4h-1zM22 5h1v3h-1zM23 6h1v2h-1zM24 7h1v1h-1z"/>
       <path class="i-ink" d="M6 2h15v1H6zM6 3h1v27H6zM7 29h20v1H7zM26 8h1v21h-1zM21 3h1v1h-1zM22 4h1v1h-1zM23 5h1v1h-1zM24 6h1v1h-1zM25 7h1v1h-1zM20 3h1v6h-1zM21 8h5v1h-5zM10 13h12v1H10zM10 16h12v1H10zM10 19h12v1H10zM10 22h8v1h-8z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-readme"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-readme"/></svg>
     <span class="icon-label" aria-hidden="true">Read Me</span>
   </button>
   <button class="icon" id="icon-piano" type="button" data-open="piano" aria-label="Piano">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M3 10h27v14H3z"/>
       <path class="i-ink" d="M3 9h27v1H3zM3 24h27v1H3zM2 10h1v14H2zM30 10h1v14h-1zM3 12h27v1H3zM6 13h1v11H6zM10 13h1v11h-1zM14 13h1v11h-1zM18 13h1v11h-1zM22 13h1v11h-1zM26 13h1v11h-1zM5 13h3v7H5zM9 13h3v7H9zM17 13h3v7h-3zM21 13h3v7h-3zM25 13h3v7h-3z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-piano"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-piano"/></svg>
     <span class="icon-label" aria-hidden="true">Piano</span>
   </button>
   <button class="icon" id="icon-paint" type="button" data-open="paint" aria-label="Paint">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M28 2h2v1h-2zM27 3h2v1h-2zM26 4h2v1h-2zM26 5h2v1h-2zM25 6h2v1h-2zM24 7h2v1h-2zM3 8h19v1h-19zM23 8h2v1h-2zM3 9h18v1h-18zM22 9h2v1h-2zM3 10h5v1h-5zM9 10h11v1h-11zM21 10h2v1h-2zM3 11h4v1h-4zM8 11h1v1h-1zM10 11h10v1h-10zM21 11h2v1h-2zM3 12h3v1h-3zM7 12h1v1h-1zM9 12h1v1h-1zM11 12h8v1h-8zM20 12h2v1h-2zM24 12h1v1h-1zM3 13h2v1h-2zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM12 13h6v1h-6zM24 13h1v1h-1zM3 14h3v1h-3zM7 14h1v1h-1zM9 14h1v1h-1zM11 14h8v1h-8zM24 14h1v1h-1zM3 15h4v1h-4zM8 15h1v1h-1zM10 15h9v1h-9zM22 15h3v1h-3zM3 16h5v1h-5zM9 16h9v1h-9zM22 16h3v1h-3zM3 17h14v1h-14zM21 17h4v1h-4zM3 18h13v1h-13zM19 18h6v1h-6zM3 19h13v1h-13zM17 19h8v1h-8zM3 20h6v1h-6zM11 20h14v1h-14zM3 21h4v1h-4zM13 21h12v1h-12zM3 22h3v1h-3zM9 22h2v1h-2zM14 22h11v1h-11zM3 23h2v1h-2zM7 23h6v1h-6zM16 23h2v1h-2zM20 23h5v1h-5zM3 24h1v1h-1zM6 24h8v1h-8zM20 24h5v1h-5zM3 25h1v1h-1zM5 25h11v1h-11zM18 25h7v1h-7zM3 26h22v1h-22zM3 27h22v1h-22z"/>
       <path class="i-ink" d="M27 2h1v1h-1zM30 2h2v1h-2zM26 3h1v1h-1zM29 3h2v1h-2zM25 4h1v1h-1zM28 4h2v1h-2zM25 5h1v1h-1zM28 5h2v1h-2zM24 6h1v1h-1zM27 6h2v1h-2zM2 7h22v1h-22zM26 7h2v1h-2zM2 8h1v1h-1zM22 8h1v1h-1zM25 8h2v1h-2zM2 9h1v1h-1zM21 9h1v1h-1zM24 9h2v1h-2zM2 10h1v1h-1zM8 10h1v1h-1zM20 10h1v1h-1zM23 10h3v1h-3zM2 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM20 11h1v1h-1zM23 11h3v1h-3zM2 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM19 12h1v1h-1zM22 12h2v1h-2zM25 12h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM18 13h6v1h-6zM25 13h1v1h-1zM2 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM19 14h5v1h-5zM25 14h1v1h-1zM2 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM19 15h3v1h-3zM25 15h1v1h-1zM2 16h1v1h-1zM8 16h1v1h-1zM18 16h4v1h-4zM25 16h1v1h-1zM2 17h1v1h-1zM17 17h4v1h-4zM25 17h1v1h-1zM2 18h1v1h-1zM16 18h3v1h-3zM25 18h1v1h-1zM2 19h1v1h-1zM16 19h1v1h-1zM25 19h1v1h-1zM2 20h1v1h-1zM9 20h2v1h-2zM25 20h1v1h-1zM2 21h1v1h-1zM7 21h6v1h-6zM25 21h1v1h-1zM2 22h1v1h-1zM6 22h3v1h-3zM11 22h3v1h-3zM25 22h1v1h-1zM2 23h1v1h-1zM5 23h2v1h-2zM13 23h3v1h-3zM18 23h2v1h-2zM25 23h1v1h-1zM2 24h1v1h-1zM4 24h2v1h-2zM14 24h6v1h-6zM25 24h1v1h-1zM2 25h1v1h-1zM4 25h1v1h-1zM16 25h2v1h-2zM25 25h1v1h-1zM2 26h1v1h-1zM25 26h1v1h-1zM2 27h1v1h-1zM25 27h1v1h-1zM2 28h24v1h-24z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-paint"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-paint"/></svg>
     <span class="icon-label" aria-hidden="true">Paint</span>
   </button>
   <button class="icon" id="icon-hoops" type="button" data-open="hoops" aria-label="Hoops">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M14 3h16v1h-16zM14 4h16v1h-16zM14 5h16v1h-16zM14 6h16v1h-16zM6 7h1v1h-1zM8 7h1v1h-1zM14 7h4v1h-4zM26 7h4v1h-4zM5 8h2v1h-2zM8 8h2v1h-2zM14 8h4v1h-4zM19 8h6v1h-6zM26 8h4v1h-4zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM14 9h4v1h-4zM19 9h6v1h-6zM26 9h4v1h-4zM3 10h4v1h-4zM8 10h4v1h-4zM14 10h4v1h-4zM19 10h6v1h-6zM26 10h4v1h-4zM14 11h4v1h-4zM19 11h6v1h-6zM26 11h4v1h-4zM3 12h4v1h-4zM8 12h4v1h-4zM14 12h4v1h-4zM19 12h6v1h-6zM26 12h4v1h-4zM4 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM14 13h4v1h-4zM19 13h6v1h-6zM26 13h4v1h-4zM5 14h2v1h-2zM8 14h2v1h-2zM6 15h1v1h-1zM8 15h1v1h-1zM18 17h1v1h-1zM21 17h1v1h-1zM24 17h1v1h-1zM17 18h1v1h-1zM19 18h2v1h-2zM22 18h2v1h-2zM25 18h2v1h-2zM18 19h1v1h-1zM21 19h1v1h-1zM24 19h1v1h-1zM18 20h1v1h-1zM21 20h1v1h-1zM24 20h1v1h-1zM19 21h2v1h-2zM22 21h2v1h-2zM21 22h1v1h-1zM24 22h1v1h-1zM21 23h1v1h-1zM20 24h1v1h-1zM22 24h2v1h-2z"/>
       <path class="i-ink" d="M13 2h18v1h-18zM13 3h1v1h-1zM30 3h1v1h-1zM13 4h1v1h-1zM30 4h1v1h-1zM13 5h1v1h-1zM30 5h1v1h-1zM5 6h5v1h-5zM13 6h1v1h-1zM30 6h1v1h-1zM4 7h2v1h-2zM7 7h1v1h-1zM9 7h2v1h-2zM13 7h1v1h-1zM18 7h8v1h-8zM30 7h1v1h-1zM3 8h2v1h-2zM7 8h1v1h-1zM10 8h2v1h-2zM13 8h1v1h-1zM18 8h1v1h-1zM25 8h1v1h-1zM30 8h1v1h-1zM2 9h2v1h-2zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h3v1h-3zM18 9h1v1h-1zM25 9h1v1h-1zM30 9h1v1h-1zM2 10h1v1h-1zM7 10h1v1h-1zM12 10h2v1h-2zM18 10h1v1h-1zM25 10h1v1h-1zM30 10h1v1h-1zM2 11h12v1h-12zM18 11h1v1h-1zM25 11h1v1h-1zM30 11h1v1h-1zM2 12h1v1h-1zM7 12h1v1h-1zM12 12h2v1h-2zM18 12h1v1h-1zM25 12h1v1h-1zM30 12h1v1h-1zM2 13h2v1h-2zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h3v1h-3zM18 13h1v1h-1zM25 13h1v1h-1zM30 13h1v1h-1zM3 14h2v1h-2zM7 14h1v1h-1zM10 14h2v1h-2zM13 14h18v1h-18zM4 15h2v1h-2zM7 15h1v1h-1zM9 15h2v1h-2zM15 15h14v1h-14zM5 16h5v1h-5zM15 16h14v1h-14zM16 17h2v1h-2zM19 17h2v1h-2zM22 17h2v1h-2zM25 17h3v1h-3zM16 18h1v1h-1zM18 18h1v1h-1zM21 18h1v1h-1zM24 18h1v1h-1zM27 18h1v1h-1zM2 19h1v1h-1zM17 19h1v1h-1zM19 19h2v1h-2zM22 19h2v1h-2zM25 19h2v1h-2zM17 20h1v1h-1zM19 20h2v1h-2zM22 20h2v1h-2zM25 20h2v1h-2zM18 21h1v1h-1zM21 21h1v1h-1zM24 21h2v1h-2zM18 22h3v1h-3zM22 22h2v1h-2zM25 22h1v1h-1zM1 23h1v1h-1zM19 23h2v1h-2zM22 23h3v1h-3zM19 24h1v1h-1zM21 24h1v1h-1zM24 24h1v1h-1zM0 27h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-hoops"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-hoops"/></svg>
     <span class="icon-label" aria-hidden="true">Hoops</span>
   </button>
   <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M4 7h8v20H4zM12 8h2v19h-2zM14 9h14v18H14z"/>
       <path class="i-ink" d="M4 6h8v1H4zM12 7h1v1h-1zM13 8h1v1h-1zM14 8h14v1H14zM3 7h1v21H3zM28 9h1v19h-1zM4 27h24v1H4zM4 11h24v1H4z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-work"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-work"/></svg>
     <span class="icon-label" aria-hidden="true">Work</span>
   </button>
 </nav>
 
 <div class="scrim" id="scrim" hidden></div>
 <section class="alert" id="alert" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-text" hidden>
-  <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-work"/></svg>
-  <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-work"/></svg>
-  <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+  <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
     <defs>
       <pattern id="stripes" width="8" height="8" patternUnits="userSpaceOnUse">
         <path class="i-ink" d="M0 0h4v1H0zM0 1h3v1H0zM7 1h1v1H7zM0 2h2v1H0zM6 2h2v1H6zM0 3h1v1H0zM5 3h3v1H5zM4 4h4v1H4zM3 5h4v1H3zM2 6h4v1H2zM1 7h4v1H1z"/>
@@ -1520,7 +965,6 @@
 </div>
 
 <canvas class="saver" id="saver" aria-hidden="true" hidden></canvas>
-<div class="hud" id="hud" role="status" hidden><b id="hud-year"></b><span id="hud-name"></span></div>
 <div class="fx" aria-hidden="true"></div>
 <div class="bezel" aria-hidden="true"></div>
 
@@ -1612,30 +1056,8 @@
     }
 
     const FX = {
-      // Clicks: a mechanical switch in 1984, a soft gel pop in 2005, a faint tick in 2026.
-      down() {
-        const e = root.dataset.era;
-        if (e === '2026') { hit({ f: 5600, type: 'highpass', q: 0.7, gain: 0.06, dur: 0.012 }); return; }
-        if (e === '2005') { tone({ f: 1500, f2: 820, gain: 0.035, dur: 0.035 }); hit({ f: 2400, q: 1.2, gain: 0.04, dur: 0.012 }); return; }
-        hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 });
-      },
-      up() { if (root.dataset.era === '1984') hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
-      // The later eras' displays
-      blue() { tone({ f: 880, gain: 0.03, dur: 0.12 }); tone({ f: 1320, gain: 0.025, dur: 0.16, at: 0.06 }); },
-      graphite() { tone({ f: 660, gain: 0.03, dur: 0.12 }); tone({ f: 990, gain: 0.025, dur: 0.16, at: 0.06 }); },
-      light() { tone({ f: 1760, gain: 0.025, dur: 0.09 }); },
-      dark() { tone({ f: 1175, gain: 0.025, dur: 0.11 }); },
-      // Travelling between eras
-      era1984() { tone({ f: 1000, type: 'square', gain: 0.03, dur: 0.12 }); tone({ f: 1500, type: 'square', gain: 0.025, dur: 0.1, at: 0.13 }); },
-      era2005() { // a slow, warm chord of our own
-        [196, 293.66, 392, 493.88, 587.33].forEach((f, i) => tone({ f, type: 'triangle', gain: 0.022, dur: 1.6, at: i * 0.012 }));
-        tone({ f: 1174.66, gain: 0.01, dur: 1.2, at: 0.03 });
-      },
-      era2026() {
-        hit({ f: 1800, q: 0.4, gain: 0.05, dur: 0.25 });
-        tone({ f: 1318.5, gain: 0.03, dur: 0.3, at: 0.08 });
-        tone({ f: 1975.5, gain: 0.022, dur: 0.4, at: 0.16 });
-      },
+      down() { hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 }); },
+      up() { hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
       open() { tone({ f: 660, type: 'triangle', gain: 0.035, dur: 0.09 }); tone({ f: 990, type: 'triangle', gain: 0.03, dur: 0.12, at: 0.045 }); },
       close() { tone({ f: 880, type: 'triangle', gain: 0.03, dur: 0.08 }); tone({ f: 587, type: 'triangle', gain: 0.028, dur: 0.11, at: 0.04 }); },
       alert() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 784, type: 'square', gain: 0.022, dur: 0.11, at: 0.09 }); },
@@ -1892,40 +1314,30 @@
   };
 
   /* ==========================================================
-     Eras and displays. An era is the whole machine; a display
-     is a variation within it. 1984 has six, the later eras two.
+     Themes
   ========================================================== */
-  const ERAS = {
-    1984: { name: 'One-bit', displays: [['paper', 'Paper'], ['negative', 'Negative'], ['amber', 'Amber'], ['pocket', 'Pocket'], ['ega', 'EGA'], ['textmode', 'Text Mode']] },
-    2005: { name: 'Gel', displays: [['blue', 'Blue'], ['graphite', 'Graphite']] },
-    2026: { name: 'Glass', displays: [['light', 'Light'], ['dark', 'Dark']] },
-  };
-  const ERA_IDS = Object.keys(ERAS);
-  const era = () => root.dataset.era;
-  const displays = () => ERAS[era()].displays;
-  const ids = () => displays().map((t) => t[0]);
-  const themeKey = (e) => (e === '1984' ? 'adiel-theme' : 'adiel-theme-' + e);
-  function firstDisplay(e) {
-    const saved = store.get(themeKey(e));
-    if (ERAS[e].displays.some(([id]) => id === saved)) return saved;
-    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-    return e === '2005' ? 'blue' : e === '2026' ? (dark ? 'dark' : 'light') : dark ? 'negative' : 'paper';
-  }
+  const THEMES = [
+    ['paper', 'Paper'],
+    ['negative', 'Negative'],
+    ['amber', 'Amber'],
+    ['pocket', 'Pocket'],
+    ['ega', 'EGA'],
+    ['textmode', 'Text Mode'],
+  ];
+  const ids = THEMES.map((t) => t[0]);
   const themeMeta = $('meta[name="theme-color"]');
   const themeBtn = $('#theme-btn');
   const themeName = $('#theme-name');
-  const eraBtn = $('#menu-era');
   function syncTheme() {
-    const list = displays(), i = Math.max(0, ids().indexOf(root.dataset.theme));
-    const next = list[(i + 1) % list.length][1];
-    themeName.textContent = list[i][1];
-    themeBtn.setAttribute('aria-label', 'Display: ' + list[i][1] + '. Switch to ' + next);
+    const i = Math.max(0, ids.indexOf(root.dataset.theme));
+    const next = THEMES[(i + 1) % THEMES.length][1];
+    themeName.textContent = THEMES[i][1];
+    themeBtn.setAttribute('aria-label', 'Display: ' + THEMES[i][1] + '. Switch to ' + next);
     themeMeta.content = getComputedStyle(root).getPropertyValue('--bar-bg').trim() || '#ffffff';
-    $$('[data-to-era]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.toEra === era())));
-    eraBtn.setAttribute('aria-label', 'Era: ' + era() + ', ' + ERAS[era()].name);
   }
-  // Everything drawn by script picks up the new look.
-  function redraw() {
+  function applyTheme(id) {
+    root.dataset.theme = id;
+    store.set('adiel-theme', id);
     Colors.reset();
     syncTheme();
     Portrait.render();
@@ -1934,52 +1346,16 @@
     Bez.render();
     updateDock();
   }
-  function applyTheme(id) {
-    root.dataset.theme = id;
-    store.set(themeKey(era()), id);
-    redraw();
-  }
   function setTheme(id) {
-    if (!ids().includes(id) || id === root.dataset.theme) return;
+    if (!ids.includes(id) || id === root.dataset.theme) return;
     Sound.play(id);
     if (document.startViewTransition && !reduced.matches) document.startViewTransition(() => applyTheme(id));
     else applyTheme(id);
   }
   function cycleTheme() {
-    const list = ids();
-    setTheme(list[(list.indexOf(root.dataset.theme) + 1) % list.length]);
+    const i = ids.indexOf(root.dataset.theme);
+    setTheme(ids[(i + 1) % ids.length]);
   }
-
-  // Travelling: the new era opens out in a circle from the Era menu, and its year flashes up.
-  const hud = $('#hud');
-  let hudTimer = 0;
-  function setEra(e) {
-    if (!ERAS[e] || e === era()) return;
-    Sound.play('era' + e);
-    const go = () => {
-      root.dataset.era = e;
-      root.dataset.theme = firstDisplay(e);
-      store.set('adiel-era', e);
-      redraw();
-      $('#hud-year').textContent = e;
-      $('#hud-name').textContent = ERAS[e].name;
-      hud.hidden = false;
-      hud.style.animation = 'none';
-      void hud.offsetWidth;
-      hud.style.animation = '';
-      clearTimeout(hudTimer);
-      hudTimer = setTimeout(() => { hud.hidden = true; }, 1500);
-      Bez.travelled(e);
-    };
-    if (document.startViewTransition && !reduced.matches) {
-      const r = eraBtn.getBoundingClientRect();
-      root.style.setProperty('--ox', Math.round(r.left + r.width / 2) + 'px');
-      root.style.setProperty('--oy', Math.round(r.top + r.height / 2) + 'px');
-      root.classList.add('is-era-shift');
-      document.startViewTransition(go).finished.finally(() => root.classList.remove('is-era-shift'));
-    } else go();
-  }
-  const cycleEra = () => setEra(ERA_IDS[(ERA_IDS.indexOf(era()) + 1) % ERA_IDS.length]);
   themeBtn.addEventListener('click', cycleTheme);
   syncTheme();
 
@@ -2054,13 +1430,12 @@
       const item = e.target.closest('.mi');
       if (!item) return;
       const { win } = item.dataset;
-      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez'), to = item.dataset.toEra;
-      if (!win && !saver && !bez && !to) { closeMenu(); return; } // links navigate normally
+      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez');
+      if (!win && !saver && !bez) { closeMenu(); return; } // links navigate normally
       blinkThen(rec, item, () => {
         closeMenu();
         if (saver) Saver.start();
         else if (bez) Bez.summon(true);
-        else if (to) setEra(to);
         else openWin(W[win], { scroll: true });
       });
     });
@@ -2085,12 +1460,12 @@
   const stack = [];
   const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
   const visibleBox = (el) => (el && el.getClientRects().length ? box(el) : null);
-  const iconSvg = (win) => $('#' + win.dataset.icon + ' .ico-' + era());
+  const iconSvg = (win) => $('#' + win.dataset.icon + ' svg');
   const isDocked = (win) => win === W.readme && root.classList.contains('is-docked');
-  const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot]):not(.ghost)');
+  const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot])');
 
   function setActive(win) {
-    $$('.window:not(.ghost)').forEach((w) => w.classList.toggle('is-active', w === win));
+    $$('.window').forEach((w) => w.classList.toggle('is-active', w === win));
     if (win !== W.piano) Piano.releaseAll();
   }
   function raise(win) {
@@ -2167,38 +1542,12 @@
     raise(win);
     const to = box(win);
     Sound.play('open');
-    const shown = () => {
+    zoom(visibleBox(iconSvg(win)), to, () => {
       win.style.visibility = '';
       if (h.after) h.after();
       if (opts.focus !== false) win.focus({ preventScroll: true });
       if (opts.scroll && isDocked(win)) win.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'nearest' });
-    };
-    if (era() === '1984') { zoom(visibleBox(iconSvg(win)), to, shown); return; }
-    // Later eras: the window grows out of its icon.
-    const from = visibleBox(iconSvg(win));
-    win.style.transformOrigin = from ? Math.round(from.x + from.w / 2 - to.x) + 'px ' + Math.round(from.y + from.h / 2 - to.y) + 'px' : '';
-    win.classList.remove('is-opening');
-    void win.offsetWidth;
-    win.classList.add('is-opening');
-    setTimeout(() => win.classList.remove('is-opening'), 380);
-    shown();
-  }
-  // Later eras fade a copy of the window out where it was.
-  function ghost(win, r) {
-    if (reduced.matches) return;
-    const g = win.cloneNode(true);
-    g.removeAttribute('id');
-    $$('[id]', g).forEach((n) => n.removeAttribute('id'));
-    g.classList.remove('is-opening');
-    g.classList.add('ghost');
-    g.hidden = false;
-    g.inert = true;
-    g.setAttribute('aria-hidden', 'true');
-    Object.assign(g.style, { left: r.x + 'px', top: r.y + 'px', right: 'auto', bottom: 'auto', width: r.w + 'px', height: r.h + 'px', zIndex: '44', visibility: '' });
-    const from = $$('canvas', win);
-    $$('canvas', g).forEach((c, i) => { try { c.getContext('2d').drawImage(from[i], 0, 0); } catch (e) {} });
-    document.body.append(g);
-    setTimeout(() => g.remove(), 280);
+    });
   }
   function closeWin(win) {
     if (win.hidden) return;
@@ -2214,8 +1563,7 @@
     if (i > -1) stack.splice(i, 1);
     setActive(stack[stack.length - 1] || null);
     Sound.play('close');
-    if (era() === '1984') zoom(from, visibleBox(iconSvg(win)), () => {});
-    else ghost(win, from);
+    zoom(from, visibleBox(iconSvg(win)), () => {});
   }
 
   function placeWin(win, x, y) {
@@ -3170,26 +2518,15 @@
       }
     }
     // Aim dots: the first moment of the arc, or all of it with training wheels on.
-    function arc(vx, vy) {
-      const pts = [];
+    function dots(vx, vy) {
       let x = ball.x, y = ball.y;
       for (let i = 1; i <= (assist ? 120 : 21) && y <= FLOOR - R; i++) {
         vy += GRAV / 60; x += vx / 60; y += vy / 60;
-        if (i % 3 === 0) pts.push([x, y]);
+        if (i % 3 === 0) { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); }
       }
-      return pts;
-    }
-    const aiming = () => (aim ? arc(aim.vx, aim.vy)
-      : showKey && state === 'ready' ? arc(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX) : []);
-    const hiRes = () => root.dataset.era !== '1984';
-    // 1984 draws 200×140 real pixels; the later eras draw smooth shapes at screen resolution.
-    function fit() {
-      const s = hiRes() ? Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))) : 1;
-      if (canvas.width !== CW * s) { canvas.width = CW * s; canvas.height = CH * s; }
     }
     function draw() {
       tick++;
-      if (hiRes()) { drawSmooth(); return; }
       px.fill(0);
       // floor: a line over a light dither, and the three-point line
       for (let x = 0; x < CW; x++) {
@@ -3219,116 +2556,10 @@
       // rim and net sit in front of the ball
       fill([RIM_F - 1, RIM_Y, BOARD[0] - 1, RIM_Y + 1]);
       drawNet();
-      aiming().forEach(([x, y]) => { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); });
+      if (aim) dots(aim.vx, aim.vy);
+      else if (showKey && state === 'ready') dots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
       const { ink, paper } = Colors.get();
       blit(g, img, px, ink, paper);
-    }
-
-    /* The later eras' court: glossy wood and glass in 2005, a few quiet lines in 2026. */
-    const COURTS = {
-      blue: { sky: ['#c4e1ff', '#f6fbff'], net: '#7c8ea3', glass: ['#f2f8ff', '#9db9da'], edge: '#4f6b8f', dot: '#2f7de1' },
-      graphite: { sky: ['#d9dee5', '#f7f8fa'], net: '#8a929c', glass: ['#f6f7f9', '#aab3bf'], edge: '#5c6673', dot: '#6c7a8c' },
-      light: { bg: '#ffffff', floor: '#f2f2f5', line: '#d1d1d6', ink: '#1d1d1f', net: '#b7b7bd', shadow: 'rgb(0 0 0 / .12)' },
-      dark: { bg: '#1c1c1e', floor: '#232326', line: '#3a3a3c', ink: '#f5f5f7', net: '#636366', shadow: 'rgb(0 0 0 / .45)' },
-    };
-    function drawSmooth() {
-      const s = canvas.width / CW, gel = root.dataset.era === '2005';
-      const P = COURTS[root.dataset.theme] || COURTS.light, accent = rgb(Colors.get().accent);
-      const lin = (x0, y0, x1, y1, stops) => { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };
-      const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
-      g.setTransform(s, 0, 0, s, 0, 0);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      // backdrop and floor
-      g.fillStyle = gel ? lin(0, 0, 0, FLOOR, P.sky) : P.bg;
-      g.fillRect(0, 0, CW, CH);
-      if (gel) {
-        g.fillStyle = lin(0, FLOOR, 0, CH, ['#e7b072', '#b8773b']);
-        g.fillRect(0, FLOOR, CW, CH - FLOOR);
-        g.strokeStyle = 'rgb(110 60 15 / .22)';
-        g.lineWidth = 0.35;
-        for (let x = 9; x < CW; x += 23) { g.beginPath(); g.moveTo(x, FLOOR); g.lineTo(x - 6, CH); g.stroke(); }
-        g.fillStyle = 'rgb(255 255 255 / .35)';
-        g.fillRect(0, FLOOR, CW, 0.8);
-        g.fillStyle = 'rgb(255 255 255 / .85)';
-        g.fillRect(THREE - 0.45, FLOOR + 0.8, 0.9, CH - FLOOR);
-      } else {
-        g.fillStyle = P.floor;
-        g.fillRect(0, FLOOR, CW, CH - FLOOR);
-        g.fillStyle = P.line;
-        g.fillRect(0, FLOOR, CW, 0.5);
-        g.fillRect(THREE - 0.3, FLOOR, 0.6, CH - FLOOR);
-      }
-      // stanchion and backboard
-      if (gel) {
-        g.fillStyle = lin(183, 0, 193, 0, ['#9aa4b1', '#e8ecf1', '#7b8592']);
-        rr(183, FLOOR - 5, 11, 5, 1.5); g.fill();
-        g.fillStyle = lin(187, 0, 190, 0, ['#8d97a4', '#eef1f5', '#6c7683']);
-        g.fillRect(POLE[0], POLE[1], 3, POLE[3] - POLE[1] + 1);
-        g.fillRect(ARM[0], ARM[1], ARM[2] - ARM[0] + 1, 3);
-        g.fillStyle = lin(BOARD[0], 0, BOARD[2] + 1, 0, P.glass);
-        rr(BOARD[0], BOARD[1], 4, BOARD[3] - BOARD[1] + 1, 1); g.fill();
-        g.strokeStyle = P.edge; g.lineWidth = 0.4; g.stroke();
-      } else {
-        g.fillStyle = P.ink;
-        rr(184, FLOOR - 3, 9, 3, 1.5); g.fill();
-        g.fillRect(POLE[0] + 0.6, POLE[1], 1.6, POLE[3] - POLE[1] + 1);
-        g.fillRect(ARM[0], ARM[1] + 0.7, ARM[2] - ARM[0] + 1, 1.2);
-        rr(BOARD[0] + 1, BOARD[1], 2.2, BOARD[3] - BOARD[1] + 1, 1.1); g.fill();
-      }
-      // shadow, smaller and fainter the higher the ball
-      const lift = clamp((FLOOR - R - ball.y) / 90, 0, 0.85);
-      g.fillStyle = gel ? 'rgb(70 35 5 / .3)' : P.shadow;
-      g.globalAlpha = 1 - lift * 0.7;
-      g.beginPath(); g.ellipse(ball.x, FLOOR + 0.6, R * (1 - lift * 0.55), 1.1, 0, 0, Math.PI * 2); g.fill();
-      g.globalAlpha = 1;
-      // on fire
-      trail.forEach(([tx, ty], n) => {
-        g.globalAlpha = ((n + 1) / trail.length) * 0.32;
-        g.fillStyle = gel ? '#ff9a2e' : accent;
-        g.beginPath(); g.arc(tx, ty, R * (0.5 + n * 0.04), 0, Math.PI * 2); g.fill();
-      });
-      g.globalAlpha = 1;
-      // the ball
-      g.save();
-      g.translate(ball.x, ball.y);
-      if (gel) { const rg = g.createRadialGradient(-1.6, -2, 0.4, 0, 0, R); rg.addColorStop(0, '#ffcf9e'); rg.addColorStop(0.55, '#f37a24'); rg.addColorStop(1, '#a5450b'); g.fillStyle = rg; }
-      else g.fillStyle = '#ff7a1a';
-      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.fill();
-      g.rotate(ball.a);
-      g.strokeStyle = gel ? '#5a2606' : '#a8470d';
-      g.lineWidth = 0.42;
-      g.beginPath();
-      g.moveTo(-R, 0); g.lineTo(R, 0); g.moveTo(0, -R); g.lineTo(0, R);
-      g.moveTo(-R * 0.7, -R * 0.7); g.quadraticCurveTo(-R * 0.22, 0, -R * 0.7, R * 0.7);
-      g.moveTo(R * 0.7, -R * 0.7); g.quadraticCurveTo(R * 0.22, 0, R * 0.7, R * 0.7);
-      g.stroke();
-      g.restore();
-      if (gel) { g.fillStyle = 'rgb(255 255 255 / .45)'; g.beginPath(); g.ellipse(ball.x - 1, ball.y - 2.5, 2.8, 1.5, 0, 0, Math.PI * 2); g.fill(); }
-      // rim and net, in front of the ball
-      const sway = net * Math.sin(netT * 22) * 2.5, top = RIM_Y + 2, bot = RIM_Y + 14;
-      const l0 = RIM_F, r0 = BOARD[0] - 1, l1 = RIM_F + 3.6 + sway, r1 = BOARD[0] - 4.6 + sway;
-      g.strokeStyle = P.net;
-      g.lineWidth = 0.42;
-      g.beginPath();
-      for (let i = 0; i <= 5; i++) {
-        const tx = l0 + ((r0 - l0) * i) / 5;
-        if (i < 5) { g.moveTo(tx, top); g.lineTo(l1 + ((r1 - l1) * (i + 1)) / 5, bot); }
-        if (i > 0) { g.moveTo(tx, top); g.lineTo(l1 + ((r1 - l1) * (i - 1)) / 5, bot); }
-      }
-      g.moveTo(l0, top); g.lineTo(l1, bot); g.moveTo(r0, top); g.lineTo(r1, bot);
-      g.stroke();
-      g.fillStyle = gel ? lin(0, RIM_Y, 0, RIM_Y + 2, ['#ff8a5c', '#d23c12']) : '#ff6b2c';
-      rr(RIM_F - 1.5, RIM_Y, BOARD[0] - RIM_F + 1.5, 2, 1); g.fill();
-      // aim
-      aiming().forEach(([x, y], i, all) => {
-        g.globalAlpha = gel ? 1 : 1 - (i / all.length) * 0.6;
-        g.beginPath(); g.arc(x, y, 0.95, 0, Math.PI * 2);
-        if (gel) { g.fillStyle = '#fff'; g.fill(); g.strokeStyle = P.dot; g.lineWidth = 0.45; g.stroke(); }
-        else { g.fillStyle = accent; g.fill(); }
-      });
-      g.globalAlpha = 1;
-      g.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     function frame(t) {
@@ -3351,14 +2582,12 @@
     }
     function render() {
       if (!built) return;
-      fit();
       dirty = true;
       if (!raf) draw();
     }
     function build() {
       if (built) return;
       built = true;
-      fit();
       sync();
       draw();
     }
@@ -3721,12 +2950,7 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = rgb(deskInk);
       ctx.beginPath();
-      if (root.dataset.era === '1984') {
-        for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
-      } else { // later eras: smooth round dots, no snapping to the grid
-        const r = size * 0.46;
-        for (let i = 0; i < N; i++) { const x = X[i] * s + s / 2, y = Y[i] * s + s / 2; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2); }
-      }
+      for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
       ctx.fill();
       if (withCaret) {
         ctx.fillStyle = rgb(accent);
@@ -3888,8 +3112,7 @@
       '#..........#', ' #.........#', '  #........#', '   #.......#', '    #......#', '     #.....#',
       '      #....#', '       #...#', '        #..#', '         #.#', '          ##',
     ];
-    tail.innerHTML = '<path class="t-px t-fill" d="' + pixPath(TAIL, '.') + '"/><path class="t-px t-ink" d="' + pixPath(TAIL, '#') + '"/>' +
-      '<path class="t-vec t-vec-fill" shape-rendering="geometricPrecision" d="M0 0H12V11Z"/><path class="t-vec t-vec-line" shape-rendering="geometricPrecision" d="M0 0L12 11V0"/>';
+    tail.innerHTML = '<path class="t-fill" d="' + pixPath(TAIL, '.') + '"/><path class="t-ink" d="' + pixPath(TAIL, '#') + '"/>';
 
     const saved = (() => { try { return JSON.parse(store.get(KEY)) || {}; } catch (e) { return {}; } })();
     saved.met = saved.met || {};
@@ -3940,78 +3163,8 @@
       if (t < blinkUntil && p.eyes === 'open') p.eyes = 'shut';
       return p;
     }
-    // 1984 Bez is 44×36 real pixels; later eras draw him smooth at screen resolution.
-    function fit() {
-      const s = root.dataset.era === '1984' ? 1 : Math.max(2, Math.round(2 * (window.devicePixelRatio || 1)));
-      if (canvas.width !== SW * s) { canvas.width = SW * s; canvas.height = SH * s; }
-    }
-    function drawSmooth(p, t) {
-      const s = canvas.width / SW, gel = root.dataset.era === '2005', dark = root.dataset.theme === 'dark';
-      const { ink, paper, accent } = Colors.get();
-      const cx = 22, cy = 18 + (reduced.matches ? 0 : Math.sin(t / 380) * 0.5);
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, canvas.width, canvas.height);
-      g.setTransform(s, 0, 0, s, 0, 0);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      // handles, with a knob for each hand
-      [p.l, p.r].forEach((d) => {
-        const a = (d * Math.PI) / 180, kx = cx + Math.cos(a) * 15, ky = cy - Math.sin(a) * 15;
-        g.strokeStyle = gel ? '#4a4a4a' : rgb(ink);
-        g.lineWidth = gel ? 0.8 : 0.7;
-        g.beginPath(); g.moveTo(cx, cy); g.lineTo(kx, ky); g.stroke();
-        g.beginPath(); g.arc(kx, ky, 2.5, 0, Math.PI * 2);
-        if (gel) {
-          const rg = g.createRadialGradient(kx - 0.7, ky - 1, 0.2, kx, ky, 2.5);
-          rg.addColorStop(0, '#e6f3ff'); rg.addColorStop(0.5, '#3f8ff0'); rg.addColorStop(1, '#1c5cc2');
-          g.fillStyle = rg; g.fill();
-          g.strokeStyle = 'rgb(0 0 0 / .35)'; g.lineWidth = 0.35; g.stroke();
-        } else {
-          g.fillStyle = rgb(accent); g.fill();
-          g.strokeStyle = rgb(paper); g.lineWidth = 0.6; g.stroke();
-        }
-      });
-      // the anchor: a rounded square, glossy in 2005
-      g.save();
-      g.shadowColor = gel ? 'rgb(0 0 0 / .35)' : dark ? 'rgb(0 0 0 / .55)' : 'rgb(0 0 0 / .16)';
-      g.shadowBlur = 3 * s;
-      g.shadowOffsetY = s;
-      g.beginPath();
-      g.roundRect(cx - 7, cy - 7, 14, 14, gel ? 2.2 : 3.4);
-      if (gel) { const lg = g.createLinearGradient(0, cy - 7, 0, cy + 7); lg.addColorStop(0, '#ffffff'); lg.addColorStop(1, '#d9d9d9'); g.fillStyle = lg; }
-      else g.fillStyle = rgb(paper);
-      g.fill();
-      g.restore();
-      g.lineWidth = gel ? 0.7 : 0.5;
-      g.strokeStyle = gel ? '#5a5a5a' : dark ? 'rgb(255 255 255 / .22)' : 'rgb(0 0 0 / .14)';
-      g.stroke();
-      if (gel) { g.fillStyle = 'rgb(255 255 255 / .6)'; g.beginPath(); g.roundRect(cx - 6.2, cy - 6.4, 12.4, 5.2, [1.6, 1.6, 3, 3]); g.fill(); }
-      // face
-      const fc = gel ? '#1b1b1b' : rgb(ink);
-      g.fillStyle = fc;
-      g.strokeStyle = fc;
-      g.lineWidth = 0.75;
-      [-3, 3].forEach((ex, side) => {
-        const x = cx + ex + p.look, y = cy - 1.5;
-        g.beginPath();
-        if (p.eyes === 'open') { g.roundRect(x - 0.9, y - 1.5, 1.8, 3, 0.9); g.fill(); }
-        else if (p.eyes === 'shut') { g.moveTo(x - 1, y + 1); g.lineTo(x + 1, y + 1); g.stroke(); }
-        else if (p.eyes === 'up') { g.roundRect(x - 0.9, y - 2.8, 1.8, 2, 0.9); g.fill(); }
-        else if (p.eyes === 'happy') { g.moveTo(x - 1.5, y + 0.9); g.quadraticCurveTo(x, y - 1.6, x + 1.5, y + 0.9); g.stroke(); }
-        else { const o = side ? -1 : 1; g.moveTo(x - o, y - 1.3); g.lineTo(x + o * 0.9, y); g.lineTo(x - o, y + 1.3); g.stroke(); } // > <
-      });
-      const my = cy + 3;
-      g.beginPath();
-      if (p.mouth === 'smile') { g.moveTo(cx - 2, my - 0.6); g.quadraticCurveTo(cx, my + 1.6, cx + 2, my - 0.6); g.stroke(); }
-      else if (p.mouth === 'flat') { g.moveTo(cx - 1.8, my + 0.3); g.lineTo(cx + 1.8, my + 0.3); g.stroke(); }
-      else if (p.mouth === 'open') { g.ellipse(cx, my + 0.2, 1.2, 1.15, 0, 0, Math.PI * 2); g.fill(); }
-      else { g.moveTo(cx - 2.8, my - 0.9); g.quadraticCurveTo(cx, my + 3.6, cx + 2.8, my - 0.9); g.closePath(); g.fill(); }
-      g.setTransform(1, 0, 0, 1, 0, 0);
-    }
     function draw() {
       const t = performance.now(), p = pose(t);
-      fit();
-      if (root.dataset.era !== '1984') { drawSmooth(p, t); return; }
       const cx = 22, cy = 18 + (reduced.matches ? 0 : Math.floor(t / 600) % 2);
       px.fill(0);
       handle(cx, cy, p.l);
@@ -4354,17 +3507,8 @@
       return true;
     }
 
-    // A word about wherever he's just been taken.
-    function travelled(e) {
-      if (!shown) return;
-      if (lesson || mode === 'coach' || balloon.hidden) { act('cheer', 900); hop(); return; }
-      const quip = { 1984: 'Ahh, 1984. Every pixel placed by hand.', 2005: 'Whoa, I’m glossy! Everything’s a gel now.', 2026: 'So clean. Where did all my pixels go?' }[e];
-      act('wave', 1200);
-      say('<p>' + quip + '</p>', { actions: [['Back', () => summon(false)], ['Bye', leave]] });
-    }
-
     return {
-      summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed, travelled,
+      summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed,
       render: () => { if (shown) draw(); },
     };
   })();
@@ -4405,7 +3549,6 @@
     if (Hoops.active && Hoops.keydown(e)) return;
     if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
     if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
-    if (e.code === 'KeyE' && !e.repeat) { cycleEra(); return; }
     if (e.key === 'Escape') {
       if (openRec) { closeMenu(true); return; }
       const top = activeWin();
