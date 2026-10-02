@@ -617,6 +617,26 @@
   .note.is-done { color: var(--graphite); }
   .note.is-now { background: var(--ink); color: var(--paper); }
   .note.is-now small { color: var(--paper); }
+  .note.is-miss { color: var(--graphite); text-decoration: line-through; }
+  .b-ask { display: flex; gap: 6px; margin-top: 10px; }
+  .b-ask input {
+    flex: 1 1 auto; min-width: 0; height: 22px; padding: 0 7px;
+    border: 1px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink);
+    font: 500 12px var(--font);
+  }
+  .b-ask input::placeholder { color: var(--graphite); opacity: 1; }
+  .b-ask input:focus { outline: 1px dotted var(--ink); outline-offset: 2px; }
+  .b-ask .btn { height: 22px; }
+  .b-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .b-chip {
+    height: 20px; padding: 0 8px;
+    border: 1px dotted var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink);
+    font-size: 11px; font-weight: 500; cursor: default;
+  }
+  .b-chip:hover, .b-chip:focus-visible { border-style: solid; background: var(--hl); color: var(--on-hl); outline: none; }
+  .b-chart { display: block; width: 200px; height: 60px; margin-top: 8px; border: 1px solid var(--ink); image-rendering: pixelated; }
+  .b-stars { letter-spacing: 1px; }
+  .b-text a { color: inherit; }
 
   /* Screen saver */
   .saver { position: fixed; inset: 0; z-index: 90; display: block; width: 100%; height: 100%; background: var(--desk-color); cursor: none; }
@@ -1766,7 +1786,7 @@
     const held = [];
     const down = new Map();
     const ptr = new Map();
-    const heard = new Set();
+    const heard = new Set(), lifted = new Set();
     const octaveName = (m) => 'C' + (Math.floor(m / 12) - 1);
 
     function makeKey(off, cls) {
@@ -1838,6 +1858,7 @@
       if (!rec) return;
       voices.delete(src);
       mark(rec.off, -1);
+      if (!src.startsWith('bez')) lifted.forEach((fn) => fn(base + rec.off));
       if (sustain.checked) held.push(rec.v); else rec.v.stop(0.3);
     }
     function releaseAll() { Array.from(voices.keys()).forEach(release); }
@@ -1921,6 +1942,7 @@
     return {
       layout, warm, releaseAll, keydown, keyup, target, play, label, home,
       onNote: (fn) => heard.add(fn),
+      onRelease: (fn) => lifted.add(fn),
       get base() { return base; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
@@ -3488,6 +3510,7 @@
     const px = new Uint8Array(SW * SH); // 0 clear, 1 ink, 2 paper, 3 accent
     const balloon = $('#bez-balloon'), tail = $('#bez-tail');
     const textEl = $('#bez-text'), extraEl = $('#bez-extra'), actionsEl = $('#bez-actions');
+    const fine = matchMedia('(pointer: fine)');
     const KEY = 'adiel-bez';
     const NOTE = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
     const PITCH = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -3499,6 +3522,8 @@
       const [, l, sharp, o, d] = t.match(/^([A-G])(#?)(\d)(?::([\d.]+))?$/);
       return [12 * (+o + 1) + PITCH[l] + (sharp ? 1 : 0), d ? +d : 1];
     });
+    // Chord progressions: "C4 E4 G4 | F4 A4 C5".
+    const chords = (s) => s.split('|').map((c) => song(c).map(([m]) => m));
     const LESSONS = [
       { id: 'five', name: 'Five fingers', beat: 0.4,
         intro: 'Thumb on C, then one finger per key up to G, and back down.',
@@ -3519,12 +3544,34 @@
         intro: 'Beethoven again. The famous wobble uses a black key, D♯, which is P.',
         notes: song('E5 D#5 E5 D#5 E5 B4 D5 C5 A4:3 C4 E4 A4 B4:3 E4 G#4 B4 C5:3 E4 E5 D#5 E5 D#5 E5 B4 D5 C5 A4:4') },
     ];
+    const CHORD_SETS = [
+      { id: 'three', name: 'Three chords', beat: 0.8,
+        intro: 'C, F and G: the three chords under half the songs you know.',
+        chords: chords('C4 E4 G4 | F4 A4 C5 | G4 B4 D5 | C4 E4 G4') },
+      { id: 'pop', name: 'Four-chord pop', beat: 0.8,
+        intro: 'C, G, A minor, F. Loop it and you can play along with the radio.',
+        chords: chords('C4 E4 G4 | G4 B4 D5 | A4 C5 E5 | F4 A4 C5') },
+      { id: 'minor', name: 'Minor mood', beat: 0.8,
+        intro: 'A minor, D minor, E major, and home. Darker, a bit cinematic.',
+        chords: chords('A4 C5 E5 | D4 F4 A4 | E4 G#4 B4 | A4 C5 E5') },
+    ];
+    // Chord shapes from the root, and what to call them.
+    const SHAPES = [
+      [[0, 4, 7], ' major', ''], [[0, 3, 7], ' minor', 'm'], [[0, 3, 6], ' diminished', 'dim'], [[0, 4, 8], ' augmented', 'aug'],
+      [[0, 2, 7], 'sus2', 'sus2'], [[0, 5, 7], 'sus4', 'sus4'], [[0, 4, 7, 10], '7', '7'], [[0, 4, 7, 11], 'maj7', 'maj7'],
+      [[0, 3, 7, 10], 'm7', 'm7'], [[0, 3, 6, 10], 'm7♭5', 'm7♭5'], [[0, 3, 6, 9], 'dim7', 'dim7'], [[0, 4, 7, 9], '6', '6'],
+      [[0, 3, 7, 9], 'm6', 'm6'], [[0, 2, 4, 7], 'add9', 'add9'],
+    ];
+    const INTERVALS = ['unison', 'minor second', 'major second', 'minor third', 'major third', 'perfect fourth', 'tritone',
+      'perfect fifth', 'minor sixth', 'major sixth', 'minor seventh', 'major seventh', 'octave'];
     const TIPS = {
       low: ['That one never got above the rim. Pull back further.', 'Needs more legs. Pull back further.'],
       short: ['Short. Same angle, a little more pull.', 'Just short. Give it a bit more.'],
       rim: ['Front rim. So close: add a touch of arc.', 'Rim! Nudge the angle up a little.'],
-      long: ['Too hot, off the back. Ease up a little.', 'A bit strong. Pull back less.'],
+      back: ['Back rim. Ease off the power a hair.', 'Long, off the back iron. A touch softer.'],
+      long: ['Too hot, off the glass. Ease up a little.', 'A bit strong. Pull back less.'],
     };
+    const ZONES = [['Deep three', 0, 50], ['Three', 50, 72], ['Mid-range', 72, 100], ['Close', 100, 200]];
     const TAIL = [
       '#..........#', ' #.........#', '  #........#', '   #.......#', '    #......#', '     #.....#',
       '      #....#', '       #...#', '        #..#', '         #.#', '          ##',
@@ -3534,9 +3581,16 @@
     const saved = (() => { try { return JSON.parse(store.get(KEY)) || {}; } catch (e) { return {}; } })();
     saved.met = saved.met || {};
     saved.done = saved.done || [];
+    saved.stars = saved.stars || {};
+    saved.trouble = saved.trouble || {};
+    saved.ear = saved.ear || { level: 1, best: 0 };
     const keep = () => store.set(KEY, JSON.stringify(saved));
-    let shown = false, mode = null, lesson = null, misses = 0, offer = 0, ticker = 0;
+    let shown = false, mode = null, lesson = null, rhythm = null, quiz = null, misses = 0, offer = 0, ticker = 0;
     let mood = 'idle', moodUntil = 0, talkUntil = 0, blinkAt = 0, blinkUntil = 0;
+    const held = new Map();      // keys you're holding down, and since when
+    const recent = [];           // the last notes you played, for recognising songs
+    const shots = [];            // your recent Hoops shots, with what Bez would have done
+    let lastChord = '', lastSongAt = -1e9, chordTimer = 0;
 
     /* Drawing Bez: handles behind, the anchor square in front, then a face. */
     const put = (x, y, v) => {
@@ -3551,9 +3605,11 @@
         if (r <= 5) put(kx + i, ky + j, r >= 4 ? 1 : 3);
       }
     }
+    const busy = () => !!(lesson || rhythm || quiz);
     // Which way to point: at the key to play, or at the court.
     function pointing() {
-      const t = lesson ? $('.key.is-target', W.piano) : mode === 'coach' && !W.hoops.hidden ? $('#court') : null;
+      const t = busy() ? $('.key.is-target', W.piano) || W.piano
+        : (mode === 'coach' || mode === 'horse') && !W.hoops.hidden ? $('#court') : null;
       if (!t || !t.getClientRects().length) return null;
       const a = t.getBoundingClientRect(), b = canvas.getBoundingClientRect();
       const d = deg(Math.atan2(b.top + b.height / 2 - (a.top + a.height / 2), a.left + a.width / 2 - (b.left + b.width / 2)));
@@ -3562,7 +3618,7 @@
     function pose(t) {
       const still = reduced.matches, s = t / 1000, sway = still ? 0 : Math.sin(s * 1.6) * 5;
       const p = { l: 205 + sway, r: -25 - sway, eyes: 'open', mouth: 'smile', look: 0 };
-      if (t > moodUntil) mood = lesson || mode === 'coach' ? 'point' : 'idle';
+      if (t > moodUntil) mood = busy() || mode === 'coach' || mode === 'horse' ? 'point' : 'idle';
       if (mood === 'wave') { p.r = 55 + (still ? 0 : Math.sin(s * 14) * 22); p.eyes = 'happy'; p.mouth = 'grin'; }
       else if (mood === 'cheer') { p.l = 122; p.r = 58; p.eyes = 'happy'; p.mouth = 'grin'; }
       else if (mood === 'oops') { p.l = 225; p.r = -45; p.eyes = 'squint'; p.mouth = 'flat'; }
@@ -3629,27 +3685,60 @@
       el.classList.toggle('is-flip-x', flipX);
       el.classList.toggle('is-flip-y', b.top - h - 12 < menubar.offsetHeight + 6);
     }
+    const button = (label, fn, cls = 'btn btn-sm') => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = cls;
+      b.textContent = label;
+      b.addEventListener('click', fn);
+      return b;
+    };
     function say(html, { extra = null, actions = [], quiet = false, focus = false } = {}) {
       textEl.innerHTML = html;
       extraEl.replaceChildren(...(extra ? [extra] : []));
-      actionsEl.replaceChildren(...actions.map(([label, fn]) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'btn btn-sm';
-        b.textContent = label;
-        b.addEventListener('click', fn);
-        return b;
-      }));
+      actionsEl.replaceChildren(...actions.map(([label, fn]) => button(label, fn)));
       balloon.hidden = false;
       me.setAttribute('aria-expanded', 'true');
       if (!quiet) talkUntil = performance.now() + Math.min(1600, 300 + textEl.textContent.length * 16);
       place();
-      if (focus) { const b = $('button', balloon); if (b) b.focus({ preventScroll: true }); }
+      if (focus) {
+        // With a mouse, straight into the ask box; on touch, no surprise keyboard.
+        const b = (fine.matches && $('input', balloon)) || $('button', balloon);
+        if (b) b.focus({ preventScroll: true });
+      }
     }
     function hush() {
       balloon.hidden = true;
       me.setAttribute('aria-expanded', 'false');
     }
+    const frag = (...nodes) => { const f = document.createDocumentFragment(); f.append(...nodes.filter(Boolean)); return f; };
+    function list(items) {
+      const ul = document.createElement('ul');
+      ul.className = 'b-list';
+      items.forEach(([label, note, fn]) => {
+        const li = document.createElement('li'), b = button('', fn, 'b-item');
+        b.innerHTML = '<span>' + label + '</span><small>' + note + '</small>';
+        li.append(b);
+        ul.append(li);
+      });
+      return ul;
+    }
+    function chips(items) {
+      const d = document.createElement('div');
+      d.className = 'b-chips';
+      items.forEach((q) => d.append(button(q, () => ask(q), 'b-chip')));
+      return d;
+    }
+    function askBox() {
+      const f = document.createElement('form');
+      f.className = 'b-ask';
+      f.innerHTML = '<input type="text" name="q" autocomplete="off" maxlength="120" placeholder="Ask me something…" aria-label="Ask Bez"><button class="btn btn-sm" type="submit">Ask</button>';
+      const input = $('input', f);
+      f.addEventListener('submit', (e) => { e.preventDefault(); const q = input.value.trim(); if (q) ask(q, true); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); hush(); me.focus({ preventScroll: true }); } });
+      return f;
+    }
+    const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 
     /* Coming and going */
     function appear() {
@@ -3667,7 +3756,7 @@
     }
     function leave() {
       if (!shown) return;
-      endLesson();
+      stopAll();
       mode = null;
       if (Hoops.assist) Hoops.assist = false;
       if (el.contains(document.activeElement)) (activeWin() || $('#menu-adiel')).focus({ preventScroll: true });
@@ -3683,18 +3772,45 @@
     }
     const quiet = () => { saved.quiet = 1; keep(); leave(); };
 
+    // What he knows about how you're doing.
+    function progress() {
+      const done = LESSONS.filter((L) => saved.done.includes(L.id)), next = LESSONS.find((L) => !saved.done.includes(L.id));
+      const rec = Hoops.record, out = [];
+      if (done.length) out.push('You’ve learned ' + done.length + ' of ' + LESSONS.length + ' songs' + (next ? '; next up is <b>' + next.name + '</b>.' : '. All of them!'));
+      const st = Object.values(saved.stars);
+      if (st.length) out.push('Played in time: ' + st.filter((n) => n === 3).length + ' with three stars.');
+      if (saved.ear.best) out.push('Ear training: level ' + saved.ear.level + ', best streak ' + saved.ear.best + '.');
+      if (rec.w + rec.l) out.push('HORSE: you’re ' + rec.w + '–' + rec.l + ' against me.');
+      if (Hoops.clockBest) out.push('60 Seconds best: ' + Hoops.clockBest + ' points.');
+      if (Hoops.best) out.push('Best streak in Hoops: ' + Hoops.best + '.');
+      return out;
+    }
     function home(focus) {
-      endLesson();
+      stopAll();
       mode = null;
-      say('<p>Hi, I’m <b>Bez</b>. I’m an anchor point; these handles are my arms.</p><p>I can teach you a song on the Piano, or help with your jump shot in Hoops.</p>',
-        { actions: [['Piano lessons', () => songs(true)], ['Hoops coaching', coach], ['Bye', leave]], focus });
+      const first = !saved.seen, news = progress();
+      saved.seen = 1;
+      keep();
+      const hi = first || !news.length
+        ? '<p>Hi, I’m <b>Bez</b>. I’m an anchor point; these handles are my arms.</p><p>I can teach you piano, coach your jump shot, play you at HORSE, or answer questions about this desk.</p>'
+        : '<p><b>Welcome back!</b> ' + news.slice(0, 2).join(' ') + '</p><p>What are we doing?</p>';
+      // Don't take the keyboard away from the Piano or Hoops.
+      const toy = activeWin() === W.piano || activeWin() === W.hoops;
+      say(hi, {
+        extra: frag(askBox(), chips(['Teach me a song', 'What chord is C E G?', 'Play HORSE', 'Who’s Adiel?'])),
+        actions: [['Piano', () => pianoMenu(true)], ['Hoops', coach], ['Bye', leave]], focus: focus && !toy,
+      });
     }
     // Opened from the menu, the ? key or by clicking him: help with whatever is in front.
     function summon(focus) {
       appear();
       const top = activeWin();
       if (lesson) showLesson();
-      else if (top === W.piano) songs(focus);
+      else if (rhythm) showRhythm();
+      else if (quiz) showQuiz();
+      else if (top === W.hoops && Hoops.game === 'horse') horseTalk('<p>We’re mid-game. Your move.</p>');
+      else if (top === W.hoops && Hoops.game === 'clock') say('<p>Clock’s running! I’ll keep quiet.</p>', { actions: [['Bye', leave]] });
+      else if (top === W.piano) pianoMenu(focus);
       else if (top === W.hoops) coach();
       else home(focus);
     }
@@ -3703,126 +3819,423 @@
       else summon(true);
     }
 
-    /* Piano lessons: no clock, Bez waits for each key. */
-    function songs(focus) {
-      endLesson();
-      mode = null;
-      const list = document.createElement('ul');
-      list.className = 'b-list';
-      LESSONS.forEach((L, i) => {
-        const li = document.createElement('li'), b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'b-item';
-        b.innerHTML = '<span>' + (i + 1) + '. ' + L.name + '</span><small>' + (saved.done.includes(L.id) ? 'Done ✓' : L.notes.length + ' notes') + '</small>';
-        b.addEventListener('click', () => begin(i));
-        li.append(b);
-        list.append(li);
-      });
-      act('think', 900);
-      say('<p>Pick a song. I’ll light up each key and wait for you to press it. There’s no clock.</p>',
-        { extra: list, actions: [['Back', () => home(true)], ['Bye', leave]], focus });
+    /* Piano. Everything that keeps time or lights keys stops together. */
+    function stopAll() {
+      if (lesson) { (lesson.timers || []).forEach(clearTimeout); lesson = null; }
+      if (rhythm) { cancelAnimationFrame(rhythm.raf); rhythm.timers.forEach(clearTimeout); rhythm = null; }
+      if (quiz) { quiz.timers.forEach(clearTimeout); quiz = null; }
+      if (mode === 'lesson' || mode === 'rhythm' || mode === 'ear') mode = null;
+      Piano.target([]);
     }
-    function begin(i) {
-      endLesson();
+    function pianoMenu(focus) {
+      stopAll();
+      mode = null;
+      const tricky = LESSONS.filter((L) => worst(L.id) !== null);
+      const items = [
+        ['Learn a song', LESSONS.filter((L) => saved.done.includes(L.id)).length + ' of ' + LESSONS.length + ' done', () => songs(true)],
+        ['Chords', CHORD_SETS.length + ' progressions', () => chordSets(true)],
+        ['Play in time', 'with a click', () => songs(true, true)],
+        ['Ear training', 'level ' + saved.ear.level, ear],
+      ];
+      if (tricky.length) items.push(['Tricky spots', tricky.length + (tricky.length === 1 ? ' song' : ' songs'), () => drills(true)]);
+      act('think', 900);
+      say('<p>What shall we work on?</p>', { extra: list(items), actions: [['Back', () => home(true)], ['Bye', leave]], focus });
+    }
+    function songs(focus, timed) {
+      stopAll();
+      mode = null;
+      const items = LESSONS.map((L, i) => [(i + 1) + '. ' + L.name,
+        timed ? (saved.stars[L.id] ? stars(saved.stars[L.id]) : 'not yet') : saved.done.includes(L.id) ? 'Done ✓' + (saved.stars[L.id] ? ' ' + stars(saved.stars[L.id]) : '') : L.notes.length + ' notes',
+        () => (timed ? inTime(i) : begin('song', i))]);
+      act('think', 900);
+      say(timed
+        ? '<p>Pick a song. I’ll count you in and keep a click going; play each key as it lights up. Stars for timing.</p>'
+        : '<p>Pick a song. I’ll light up each key and wait for you to press it. There’s no clock.</p>',
+      { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+    function chordSets(focus) {
+      stopAll();
+      mode = null;
+      const items = CHORD_SETS.map((C, i) => [C.name, C.chords.map((c) => identify(c).short).join(' '), () => begin('chords', i)]);
+      say('<p>Chords are three keys at once. I’ll light them up; press them together, or one after another, quickly.</p>',
+        { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+
+    /* Lessons with no clock: a list of steps, each one note or a chord. */
+    function begin(kind, i, drill) {
+      stopAll();
+      const src = kind === 'chords' ? CHORD_SETS[i] : LESSONS[i];
+      let steps = kind === 'chords' ? src.chords.map((c) => ({ notes: c, dur: 2 })) : src.notes.map(([m, d]) => ({ notes: [m], dur: d }));
+      let map = steps.map((_, k) => k), title = src.name, hint = src.intro;
+      if (drill) {
+        // The trouble spot, two notes either side, three times through.
+        const lo = Math.max(0, drill - 2), hi = Math.min(steps.length - 1, drill + 2), part = map.slice(lo, hi + 1);
+        map = [...part, ...part, ...part];
+        steps = map.map((k) => steps[k]);
+        title = 'Tricky spot in ' + src.name;
+        hint = 'This bit has tripped you up before. Three times through, slowly.';
+      }
       mode = 'lesson';
-      lesson = { i, at: 0, slips: 0, hint: LESSONS[i].intro, timers: null };
+      lesson = { kind, i, src, steps, map, title, drill, at: 0, slips: 0, clean: true, hint, got: new Map(), timers: null };
       openWin(W.piano);
       Piano.home();
       showLesson();
     }
+    const label = (m) => Piano.label(m) || '';
     function showLesson() {
-      const L = LESSONS[lesson.i], at = lesson.at, n = L.notes.length, want = L.notes[at][0];
-      Piano.target([want]);
+      const L = lesson, at = L.at, n = L.steps.length, want = L.steps[at].notes;
+      Piano.target(want);
       const strip = document.createElement('div');
       strip.className = 'notes';
       strip.setAttribute('aria-hidden', 'true');
-      const from = clamp(at - 3, 0, Math.max(0, n - 10));
-      L.notes.slice(from, from + 10).forEach(([m], k) => {
+      const from = clamp(at - 3, 0, Math.max(0, n - (want.length > 1 ? 6 : 10)));
+      L.steps.slice(from, from + (want.length > 1 ? 6 : 10)).forEach((s, k) => {
         const cell = document.createElement('span');
         cell.className = 'note' + (from + k < at ? ' is-done' : from + k === at ? ' is-now' : '');
-        cell.innerHTML = name(m) + '<small>' + (Piano.label(m) || '·') + '</small>';
+        cell.innerHTML = (s.notes.length > 1 ? identify(s.notes).short : name(s.notes[0])) + '<small>' + (s.notes.map(label).join('') || '·') + '</small>';
         strip.append(cell);
       });
-      const key = Piano.label(want), off = want - Piano.base;
-      const where = off < 0 || off > 24 ? 'It’s off this keyboard: press Z or X to shift octaves.'
-        : key ? 'Press <b>' + key + '</b> or click the blinking key.' : 'Click the blinking key.';
-      say('<p><b>' + L.name + '</b> · ' + (at + 1) + ' of ' + n + '</p>' + (lesson.hint ? '<p class="b-hint">' + lesson.hint + '</p>' : '') +
-        '<p>Next: <b>' + name(want) + '</b>. ' + where + '</p>',
-        { extra: strip, quiet: at > 0, actions: [['Hear it', hear], ['Restart', () => begin(lesson.i)], ['Songs', () => songs(true)]] });
+      const off = want.map((m) => m - Piano.base), keys = want.map(label);
+      let where;
+      if (off.some((o) => o < 0 || o > 24)) where = 'It’s off this keyboard: press Z or X to shift octaves.';
+      else if (want.length > 1) where = 'Press <b>' + keys.slice(0, -1).join('</b>, <b>') + '</b> and <b>' + keys[keys.length - 1] + '</b> together, or click the blinking keys.';
+      else where = keys[0] ? 'Press <b>' + keys[0] + '</b> or click the blinking key.' : 'Click the blinking key.';
+      const what = want.length > 1 ? '<b>' + identify(want).name + '</b> (' + want.map(name).join('–') + ')' : '<b>' + name(want[0]) + '</b>';
+      const actions = [['Hear it', hear], ['Restart', () => begin(L.kind, L.i, L.drill)]];
+      if (L.kind === 'song' && !L.drill) actions.push(['In time', () => inTime(L.i)]);
+      actions.push([L.kind === 'chords' ? 'Chords' : 'Songs', () => (L.kind === 'chords' ? chordSets(true) : songs(true))]);
+      say('<p><b>' + L.title + '</b> · ' + (at + 1) + ' of ' + n + '</p>' + (L.hint ? '<p class="b-hint">' + L.hint + '</p>' : '') +
+        '<p>Next: ' + what + '. ' + where + '</p>', { extra: strip, quiet: at > 0, actions });
+    }
+    // Tricky spots: where you slip, per song, fading as you get it right.
+    function trouble(id, k, d) {
+      const t = saved.trouble[id] = saved.trouble[id] || {};
+      t[k] = Math.max(0, (t[k] || 0) + d);
+      if (!t[k]) delete t[k];
+      if (!Object.keys(t).length) delete saved.trouble[id];
+      keep();
+    }
+    function worst(id) {
+      const t = saved.trouble[id];
+      if (!t) return null;
+      const [k, n] = Object.entries(t).sort((a, b) => b[1] - a[1])[0];
+      return n >= 2 ? +k : null;
+    }
+    function drills(focus) {
+      stopAll();
+      const items = LESSONS.map((L, i) => [L, i]).filter(([L]) => worst(L.id) !== null)
+        .map(([L, i]) => [L.name, 'around note ' + (worst(L.id) + 1), () => begin('song', i, worst(L.id))]);
+      say('<p>These are the spots where your fingers keep slipping. Short drills, three times through.</p>',
+        { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+    function stepNote(m) {
+      const L = lesson, want = L.steps[L.at].notes, k = L.map[L.at], id = L.src.id;
+      if (!want.includes(m)) {
+        L.slips++;
+        L.clean = false;
+        L.got.clear();
+        trouble(id, k, 1);
+        L.hint = want.length > 1 ? 'That’s ' + name(m) + ', which isn’t in this chord. Try ' + want.map(name).join('–') + '.'
+          : m % 12 === want[0] % 12 ? 'Right note, wrong octave. Look for the blinking one.' : 'That was ' + name(m) + '. We want ' + name(want[0]) + '.';
+        act('oops', 700);
+        showLesson();
+        return;
+      }
+      const t = performance.now();
+      L.got.set(m, t);
+      // A chord counts when all its keys are down, or were pressed in quick succession.
+      const left = want.filter((w) => !(held.has(w) || t - (L.got.get(w) || -1e9) < 1500));
+      if (left.length) { L.hint = (want.length - left.length) + ' of ' + want.length + ' keys. Now ' + left.map(name).join(' and ') + '.'; showLesson(); return; }
+      if (L.clean) trouble(id, k, -1);
+      L.at++;
+      L.clean = true;
+      L.got.clear();
+      L.hint = '';
+      if (L.at >= L.steps.length) { finish(); return; }
+      hop();
+      showLesson();
     }
     function finish() {
-      const { i, slips } = lesson, L = LESSONS[i];
-      if (!saved.done.includes(L.id)) { saved.done.push(L.id); keep(); }
-      endLesson();
+      const L = lesson, { kind, i, slips, src } = L;
+      if (!L.drill && !saved.done.includes(src.id)) saved.done.push(src.id);
+      if (L.drill && !slips) trouble(src.id, L.drill, -2);
+      keep();
+      stopAll();
       act('cheer', 1800);
       hop();
       Sound.play('bezYay');
-      const actions = [['Again', () => begin(i)]];
-      if (i + 1 < LESSONS.length) actions.push(['Next song', () => begin(i + 1)]);
-      actions.push(['Songs', () => songs(true)]);
-      say('<p><b>' + (slips ? 'Done!' : 'Clean run!') + '</b> ' + L.name + (slips ? ', with ' + slips + (slips === 1 ? ' slip.' : ' slips.') : ', not one slip.') + '</p>' +
-        '<p>' + (slips > 3 ? 'Once more and it’ll be in your fingers.' : 'Nice hands.') + '</p>', { actions });
+      const actions = [['Again', () => begin(kind, i, L.drill)]];
+      if (kind === 'song' && !L.drill) actions.push(['In time', () => inTime(i)]);
+      const list = kind === 'chords' ? CHORD_SETS : LESSONS;
+      if (!L.drill && i + 1 < list.length) actions.push([kind === 'chords' ? 'Next set' : 'Next song', () => begin(kind, i + 1)]);
+      actions.push([kind === 'chords' ? 'Chords' : 'Songs', () => (kind === 'chords' ? chordSets(true) : songs(true))]);
+      const what = L.drill ? 'that tricky spot' : src.name;
+      let tip = slips > 3 ? 'Once more and it’ll be in your fingers.' : 'Nice hands.';
+      if (kind === 'song' && !L.drill) tip += ' Ready to try it <b>in time</b>, with a click?';
+      if (!L.drill && worst(src.id) !== null) tip = 'One spot keeps tripping you up. Try <b>Tricky spots</b> from the Piano menu.';
+      say('<p><b>' + (slips ? 'Done!' : 'Clean run!') + '</b> ' + what + (slips ? ', with ' + slips + (slips === 1 ? ' slip.' : ' slips.') : ', not one slip.') + '</p>' +
+        '<p>' + tip + '</p>', { actions });
     }
     // Bez plays it through first, conducting.
     function hear() {
       if (!lesson) return;
-      stopDemo();
-      const L = LESSONS[lesson.i];
+      (lesson.timers || []).forEach(clearTimeout);
+      const L = lesson, beat = L.src.beat;
       openWin(W.piano);
       Piano.home();
       let t = 250;
-      lesson.timers = L.notes.map(([m, d]) => {
-        const ms = d * L.beat * 1000, at = t;
+      L.timers = [];
+      L.steps.forEach((s) => {
+        const ms = s.dur * beat * 1000, at = t;
         t += ms;
-        return setTimeout(() => Piano.play(m, ms * 0.9), at);
+        L.timers.push(setTimeout(() => s.notes.forEach((m) => Piano.play(m, ms * 0.9)), at));
       });
-      lesson.timers.push(setTimeout(() => { if (lesson) { lesson.timers = null; lesson.hint = 'Your turn.'; showLesson(); } }, t + 300));
+      L.timers.push(setTimeout(() => { if (lesson === L) { L.timers = null; L.hint = 'Your turn.'; showLesson(); } }, t + 300));
       act('conduct', t + 300);
-      say('<p>Listen first: <b>' + L.name + '</b>.</p>', { actions: [['Stop', () => { stopDemo(); showLesson(); }]] });
+      say('<p>Listen first: <b>' + L.title + '</b>.</p>', { actions: [['Stop', () => { L.timers.forEach(clearTimeout); L.timers = null; showLesson(); }]] });
     }
-    function stopDemo() {
-      if (!lesson || !lesson.timers) return;
-      lesson.timers.forEach(clearTimeout);
-      lesson.timers = null;
+
+    /* Play in time: a count-in, a click, and a window around every note. */
+    function inTime(i, slow) {
+      stopAll();
+      const L = LESSONS[i], beat = L.beat * (slow ? 2.1 : 1.5);
+      let t = 0;
+      const notes = L.notes.map(([m, d]) => { const n = { m, t, w: clamp(0.5 * d * beat, 0.1, 0.25), e: null, miss: false }; t += d * beat; return n; });
+      mode = 'rhythm';
+      rhythm = { i, L, slow, beat, notes, end: t, start: performance.now() + 500 + 4 * beat * 1000, lastBeat: null, extra: 0, cur: null, last: '', raf: 0, timers: [] };
+      openWin(W.piano);
+      Piano.home();
+      act('conduct', 600 + 4 * beat * 1000);
+      showRhythm();
+      rhythm.raf = requestAnimationFrame(tickRhythm);
     }
-    function endLesson() {
-      if (!lesson) return;
-      stopDemo();
-      lesson = null;
-      if (mode === 'lesson') mode = null;
-      Piano.target([]);
+    function tickRhythm() {
+      const r = rhythm;
+      if (!r) return;
+      const now = (performance.now() - r.start) / 1000, b = Math.floor(now / r.beat);
+      let changed = false;
+      if (b !== r.lastBeat && now > -4 * r.beat) {
+        r.lastBeat = b;
+        if (b < 0) { Sound.play('tick'); changed = true; } else if (now < r.end) Sound.play('tock');
+      }
+      r.notes.forEach((n) => { if (n.e === null && !n.miss && now > n.t + n.w) { n.miss = true; changed = true; } });
+      const cur = r.notes.find((n) => n.e === null && !n.miss) || null;
+      if (cur !== r.cur) { r.cur = cur; Piano.target(cur ? [cur.m] : []); changed = true; }
+      if (changed) showRhythm();
+      if (now > r.end + 0.5) { grade(); return; }
+      r.raf = requestAnimationFrame(tickRhythm);
+    }
+    function rhythmNote(m) {
+      const r = rhythm, now = (performance.now() - r.start) / 1000;
+      let best = null;
+      r.notes.forEach((n) => {
+        if (n.e !== null || n.miss || n.m !== m) return;
+        const e = now - n.t;
+        if (Math.abs(e) <= n.w && (!best || Math.abs(e) < Math.abs(best.e))) best = { n, e };
+      });
+      if (!best) { r.extra++; return; }
+      best.n.e = best.e;
+      r.last = Math.abs(best.e) < 0.05 ? 'On it.' : best.e < 0 ? 'Early.' : 'Late.';
+      showRhythm();
+    }
+    function showRhythm() {
+      const r = rhythm, now = (performance.now() - r.start) / 1000, at = r.notes.indexOf(r.cur);
+      const strip = document.createElement('div');
+      strip.className = 'notes';
+      strip.setAttribute('aria-hidden', 'true');
+      const i0 = at < 0 ? r.notes.length : at, from = clamp(i0 - 3, 0, Math.max(0, r.notes.length - 10));
+      r.notes.slice(from, from + 10).forEach((n, k) => {
+        const cell = document.createElement('span');
+        cell.className = 'note' + (n.miss ? ' is-miss' : n.e !== null ? ' is-done' : from + k === at ? ' is-now' : '');
+        cell.innerHTML = name(n.m) + '<small>' + (label(n.m) || '·') + '</small>';
+        strip.append(cell);
+      });
+      const count = now < 0 ? Math.min(4, Math.ceil(-now / r.beat)) : 0;
+      say('<p><b>' + r.L.name + '</b> in time' + (r.slow ? ', slower' : '') + '</p>' +
+        '<p>' + (count ? 'Get ready… <b>' + count + '</b>' : r.last || 'Play each key as it lights up.') + '</p>',
+      { extra: strip, quiet: true, actions: [['Stop', () => songs(true, true)]] });
+    }
+    function grade() {
+      const r = rhythm, n = r.notes.length, errs = r.notes.filter((x) => x.e !== null).map((x) => x.e), hits = errs.length;
+      const mean = hits ? errs.reduce((a, e) => a + Math.abs(e), 0) / hits : 1;
+      const bias = hits ? errs.reduce((a, e) => a + e, 0) / hits : 0, rate = hits / n;
+      const got = rate >= 0.9 && mean < 0.07 ? 3 : rate >= 0.75 ? 2 : rate >= 0.4 ? 1 : 0;
+      const { i, L, slow } = r;
+      if (got > (saved.stars[L.id] || 0)) saved.stars[L.id] = got;
+      keep();
+      stopAll();
+      let note;
+      if (hits < 3) note = 'Let’s get the notes first. Learn it with no clock, then come back.';
+      else if (Math.abs(bias) > 0.03) note = bias < 0 ? 'You were rushing, a little ahead of the click. Let the notes breathe.' : 'You were dragging, a little behind the click. Lean into it.';
+      else note = got === 3 ? 'Right in the pocket.' : 'Your timing is even. Now catch every note.';
+      if (r.extra > n / 3) note += ' Lots of extra keys: just follow the blinking one.';
+      act(got >= 2 ? 'cheer' : 'think', 1500);
+      if (got >= 2) { hop(); Sound.play('bezYay'); }
+      const actions = [['Again', () => inTime(i, slow)]];
+      if (!slow && got < 3) actions.push(['Slower', () => inTime(i, true)]);
+      if (slow && got >= 2) actions.push(['Full speed', () => inTime(i)]);
+      if (hits < n / 2) actions.push(['Learn it', () => begin('song', i)]);
+      actions.push(['Songs', () => songs(true, true)]);
+      say('<p><span class="b-stars" aria-label="' + got + ' of 3 stars">' + stars(got) + '</span> <b>' + L.name + '</b></p>' +
+        '<p>' + hits + ' of ' + n + ' notes on time' + (hits ? ', ' + Math.round(mean * 1000) + ' ms off on average.' : '.') + '</p><p class="b-hint">' + note + '</p>', { actions });
+    }
+
+    /* Ear training: Bez plays, you find it on the keys. */
+    function ear() {
+      stopAll();
+      mode = 'ear';
+      quiz = { level: saved.ear.level || 1, streak: 0, tries: 0, root: 60, target: 60, timers: [], msg: '' };
+      openWin(W.piano);
+      Piano.home();
+      ask1();
+    }
+    function ask1() {
+      const q = quiz;
+      q.tries = 0;
+      if (q.level >= 3) {
+        q.root = 60 + Math.floor(Math.random() * 8);
+        q.target = q.root + 1 + Math.floor(Math.random() * 12);
+      } else {
+        const pool = q.level === 1 ? [62, 64, 65, 67, 69, 71, 72] : [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72];
+        q.root = 60;
+        q.target = pick(pool.filter((m) => m !== q.target));
+      }
+      Piano.target(q.level >= 3 ? [q.root] : []);
+      play1();
+    }
+    function play1() {
+      const q = quiz;
+      q.timers.forEach(clearTimeout);
+      q.timers = [setTimeout(() => Piano.play(q.root, 550), 150), setTimeout(() => Piano.play(q.target, 800), 850)];
+      act('conduct', 1500);
+      showQuiz();
+    }
+    function showQuiz() {
+      const q = quiz;
+      const how = q.level === 1 ? 'I’ll play C, then a mystery white key between C and the next C. Find it.'
+        : q.level === 2 ? 'C, then any key up to the next C, black keys too. Find the second one.'
+          : 'I play the lit key, then a second one above it. Find the second.';
+      say('<p><b>Ear training</b> · level ' + q.level + (q.streak ? ' · streak ' + q.streak : '') + '</p>' +
+        (q.msg ? '<p>' + q.msg + '</p>' : '<p class="b-hint">' + how + '</p>'),
+      { quiet: !q.msg, actions: [['Play again', play1], ['Skip', () => { q.streak = 0; q.msg = 'Skipped. New one.'; ask1(); }], ['More', () => pianoMenu(true)]] });
+    }
+    function quizNote(m) {
+      const q = quiz;
+      if (q.level >= 3 && m === q.root) return; // finding your footing
+      const right = q.level >= 3 ? m === q.target : m % 12 === q.target % 12;
+      if (right) {
+        q.streak++;
+        if (q.streak > (saved.ear.best || 0)) saved.ear.best = q.streak;
+        const iv = q.target - q.root;
+        q.msg = q.level >= 3 ? 'Yes! A <b>' + INTERVALS[iv] + '</b>: ' + name(q.root) + ' up to ' + name(q.target) + '.' : 'Yes! That was <b>' + name(q.target) + '</b>.';
+        if (q.streak % 5 === 0 && q.level < 3) { q.level++; saved.ear.level = q.level; q.msg += ' Five in a row: up to level ' + q.level + '.'; Sound.play('bezYay'); }
+        keep();
+        act('cheer', 1000);
+        hop();
+        Piano.target([]);
+        showQuiz();
+        q.timers.push(setTimeout(() => { if (quiz === q) { q.msg = ''; ask1(); } }, 1400));
+        return;
+      }
+      q.tries++;
+      q.streak = 0;
+      act('oops', 600);
+      if (q.tries >= 3) {
+        q.msg = 'It was <b>' + name(q.target) + '</b>' + (q.level >= 3 ? ', a ' + INTERVALS[q.target - q.root] : '') + '. Listen once more.';
+        Piano.target([q.target]);
+        play1();
+        q.timers.push(setTimeout(() => { if (quiz === q) { q.msg = ''; ask1(); } }, 2600));
+        return;
+      }
+      const t = q.level >= 3 ? q.target : q.target + 12 * Math.round((m - q.target) / 12);
+      q.msg = (t > m ? 'Higher.' : 'Lower.') + ' That was ' + name(m) + '.';
+      showQuiz();
+    }
+
+    /* Free play: Bez listens, names chords and spots songs he knows. */
+    function identify(ms) {
+      const sorted = [...ms].sort((a, b) => a - b), pcs = [...new Set(sorted.map((m) => m % 12))], bass = sorted[0] % 12;
+      const roots = [bass, ...pcs.filter((p) => p !== bass)];
+      for (const r of roots) {
+        const iv = pcs.map((p) => (p - r + 12) % 12).sort((a, b) => a - b).join();
+        const s = SHAPES.find(([shape]) => shape.join() === iv);
+        if (!s) continue;
+        const third = s[0][1], fifth = s[0][2];
+        let inv = '';
+        if (bass !== r) inv = (bass === (r + third) % 12 ? 'first inversion' : bass === (r + fifth) % 12 ? 'second inversion' : 'inverted') + ', ' + NOTE[bass] + ' on the bottom';
+        return { name: NOTE[r] + s[1], short: NOTE[r] + s[2], inv, root: r };
+      }
+      return null;
+    }
+    function listen(m) {
+      recent.push(m);
+      if (recent.length > 16) recent.shift();
+      if (!shown || mode || busy() || W.piano.hidden) return;
+      clearTimeout(chordTimer);
+      chordTimer = setTimeout(nameChord, 160);
+      spot();
+    }
+    function nameChord() {
+      const t = performance.now(), down = [...held].filter(([, at]) => t - at < 8000).map(([m]) => m);
+      if (new Set(down.map((m) => m % 12)).size < 3) return;
+      const c = identify(down);
+      if (!c) return;
+      const key = c.name + c.inv;
+      if (key === lastChord) return;
+      lastChord = key;
+      act('think', 600);
+      say('<p>That’s <b>' + c.name + '</b>' + (c.inv ? ', ' + c.inv : '') + '.</p><p class="b-hint">' + down.sort((a, b) => a - b).map(name).join(' · ') + '</p>',
+        { quiet: true, actions: [['Chord lessons', () => chordSets(true)], ['Bye', leave]] });
+    }
+    // A song from its first notes, in any key.
+    function spot() {
+      if (performance.now() - lastSongAt < 30000 || recent.length < 6) return;
+      let found = null, tie = false;
+      LESSONS.forEach((L, i) => {
+        const s = L.notes.map(([m]) => m);
+        for (let k = Math.min(recent.length, s.length, 10); k >= 6; k--) {
+          const tail = recent.slice(-k);
+          if (tail.every((m, j) => !j || m - tail[j - 1] === s[j] - s[j - 1])) {
+            if (found && found.k === k) tie = true;
+            else if (!found || k > found.k) { found = { i, k }; tie = false; }
+            break;
+          }
+        }
+      });
+      if (!found || tie) return;
+      lastSongAt = performance.now();
+      recent.length = 0;
+      const L = LESSONS[found.i];
+      act('cheer', 1200);
+      hop();
+      say('<p>Hey, I know that one: <b>' + L.name + '</b>!</p><p>Want to learn the rest?</p>',
+        { actions: [['Teach me', () => begin('song', found.i)], ['In time', () => inTime(found.i)], ['Not now', hush]] });
     }
     Piano.onNote((m) => {
-      if (!lesson || lesson.timers) return;
-      const L = LESSONS[lesson.i], want = L.notes[lesson.at][0];
-      if (m === want) {
-        lesson.at++;
-        lesson.hint = '';
-        if (lesson.at >= L.notes.length) { finish(); return; }
-        hop();
-      } else {
-        lesson.slips++;
-        lesson.hint = m % 12 === want % 12 ? 'Right note, wrong octave. Look for the blinking one.' : 'That was ' + name(m) + '. We want ' + name(want) + '.';
-        act('oops', 700);
-      }
-      showLesson();
+      held.set(m, performance.now());
+      if (rhythm) rhythmNote(m);
+      else if (quiz) quizNote(m);
+      else if (lesson && !lesson.timers) stepNote(m);
+      else if (!lesson) listen(m);
     });
+    Piano.onRelease((m) => held.delete(m));
 
-    /* Hoops coaching */
-    // Focus stays on the court, so arrows and Space keep shooting.
+    /* Hoops: coaching, with what he's noticed over your last few shots. */
     function coach() {
-      endLesson();
+      stopAll();
       mode = 'coach';
       openWin(W.hoops);
+      if (Hoops.game !== 'free') Hoops.setGame('free');
       coachSay('<p>Take a shot and I’ll tell you what I saw. Or I can show you one from where the ball is.</p>');
     }
+    // Focus stays on the court, so arrows and Space keep shooting.
     function coachSay(html, focus) {
-      say(html, { actions: [['Show me', showMe], [Hoops.assist ? 'Hide full arc' : 'Show full arc', wheels], ['Bye', leave]], focus });
+      say(html, { actions: [['Show me', showMe], [Hoops.assist ? 'Hide full arc' : 'Show full arc', wheels], ['My shots', report], ['Bye', leave]], focus });
     }
     function showMe() {
       if (W.hoops.hidden) { openWin(W.hoops); setTimeout(showMe, 500); return; }
       const r = Hoops.demo();
-      if (!r) { coachSay('<p>Hang on, the ball’s still moving.</p>'); return; }
+      if (!r) { coachSay(Hoops.game === 'free' ? '<p>Hang on, the ball’s still moving.</p>' : '<p>Not in the middle of a game!</p>'); return; }
       act('point', 2600);
       coachSay('<p>Watch the arc. From here I’d go about <b>' + r.deg + '°</b> at <b>' + r.pct + '%</b> power.</p>');
     }
@@ -3832,7 +4245,54 @@
         ? '<p>Full arc on: you’ll see the whole flight while you aim. Drop it into the net.</p>'
         : '<p>Full arc off. Back to feel.</p>');
     }
+    const zone = (x) => ZONES.find(([, lo, hi]) => x >= lo && x < hi)[0];
+    // Your habit, if there is one: compared with what Bez would have shot from the same spots.
+    function tendency() {
+      const last = shots.slice(-6).filter((s) => s.rec);
+      if (last.length < 4) return '';
+      const dp = last.reduce((a, s) => a + (s.p * 100 - s.rec.pct), 0) / last.length;
+      const da = last.reduce((a, s) => a + (deg(s.a) - s.rec.deg), 0) / last.length;
+      const out = [];
+      if (Math.abs(dp) > 4) out.push(dp > 0 ? 'about ' + Math.round(dp) + '% too strong' : 'about ' + Math.round(-dp) + '% too soft');
+      if (Math.abs(da) > 4) out.push(da > 0 ? Math.round(da) + '° too steep' : Math.round(-da) + '° too flat');
+      return out.length ? 'Your last ' + last.length + ' shots ran ' + out.join(' and ') + '.' : '';
+    }
+    function chart() {
+      const c = document.createElement('canvas');
+      c.className = 'b-chart';
+      c.width = 100; c.height = 30;
+      c.setAttribute('role', 'img');
+      const made = shots.filter((s) => s.scored).length;
+      c.setAttribute('aria-label', 'Shot chart: ' + made + ' made of ' + shots.length);
+      const cg = c.getContext('2d'), cimg = cg.createImageData(100, 30), bits = new Uint8Array(3000);
+      const dot = (x, y) => { if (x >= 0 && y >= 0 && x < 100 && y < 30) bits[y * 100 + x] = 1; };
+      for (let x = 0; x < 100; x++) dot(x, 27);
+      for (let y = 24; y < 30; y++) dot(36, y);                 // the three-point line
+      for (let y = 6; y < 27; y++) dot(94, y);                  // the stanchion…
+      for (let x = 76; x <= 86; x++) dot(x, 12);                // …and the rim
+      shots.forEach((s, n) => {
+        const x = Math.round(s.from / 2), y = 20 - (n % 4) * 4;
+        if (s.scored) { for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) dot(x + i, y + j); }
+        else { dot(x - 1, y - 1); dot(x + 1, y - 1); dot(x, y); dot(x - 1, y + 1); dot(x + 1, y + 1); }
+      });
+      const { ink, paper } = Colors.get();
+      blit(cg, cimg, bits, ink, paper);
+      return c;
+    }
+    function report() {
+      if (!shots.length) { coachSay('<p>No shots yet. Take a few and I’ll keep score.</p>'); return; }
+      const rows = ZONES.map(([z]) => {
+        const zs = shots.filter((s) => zone(s.from) === z);
+        return zs.length ? z + ': ' + zs.filter((s) => s.scored).length + ' of ' + zs.length : '';
+      }).filter(Boolean);
+      const t = tendency();
+      act('think', 900);
+      coachSay('<p><b>Your last ' + shots.length + ' shots.</b> ' + rows.join(' · ') + '.</p>' + (t ? '<p class="b-hint">' + t + '</p>' : ''));
+      extraEl.replaceChildren(chart());
+      place();
+    }
     Hoops.onShot((s) => {
+      if (s.game !== 'free') return;
       if (s.bez) {
         if (mode === 'coach' && shown) coachSay(s.scored ? '<p>See? Your turn. Match that angle and pull.</p>' : '<p>Ha, even I miss. The idea stands: that arc, that pull.</p>');
         return;
@@ -3847,19 +4307,192 @@
         }
         return;
       }
+      const rec = Hoops.recommend(s.from);
+      shots.push({ ...s, rec });
+      if (shots.length > 20) shots.shift();
       const you = 'You: ' + deg(s.a) + '° at ' + Math.round(s.p * 100) + '%.';
       if (s.scored) {
         act('cheer', 1400);
         hop();
-        coachSay('<p><b>' + pick(['That’s the one.', 'Money.', 'Pure.']) + '</b> ' + you + ' Remember that pull.</p>');
+        const streak = shots.slice().reverse().findIndex((x) => !x.scored);
+        coachSay('<p><b>' + pick(['That’s the one.', 'Money.', 'Pure.']) + '</b> ' + you + (streak === -1 || streak >= 3 ? ' That’s ' + (streak === -1 ? shots.length : streak) + ' straight.' : ' Remember that pull.') + '</p>');
         return;
       }
       let tip = pick(TIPS[s.kind] || TIPS.short);
-      if (deg(s.a) < 42 && s.kind !== 'long') tip += ' It was flat, too: aim higher, 55–65°. A steeper ball sees a bigger hoop.';
-      const rec = Hoops.recommend(s.from);
+      if (deg(s.a) < 42 && s.kind !== 'long' && s.kind !== 'back') tip += ' It was flat, too: aim higher, 55–65°. A steeper ball sees a bigger hoop.';
+      const habit = tendency();
       act('think', 1100);
-      coachSay('<p>' + tip + '</p><p class="b-hint">' + you + (rec ? ' From that spot, try about ' + rec.deg + '° at ' + rec.pct + '%.' : '') + '</p>');
+      coachSay('<p>' + tip + '</p><p class="b-hint">' + you + (rec ? ' From that spot, try about ' + rec.deg + '° at ' + rec.pct + '%.' : '') + (habit ? ' ' + habit : '') + '</p>');
     });
+
+    /* HORSE and 60 Seconds: Bez plays along and talks a little trash. */
+    function horseTalk(html, end) {
+      const actions = end
+        ? [['Rematch', () => play('horse')], ['Coach me', coach], ['Bye', leave]]
+        : [['Quit game', () => Hoops.setGame('free')]];
+      say(html, { actions });
+    }
+    const spelled = (n) => 'HORSE'.slice(0, n).split('').join('-');
+    // Bring Hoops to the front first, so the keyboard shoots.
+    function play(game) { openWin(W.hoops); Hoops.setGame(game); }
+    Hoops.onGame((e) => {
+      if (e.type === 'start') {
+        if (e.game === 'horse') {
+          stopAll();
+          mode = 'horse';
+          appear();
+          act('wave', 1200);
+          const rec = Hoops.record;
+          horseTalk('<p><b>HORSE</b>, you and me. Make a shot and I have to match it from the same spot. Miss a match, take a letter.</p>' +
+            (rec.w + rec.l ? '<p class="b-hint">You’re ' + rec.w + '–' + rec.l + ' against me.</p>' : '<p class="b-hint">You set first.</p>'));
+        } else if (e.game === 'clock') {
+          if (mode === 'horse') mode = null;
+          if (shown && !busy()) { mode = 'coach'; say('<p>Sixty seconds. Three in a row doubles your points. Go go go!</p>'); }
+        } else if (mode === 'horse' && e.was === 'horse') {
+          // A finished game leaves the rematch offer up; quitting goes home.
+          mode = null;
+          if (!e.auto && shown) home();
+        }
+        return;
+      }
+      if (e.type === 'clock-end') {
+        if (!shown) return;
+        act(e.record ? 'cheer' : 'think', 1500);
+        if (e.record) hop();
+        const pct = e.shots ? Math.round((e.made / e.shots) * 100) : 0;
+        say('<p><b>' + e.pts + ' points</b>' + (e.record ? ', a new best!' : '. Best is ' + e.best + '.') + '</p>' +
+          '<p class="b-hint">' + e.made + ' of ' + e.shots + ' (' + pct + '%)' + (e.threes ? ', ' + e.threes + (e.threes === 1 ? ' three.' : ' threes.') : '.') +
+          (pct < 50 && e.shots > 6 ? ' Fewer, better shots: a make is worth more than a quick miss.' : '') + '</p>',
+        { actions: [['Again', () => play('clock')], ['Coach me', coach], ['Bye', leave]] });
+        return;
+      }
+      if (e.type === 'clock-move') { if (shown) say('<p>Hoop’s moving! Shoot when it comes back to you.</p>', { quiet: true }); return; }
+      if (mode !== 'horse' || !shown) return;
+      const me1 = e.by === 'bez';
+      if (e.type === 'set') {
+        act(me1 ? 'cheer' : 'think', 1200);
+        horseTalk(me1 ? pick(['<p>Your turn. Match that.</p>', '<p>Off the top of my head. Match it!</p>']) : pick(['<p>Ooh, from there? Okay…</p>', '<p>Fine. I’ll match that.</p>']));
+      } else if (e.type === 'pass') {
+        act(me1 ? 'oops' : 'wave', 1000);
+        horseTalk(me1 ? '<p>Rimmed out. Your set.</p>' : pick(['<p>My ball.</p>', '<p>Missed it. I’ll set one.</p>']));
+      } else if (e.type === 'matched') {
+        act(me1 ? 'cheer' : 'think', 1000);
+        horseTalk(me1 ? '<p>Matched! Still clean.</p>' : '<p>Fine, fine. My set again.</p>');
+      } else if (e.type === 'letter') {
+        act(me1 ? 'oops' : 'cheer', 1200);
+        horseTalk(me1 ? '<p>Ugh. That’s ' + spelled(e.bez) + ' for me.</p>' : '<p>That’s ' + spelled(e.you) + ' for you.' + (e.you === 4 ? ' One more and I win.' : '') + '</p>');
+      } else if (e.type === 'end') {
+        const won = e.winner === 'you';
+        act(won ? 'oops' : 'cheer', 2000);
+        hop();
+        if (!won) Sound.play('bezYay');
+        horseTalk((won ? '<p><b>You beat me!</b> H-O-R-S-E for Bez.</p>' : '<p><b>Good game!</b> That’s HORSE for you.</p>') +
+          '<p class="b-hint">Record: ' + e.record.w + '–' + e.record.l + '.</p>', true);
+      }
+    });
+
+    /* Ask Bez: a handful of things he understands, matched by keywords. */
+    const has = (q, re) => re.test(q);
+    function notesIn(q) {
+      const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
+      let m;
+      while ((m = re.exec(q))) out.push(60 + PITCH[m[1].toUpperCase()] + (/#|♯|sharp/i.test(m[2] || '') ? 1 : /b|♭|flat/i.test(m[2] || '') ? -1 : 0));
+      return out;
+    }
+    function chordNamed(q) {
+      const m = q.match(/\b([a-g])(#|♯|b|♭| ?sharp| ?flat)?\s*(major 7|maj7|minor 7|min7|m7|major|maj|minor|min|m|dim7|dim|diminished|aug|augmented|sus2|sus4|7)?\s*(?:chord)?\s*\??$/i);
+      if (!m || (!m[3] && !/chord|play|show/i.test(q))) return null;
+      const root = 60 + PITCH[m[1].toUpperCase()] + (/#|♯|sharp/i.test(m[2] || '') ? 1 : /^(b|♭| ?flat)$/i.test(m[2] || '') ? -1 : 0);
+      const q3 = (m[3] || '').toLowerCase();
+      const shape = /major 7|maj7/.test(q3) ? [0, 4, 7, 11] : /minor 7|min7|m7/.test(q3) ? [0, 3, 7, 10] : /dim7/.test(q3) ? [0, 3, 6, 9]
+        : /dim/.test(q3) ? [0, 3, 6] : /aug/.test(q3) ? [0, 4, 8] : /sus2/.test(q3) ? [0, 2, 7] : /sus4/.test(q3) ? [0, 5, 7]
+          : q3 === '7' ? [0, 4, 7, 10] : /^(minor|min|m)$/.test(q3) ? [0, 3, 7] : [0, 4, 7];
+      return shape.map((s) => root + s);
+    }
+    // Notes in the order given, each one above the last.
+    function stack(ns) {
+      const out = [];
+      ns.forEach((m) => { while (out.length && m <= out[out.length - 1]) m += 12; out.push(m); });
+      while (out[out.length - 1] > 84) out.forEach((m, k) => { out[k] = m - 12; });
+      return out;
+    }
+    function showChord(ms) {
+      const c = identify(ms);
+      stopAll();
+      openWin(W.piano);
+      Piano.home();
+      Piano.target(ms);
+      ms.forEach((m, k) => setTimeout(() => Piano.play(m, 900), 120 + k * 90));
+      const keys = ms.map(label).filter(Boolean);
+      say('<p>Here’s <b>' + c.name + '</b>: ' + ms.map(name).join(', ') + '.</p>' +
+        (keys.length === ms.length ? '<p>Press <b>' + keys.join('</b>, <b>') + '</b> together.</p>' : '<p>Click the blinking keys together.</p>'),
+      { actions: [['Chord lessons', () => chordSets(true)], ['Clear', () => { Piano.target([]); home(); }]] });
+    }
+    function ask(raw, typed) {
+      const q = raw.toLowerCase().replace(/[’']/g, '\'').trim();
+      appear();
+      const answer = (html, actions = [], extra = null) => say(html, { extra: frag(extra, askBox()), actions: actions.length ? actions : [['Back', () => home(true)], ['Bye', leave]], focus: typed });
+      const songAt = LESSONS.findIndex((L) => has(q, { five: /five finger/, scale: /\bscale\b/, mary: /mary|little lamb/, twinkle: /twinkle|little star/, ode: /ode to joy|\bode\b|ninth/, elise: /elise|f(ü|u)r elise/ }[L.id]));
+      const notes = notesIn(q), spelledOut = notes.length >= 3, named = spelledOut ? null : chordNamed(q);
+      if (has(q, /\b(thanks|thank you|thx|ty|cheers)\b/)) { act('wave', 1000); answer('<p>Any time.</p>'); }
+      else if (spelledOut) {
+        const ms = stack(notes);
+        if (identify(ms)) showChord(ms);
+        else answer('<p>' + notes.map(name).join(', ') + ' isn’t a chord I know. Try three notes, like C E G.</p>');
+      } else if (named) showChord(named);
+      else if (songAt > -1) {
+        const L = LESSONS[songAt];
+        answer('<p><b>' + L.name + '</b>. ' + L.intro + '</p>', [['Teach me', () => begin('song', songAt)], ['In time', () => inTime(songAt)], ['Back', () => home(true)]]);
+      } else if (has(q, /\b(horse)\b/)) play('horse');
+      else if (has(q, /\b(60|sixty|clock|timed|minute)\b/)) play('clock');
+      else if (has(q, /\bear\b|by ear|interval|pitch/)) ear();
+      else if (has(q, /rhythm|tempo|in time|timing|metronome|\bbeat\b/)) songs(true, true);
+      else if (has(q, /\bchords?\b/)) chordSets(true);
+      else if (has(q, /\bsongs?\b/)) songs(true);
+      else if (has(q, /piano|lesson|teach|learn|music|keys/)) pianoMenu(true);
+      else if (has(q, /my (stats|record|progress|score)|how am i doing|how'?s my|progress/)) {
+        const p = progress();
+        answer(p.length ? '<p>' + p.join('</p><p>') + '</p>' : '<p>Nothing on the board yet. Learn a song or take a few shots and I’ll keep track.</p>');
+      } else if (has(q, /hoop|shoot|shot|basket|jump ?shot|\bball\b|\barc\b|\baim\b|three|swish/)) coach();
+      else if (has(q, /contact|e-?mail|reach|hire|work with|get in touch|\bmail\b/)) {
+        answer('<p>The best way to reach Adiel is email: <a href="mailto:hello@adiel.design">hello@adiel.design</a>.</p>', [['Copy email', copyEmail], ['Back', () => home(true)]]);
+      } else if (has(q, /\b(x|twitter|social|cosmos|savee|instagram|linkedin|follow)\b/)) {
+        answer('<p>Adiel is on <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a> and <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a>.</p>');
+      } else if (has(q, /\b(work|projects?|case stud|clients?|portfolio)\b/)) {
+        answer('<p>Selected work is coming back to this desk soon. For now, About Me has the short version, and Adiel is happy to share work by email.</p>', [['About Me', () => openWin(W.about, { scroll: true })], ['Copy email', copyEmail]]);
+      } else if (has(q, /hex/)) {
+        answer('<p>Adiel is a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a>.</p>');
+      } else if (has(q, /adiel|who (made|built|designed|is)|about (you|this|the)|designer|\bowner\b/)) {
+        answer('<p><b>Adiel Vásquez</b> is a designer focused on brand identity, currently a brand designer at HEX.</p><p>Adiel works concept-first on identities, websites, art direction and naming, and builds generative tools along the way. Offline: reading, climbing volcanoes, basketball.</p>',
+          [['About Me', () => openWin(W.about, { scroll: true })], ['Contact', () => ask('contact')], ['Back', () => home(true)]]);
+      } else if (has(q, /^open |^show /) && Object.keys(W).some((k) => q.includes(k === 'readme' ? 'read me' : k))) {
+        const k = Object.keys(W).find((w) => q.includes(w === 'readme' ? 'read me' : w));
+        openWin(W[k], { scroll: true });
+        answer('<p>Opened.</p>');
+      } else if (has(q, /paint|draw|doodle|sketch/)) {
+        openWin(W.paint, { scroll: true });
+        answer('<p>Paint’s open. Double-click the eraser to start over, and Ctrl+Z (⌘Z on a Mac) undoes. Your drawing stays in this browser.</p>');
+      } else if (has(q, /screen ?saver|idle|sleep/)) {
+        answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
+      } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
+        answer('<p>Press <b>T</b> to flip through six displays, from Paper to Text Mode.</p>', [['Next display', cycleTheme], ['Back', () => home(true)]]);
+      } else if (has(q, /joke|funny|laugh/)) {
+        act('cheer', 1200);
+        answer(pick(['<p>Why did the Bézier curve go to therapy? Too many handles on its feelings.</p>', '<p>I asked the pen tool for directions. It gave me two handles and said “you figure it out.”</p>', '<p>What’s a pianist’s favourite drink? Anything on the rocks, as long as it’s in C.</p>']));
+      } else if (has(q, /^(hi|hey|hello|yo|sup|hola|howdy)\b/)) { act('wave', 1200); home(typed); }
+      else if (has(q, /who are you|what are you|your name|\bbez\b/)) {
+        answer('<p>I’m Bez, an anchor point from a vector drawing who wandered off. These handles are my arms. I teach piano, coach hoops, and know my way around this desk.</p>');
+      } else if (has(q, /help|what can you|commands|^\?$/)) {
+        answer('<p>Try me on:</p>', [], chips(['Teach me a song', 'Ear training', 'What chord is A C E?', 'Show me G7', 'Play HORSE', '60 seconds', 'How am I doing?', 'Contact']));
+      } else {
+        act('think', 1000);
+        answer('<p>Hmm, not sure about that one. I’m good with piano, hoops, and finding things on this desk.</p>', [], chips(['Teach me a song', 'Play HORSE', 'Who’s Adiel?', 'Help']));
+      }
+    }
+    async function copyEmail() {
+      try { await navigator.clipboard.writeText('hello@adiel.design'); say('<p>Copied <b>hello@adiel.design</b>.</p>', { actions: [['Back', () => home(true)], ['Bye', leave]] }); }
+      catch (e) { location.href = 'mailto:hello@adiel.design'; }
+    }
 
     /* Dropping in, once per toy */
     function pianoOpened() {
@@ -3874,12 +4507,12 @@
       }, 1200);
     }
     function pianoClosed() {
-      if (!lesson) return;
-      endLesson();
-      say('<p>Piano’s closed, so I stopped the lesson.</p>', { actions: [['Songs', () => songs(true)], ['Bye', leave]] });
+      if (!busy()) return;
+      stopAll();
+      say('<p>Piano’s closed, so I stopped the lesson.</p>', { actions: [['Piano', () => pianoMenu(true)], ['Bye', leave]] });
     }
     function hoopsClosed() {
-      if (mode !== 'coach') return;
+      if (mode !== 'coach' && mode !== 'horse') return;
       if (Hoops.assist) Hoops.assist = false;
       home();
     }
