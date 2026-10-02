@@ -535,6 +535,18 @@
   .hoops-bar { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .hoops-bar b { padding: 0 3px; font-weight: 700; }
   .hoops-bar b.is-lit { background: var(--ink); color: var(--paper); }
+  .hoops-bar i { font-style: normal; color: var(--graphite); }  /* HORSE letters not earned yet */
+  .games { display: flex; margin-bottom: 8px; }
+  .game {
+    flex: 1 1 0; min-width: 0; height: 20px; padding: 0 4px;
+    border: 1px solid var(--ink); background: var(--paper); color: var(--ink);
+    font-size: 11px; font-weight: 600; font-stretch: 92%; white-space: nowrap; cursor: default;
+  }
+  .game + .game { border-left: 0; }
+  .game:first-child { border-radius: 5px 0 0 5px; }
+  .game:last-child { border-radius: 0 5px 5px 0; }
+  .game[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .game:focus-visible { outline: 1px dotted currentColor; outline-offset: -4px; }
   .court {
     display: block; width: 402px; max-width: 100%; height: auto;
     border: 1px solid var(--ink);
@@ -876,14 +888,19 @@
     <h2 class="wtitle" id="hoops-title">Hoops</h2>
   </header>
   <div class="wbody hoops-body">
-    <div class="hoops-bar">
+    <div class="games" role="group" aria-label="Game">
+      <button class="game" type="button" data-game="free" aria-pressed="true">Shootaround</button>
+      <button class="game" type="button" data-game="clock" aria-pressed="false">60 Seconds</button>
+      <button class="game" type="button" data-game="horse" aria-pressed="false">HORSE vs Bez</button>
+    </div>
+    <div class="hoops-bar" id="h-stats">
       <span>Score <b id="h-score">0</b></span>
       <span>Streak <b id="h-streak">0</b></span>
       <span>Best streak <b id="h-best">0</b></span>
     </div>
     <canvas class="court" id="court" width="200" height="140" role="img" aria-label="Basketball court"></canvas>
     <p class="hoops-status" id="hoops-status" aria-live="polite">Pull back anywhere and let go.</p>
-    <p class="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
+    <p class="hoops-hint" id="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
   </div>
 </section>
 
@@ -1084,6 +1101,11 @@
       },
       swish() { hit({ f: 5200, q: 0.5, gain: 0.08, dur: 0.24 }); hit({ f: 8000, q: 0.8, gain: 0.04, dur: 0.18, at: 0.04 }); },
       score() { tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.1, at: 0.08 }); tone({ f: 1175, type: 'triangle', gain: 0.03, dur: 0.18, at: 0.16 }); },
+      tick() { tone({ f: 1480, type: 'square', gain: 0.018, dur: 0.035 }); },
+      tock() { tone({ f: 990, type: 'square', gain: 0.014, dur: 0.03 }); },
+      go() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1760, type: 'square', gain: 0.022, dur: 0.22, at: 0.08 }); },
+      buzzer() { tone({ f: 196, type: 'sawtooth', gain: 0.05, dur: 0.75 }); tone({ f: 207, type: 'square', gain: 0.03, dur: 0.75 }); },
+      letter() { tone({ f: 330, f2: 165, type: 'square', gain: 0.03, dur: 0.28 }); },
       // Bez
       bezIn() { tone({ f: 660, f2: 990, gain: 0.04, dur: 0.12 }); tone({ f: 1320, type: 'triangle', gain: 0.025, dur: 0.1, at: 0.09 }); },
       bezOut() { tone({ f: 990, f2: 560, gain: 0.035, dur: 0.14 }); },
@@ -2276,114 +2298,182 @@
     const CW = canvas.width, CH = canvas.height;
     const img = g.createImageData(CW, CH);
     const px = new Uint8Array(CW * CH);
-    const scoreEl = $('#h-score'), streakEl = $('#h-streak'), bestEl = $('#h-best');
-    const statusEl = $('#hoops-status');
-    const KEY = 'adiel-hoops-best';
+    const statsEl = $('#h-stats'), statusEl = $('#hoops-status'), hintEl = $('#hoops-hint');
+    const gameBtns = $$('.game', win);
+    const KEY = 'adiel-hoops-best', CLOCK_KEY = 'adiel-hoops-clock', HORSE_KEY = 'adiel-hoops-horse';
     const FLOOR = 126, R = 5, GRAV = 430, VMAX = 470, PULL = 64, THREE = 72;
-    const RIM_Y = 58, RIM_F = 153;               // rim height and front edge
-    const BOARD = [175, 24, 178, 62];            // x0, y0, x1, y1, inclusive
-    const ARM = [179, 42, 186, 44];
-    const POLE = [187, 38, 189, FLOOR - 1];
+    const INV_I = 1.5 / (R * R);                 // a hollow ball: I = ⅔mR²
+    const SPIN = 0.3, MAGNUS = 0.0025, DRAG = 0.05, H = 1 / 600;
+    const RIM_F = 152, RIM_B = 172;              // front and back of the rim
     const LINES = {
       swish: ['Swish.', 'Nothing but net.', 'Cash.', 'Wet.'],
       bank: ['Off the glass.', 'Bank is open.', 'Called glass.'],
       roll: ['Friendly bounce.', 'Rolled in.', 'Kissed the rim.'],
+      rattle: ['Rattled in.', 'Shooter’s touch.', 'It had eyes.'],
       three: ['From downtown.', 'Deep three.', 'Splash.'],
       air: ['Airball.', 'All air.', 'Nowhere near it.'],
       clank: ['Clank.', 'Rim out.', 'In and out.', 'So close.'],
       glass: ['All glass, no net.', 'Off the board.'],
     };
+    const HINTS = {
+      free: 'Or aim with the arrow keys and shoot with Space. Threes from behind the line.',
+      clock: 'Score all you can in 60 seconds. Three in a row doubles your points, six triples them.',
+      horse: 'Make your shot and Bez has to match it from the same spot. Miss a match, take a letter.',
+    };
+    const WORD = 'HORSE';
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
-    const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, a: 0 };
-    const watchers = new Set(), solved = new Map();
+    const gauss = () => { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); };
+    const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, w: 0, a: 0, sq: 0, nx: 0, ny: -1 };
+    const watchers = new Set(), players = new Set(), solved = new Map();
     let built = false, state = 'ready', shot = null, aim = null, assist = false;
     let keyA = 0.95, keyP = 0.72, showKey = false;
     let score = 0, streak = 0, best = parseInt(store.get(KEY), 10) || 0;
-    let net = 0, netT = 0, wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0;
+    let wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0, now = 0, acc = 0, litUntil = 0;
+    let shake = 0, sparks = [], pops = [], banner = null, nextSpot = null;
+    let game = 'free', clock = null, horse = null, bezTimer = 0;
+    let clockBest = parseInt(store.get(CLOCK_KEY), 10) || 0;
+    const record = (() => { try { return JSON.parse(store.get(HORSE_KEY)) || { w: 0, l: 0 }; } catch (e) { return { w: 0, l: 0 }; } })();
+    // The hoop rides up and down late in a 60-second game; these move with it.
+    let lift = null, RIM_Y, BOARD, ARM, POLE;
+    function setLift(v) {
+      if (v === lift) return;
+      lift = v;
+      RIM_Y = 58 + v;
+      BOARD = [175, 24 + v, 178, 62 + v];        // x0, y0, x1, y1, inclusive
+      ARM = [179, 42 + v, 186, 44 + v];
+      POLE = [187, 38 + v, 189, FLOOR - 1];
+      dirty = true;
+    }
+    setLift(0);
 
     const say = (text) => { statusEl.textContent = text; };
+    const emit = (e) => players.forEach((fn) => fn(e));
+    const mult = () => (streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
+    const word = (n) => WORD.slice(0, n) + (n < 5 ? '<i>' + WORD.slice(n) + '</i>' : '');
+    function turnText() {
+      const h = horse;
+      if (h.over) return h.you >= 5 ? 'Bez wins' : 'You win';
+      if (h.phase === 'set') return h.turn === 'you' ? 'Your set' : 'Bez sets';
+      return h.turn === 'you' ? 'Match it' : 'Bez to match';
+    }
     function sync(flash) {
-      scoreEl.textContent = score;
-      streakEl.textContent = streak;
-      bestEl.textContent = best;
-      if (flash) {
-        scoreEl.classList.add('is-lit');
-        setTimeout(() => scoreEl.classList.remove('is-lit'), 450);
+      if (flash) { litUntil = performance.now() + 450; setTimeout(() => sync(), 460); }
+      const lit = performance.now() < litUntil ? ' is-lit' : '';
+      if (game === 'clock') {
+        statsEl.innerHTML = '<span>Time <b>' + Math.ceil(clock.left) + '</b></span><span>Points <b class="h-main' + lit + '">' + clock.pts +
+          '</b></span><span>Bonus <b>×' + mult() + '</b></span><span>Best <b>' + clockBest + '</b></span>';
+      } else if (game === 'horse') {
+        statsEl.innerHTML = '<span>You <b>' + word(horse.you) + '</b></span><span>' + turnText() + '</span><span>Bez <b>' + word(horse.bez) + '</b></span>';
+      } else {
+        statsEl.innerHTML = '<span>Score <b id="h-score" class="h-main' + lit + '">' + score + '</b></span><span>Streak <b id="h-streak">' + streak +
+          '</b></span><span>Best streak <b id="h-best">' + best + '</b></span>';
       }
     }
     const thump = (name, v) => Sound.play(name, clamp(v / 320, 0.15, 1));
 
-    /* Physics. It runs on the real ball, and on ghost balls when Bez
-       works out a shot, so it takes the body and shot record to use. */
-    function hitRect(b, [x0, y0, x1, y1]) {
-      const cx = clamp(b.x, x0, x1 + 1), cy = clamp(b.y, y0, y1 + 1);
-      const dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy);
-      if (d >= R || d === 0) return 0;
-      const nx = dx / d, ny = dy / d;
-      b.x = cx + nx * R; b.y = cy + ny * R;
+    /* Physics. A spinning, hollow ball: every contact pushes back along
+       the normal and rubs along the surface, trading speed for spin.
+       It runs on the real ball and on ghost balls when Bez works out
+       a shot, so it takes the body and shot record to use. */
+    let cnx = 0, cny = 0;
+    function contact(b, nx, ny, e, mu) {
       const vn = b.vx * nx + b.vy * ny;
       if (vn >= 0) return 0;
-      b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny;
+      const jn = -(1 + e) * vn, tx = -ny, ty = nx, lim = mu * jn;
+      const jt = clamp(-(b.vx * tx + b.vy * ty - b.w * R) / (1 + R * R * INV_I), -lim, lim);
+      b.vx += jn * nx + jt * tx;
+      b.vy += jn * ny + jt * ty;
+      b.w -= jt * R * INV_I;
+      cnx = nx; cny = ny;
       return -vn;
     }
-    function hitPoint(b, x, y, r) {
-      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy);
-      if (d >= R + r || d === 0) return 0;
-      const nx = dx / d, ny = dy / d;
+    function hitRect(b, r, e, mu) {
+      const cx = clamp(b.x, r[0], r[2] + 1), cy = clamp(b.y, r[1], r[3] + 1);
+      const dx = b.x - cx, dy = b.y - cy, dd = dx * dx + dy * dy;
+      if (dd >= R * R || dd === 0) return 0;
+      const d = Math.sqrt(dd), nx = dx / d, ny = dy / d;
+      b.x = cx + nx * R; b.y = cy + ny * R;
+      return contact(b, nx, ny, e, mu);
+    }
+    function hitPoint(b, x, y, r, e, mu) {
+      const dx = b.x - x, dy = b.y - y, dd = dx * dx + dy * dy;
+      if (dd >= (R + r) * (R + r) || dd === 0) return 0;
+      const d = Math.sqrt(dd), nx = dx / d, ny = dy / d;
       b.x = x + nx * (R + r); b.y = y + ny * (R + r);
-      const vn = b.vx * nx + b.vy * ny;
-      if (vn >= 0) return 0;
-      b.vx -= 1.5 * vn * nx; b.vy -= 1.5 * vn * ny;
-      return -vn;
+      return contact(b, nx, ny, e, mu);
+    }
+    function squash(b, v) {
+      const q = Math.min(0.35, v / 700);
+      if (v > 40 && q > b.sq) { b.sq = q; b.nx = cnx; b.ny = cny; }
     }
     const newShot = (x, vx = 0, vy = 0) => ({
-      from: x, rim: false, board: false, scored: false, t: 0,
+      from: x, rim: 0, board: false, scored: false, under: false, floor: false, landed: null, t: 0, by: 'you',
       apex: FLOOR, cross: null, first: null, a: Math.atan2(-vy, vx), p: Math.hypot(vx, vy) / VMAX,
     });
+    // Every shot leaves the hand with a little backspin.
+    function kick(b, vx, vy) {
+      b.vx = vx; b.vy = vy;
+      b.w = (-Math.sign(vx) * SPIN * Math.hypot(vx, vy)) / R;
+    }
     // One step for body b; returns true on the step the ball drops through the hoop.
     function step(b, h, s, loud) {
       const py = b.y;
-      b.vy += GRAV * h;
+      b.vx += (-DRAG * b.vx - MAGNUS * b.w * b.vy) * h;          // air, and backspin lifts a touch
+      b.vy += (GRAV - DRAG * b.vy + MAGNUS * b.w * b.vx) * h;
       b.x += b.vx * h;
       b.y += b.vy * h;
-      b.a += (b.vx * h) / R;
+      b.a += b.w * h;
+      b.w -= b.w * 0.1 * h;
       if (b.y >= FLOOR - R) {
         b.y = FLOOR - R;
-        if (b.vy > 0) {
-          if (loud && b.vy > 45) thump('bounce', b.vy);
-          b.vy = b.vy > 32 ? -b.vy * 0.62 : 0;
-          b.vx *= 0.88;
-        }
-        if (b.vy === 0) b.vx -= b.vx * Math.min(1, 1.6 * h); // rolling
+        const hf = contact(b, 0, -1, b.vy > 32 ? 0.64 : 0, 0.45);
+        if (hf && s) s.floor = true;
+        if (loud && hf > 45) { thump('bounce', hf); squash(b, hf); }
+        if (Math.abs(b.vy) < 1) { b.vy = 0; b.vx -= b.vx * Math.min(1, 1.4 * h); b.w = b.vx / R; } // rolling
       }
-      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * 0.6; }
-      if (b.x > CW - R) { b.x = CW - R; b.vx = -Math.abs(b.vx) * 0.6; }
-      const hb = hitRect(b, BOARD);
-      if (hb) { if (s) { s.board = true; s.first = s.first || 'board'; } if (loud && hb > 30) thump('board', hb); }
-      const hp = Math.max(hitRect(b, ARM), hitRect(b, POLE));
-      if (loud && hp > 30) thump('board', hp);
-      const hr = hitPoint(b, RIM_F, RIM_Y + 1, 1.5);
-      if (hr) { if (s) { s.rim = true; s.first = s.first || 'rim'; } if (loud && hr > 25) thump('rim', hr); }
+      if (b.x < R) { b.x = R; contact(b, 1, 0, 0.6, 0.3); }
+      if (b.x > CW - R) { b.x = CW - R; contact(b, -1, 0, 0.6, 0.3); }
+      const hb = hitRect(b, BOARD, 0.6, 0.3);
+      if (hb) {
+        if (s) { s.board = true; s.first = s.first || 'board'; }
+        if (loud) { if (hb > 30) thump('board', hb); squash(b, hb); }
+      }
+      const ha = hitRect(b, ARM, 0.5, 0.3);
+      if (loud && ha > 30) { thump('board', ha); squash(b, ha); }
+      const hp = hitRect(b, POLE, 0.5, 0.3);
+      if (loud && hp > 30) { thump('board', hp); squash(b, hp); }
+      const rf = hitPoint(b, RIM_F, RIM_Y + 1, 1.5, 0.5, 0.35);
+      if (rf && loud) squash(b, rf);
+      const rb = hitPoint(b, RIM_B, RIM_Y + 1, 1.5, 0.5, 0.35);
+      if (rb && loud) squash(b, rb);
+      const hr = Math.max(rf, rb);
+      if (hr) {
+        if (s) { if (!s.rim || hr > 12) s.rim++; s.first = s.first || (rf ? 'front' : 'back'); }
+        if (loud && hr > 25) { thump('rim', hr); shake = Math.max(shake, Math.min(2, hr / 90)); }
+      }
       if (!s) return false;
       if (b.y < s.apex) s.apex = b.y;
-      const down = py < RIM_Y + 1 && b.y >= RIM_Y + 1 && b.vy > 0;
+      const line = RIM_Y + 1, inside = b.x > RIM_F && b.x < RIM_B;
+      if (py > line && b.y <= line && inside) s.under = true;   // up through the net doesn't count
+      const down = py < line && b.y >= line && b.vy > 0;
       if (down && s.cross === null) s.cross = b.x;
-      if (down && !s.scored && b.x > RIM_F && b.x < BOARD[0]) { s.scored = true; return true; }
+      if (down && inside && !s.scored && !s.under && !s.floor) { s.scored = true; return true; }
       return false;
     }
     // What happened, in coaching terms.
     function verdict(s) {
       if (s.scored) return !s.rim && !s.board ? 'swish' : s.rim ? 'roll' : 'bank';
       if (s.apex > RIM_Y - 3) return 'low';
-      if (s.first) return s.first === 'board' ? 'long' : 'rim';
-      return s.cross !== null && s.cross >= BOARD[0] ? 'long' : 'short';
+      if (s.first) return s.first === 'front' ? 'rim' : s.first === 'back' ? 'back' : 'long';
+      return s.cross !== null && s.cross >= RIM_B ? 'long' : 'short';
     }
     // Fly a ghost ball silently until it scores or clearly can't.
     function simulate(x, vx, vy) {
-      const b = { x, y: FLOOR - R, vx, vy, a: 0 }, s = newShot(x, vx, vy), h = 1 / 480;
-      for (let t = 0; t < 3; t += h) {
-        if (step(b, h, s, false)) break;
-        if (s.cross !== null && b.y > RIM_Y + 16) break;
+      const b = { x, y: FLOOR - R, vx: 0, vy: 0, w: 0, a: 0 }, s = newShot(x, vx, vy);
+      kick(b, vx, vy);
+      for (let t = 0; t < 3; t += H) {
+        if (step(b, H, s, false)) break;
+        if (b.vy > 0 && b.y > RIM_Y + 16) break;   // falling past the net
         if (t > 0.1 && b.y >= FLOOR - R) break;
       }
       return s;
@@ -2391,7 +2481,8 @@
     // Search angle × pull for makes from x, and take the middle of the widest band.
     function solve(x) {
       x = Math.round(x);
-      if (solved.has(x)) return solved.get(x);
+      const key = x + ':' + lift;
+      if (solved.has(key)) return solved.get(key);
       const as = [], ps = [];
       for (let a = 0.6; a <= 1.4; a += 0.025) as.push(a);
       for (let p = 0.35; p <= 1.0001; p += 0.015) ps.push(p);
@@ -2406,84 +2497,360 @@
         for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) n += (grid[i + di] && grid[i + di][j + dj]) || 0;
         if (n > most) { most = n; best = { a: as[i], p: ps[j] }; }
       }));
-      solved.set(x, best);
+      solved.set(key, best);
       return best;
     }
     const deg = (a) => Math.round((a * 180) / Math.PI);
     const readout = (vx, vy) => 'Angle ' + deg(Math.atan2(-vy, vx)) + '° · Power ' + Math.round((Math.hypot(vx, vy) / VMAX) * 100) + '%';
-    function scored() {
-      const pts = shot.from < THREE ? 3 : 2;
-      const clean = !shot.rim && !shot.board;
-      net = 1;
-      Sound.play('swish');
-      Sound.play('score');
-      if (shot.bez) { say('Bez: ' + pick(clean ? LINES.swish : LINES.roll) + ' Your turn.'); return; }
-      score += pts;
-      streak++;
-      if (streak > best) { best = streak; store.set(KEY, String(best)); }
-      net = 1;
-      let line;
-      if (streak === 3) line = 'Heating up.';
-      else if (streak === 5) line = 'On fire.';
-      else if (streak >= 8 && streak % 4 === 0) line = 'Unconscious.';
-      else if (pts === 3) line = pick(LINES.three);
-      else line = pick(clean ? LINES.swish : shot.rim ? LINES.roll : LINES.bank);
-      say(line + ' +' + pts);
-      sync(true);
+
+    /* The net: six strings of knots that hang from the rim, get shoved
+       by the ball and swing back. String goes slack; it never stretches. */
+    const NS = 6, NK = 5, SEG = 2.6, PINCH = 0.1;
+    const knots = [];
+    const knot = (i, k) => knots[i * (NK + 1) + k];
+    const rimOff = () => Math.round(Math.sin(now * 70) * shake);
+    const anchor = (i) => [RIM_F + (i * (RIM_B - RIM_F)) / (NS - 1), RIM_Y + 1.5 + rimOff()];
+    for (let i = 0; i < NS; i++) for (let k = 0; k <= NK; k++) {
+      const [ax, ay] = anchor(i), x = ax + ((RIM_F + RIM_B) / 2 - ax) * k * PINCH, y = ay + k * SEG;
+      knots.push({ x, y, px: x, py: y });
     }
-    function shotEnd() {
-      if (shot.bez && !shot.scored) say('Even Bez misses. Your turn.');
-      else if (!shot.scored) {
-        const lost = streak >= 3;
-        streak = 0;
-        say(pick(shot.rim ? LINES.clank : shot.board ? LINES.glass : LINES.air) + (lost ? ' Streak over.' : ''));
-        sync();
+    function tie(a, b, len, pinned) {
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= len) return;
+      const k = (d - len) / d;
+      if (pinned) { b.x -= dx * k; b.y -= dy * k; return; }
+      a.x += dx * k * 0.5; a.y += dy * k * 0.5;
+      b.x -= dx * k * 0.5; b.y -= dy * k * 0.5;
+    }
+    function shove() {
+      const rr = R + 0.6;
+      if (ball.x < RIM_F - 10 || ball.x > RIM_B + 10 || ball.y < RIM_Y - 8 || ball.y > RIM_Y + 24) return;
+      knots.forEach((n, j) => {
+        if (j % (NK + 1) === 0) return;
+        const dx = n.x - ball.x, dy = n.y - ball.y, d2 = dx * dx + dy * dy;
+        if (d2 >= rr * rr || !d2) return;
+        const d = Math.sqrt(d2);
+        n.x = ball.x + (dx / d) * rr; n.y = ball.y + (dy / d) * rr;
+      });
+    }
+    function netStep(dt) {
+      const gy = 260 * dt * dt;
+      for (let i = 0; i < NS; i++) {
+        const [ax, ay] = anchor(i), a = knot(i, 0);
+        a.x = a.px = ax; a.y = a.py = ay;
+        for (let k = 1; k <= NK; k++) {
+          const n = knot(i, k), vx = (n.x - n.px) * 0.93, vy = (n.y - n.py) * 0.93;
+          n.px = n.x; n.py = n.y;
+          n.x += vx; n.y += vy + gy;
+        }
       }
-      const report = { from: shot.from, a: shot.a, p: shot.p, scored: shot.scored, kind: verdict(shot), bez: !!shot.bez };
-      watchers.forEach((fn) => fn(report));
+      shove();
+      for (let it = 0; it < 4; it++) {
+        for (let i = 0; i < NS; i++) for (let k = 0; k < NK; k++) tie(knot(i, k), knot(i, k + 1), SEG, k === 0);
+        for (let k = 1; k <= NK; k++) for (let i = 0; i < NS - 1; i++) tie(knot(i, k), knot(i + 1, k), ((RIM_B - RIM_F) / (NS - 1)) * (1 - k * PINCH), false);
+      }
+      shove();
+      // Worth a redraw only if a knot moved a visible amount.
+      return knots.some((n) => Math.abs(n.x - n.px) + Math.abs(n.y - n.py) > 0.05);
+    }
+    const inNet = () => ball.x > RIM_F - 3 && ball.x < RIM_B + 3 && ball.y > RIM_Y && ball.y < RIM_Y + 3 + NK * SEG;
+
+    /* A little celebration: sparks off the net, points that float up,
+       and big words across the court. */
+    function burst(n) {
+      for (let i = 0; i < n; i++) {
+        sparks.push({ x: RIM_F + 3 + Math.random() * 14, y: RIM_Y + 3 + Math.random() * 8,
+          vx: (Math.random() - 0.5) * 110, vy: -50 - Math.random() * 90, life: 0.45 + Math.random() * 0.4 });
+      }
+    }
+    const pop = (text) => pops.push({ text, x: (RIM_F + RIM_B) / 2 - 4, y: RIM_Y - 12, t: 0 });
+    const show = (text, secs) => { banner = { text, t: 0, secs }; dirty = true; };
+    function juice(dt) {
+      if (ball.sq) { ball.sq = ball.sq < 0.02 ? 0 : ball.sq * Math.exp(-dt * 16); dirty = true; }
+      if (shake) { shake = shake < 0.1 ? 0 : shake * Math.exp(-dt * 8); dirty = true; }
+      if (sparks.length) {
+        sparks.forEach((p) => { p.vy += 240 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+        sparks = sparks.filter((p) => p.life > 0);
+        dirty = true;
+      }
+      if (pops.length) { pops.forEach((p) => { p.t += dt; }); pops = pops.filter((p) => p.t < 1); dirty = true; }
+      if (banner) { banner.t += dt; if (banner.t > banner.secs) banner = null; dirty = true; }
+      if (netStep(dt)) dirty = true;
+    }
+
+    /* Games: free shooting, 60 seconds on the clock, and HORSE against Bez. */
+    function canShoot(by = 'you') {
+      if (by !== 'you') return true;
+      if (game === 'clock') return clock.phase === 'play';
+      if (game === 'horse') return !horse.over && horse.turn === 'you';
+      return true;
+    }
+    const canAim = () => (state === 'ready' || state === 'drop') && canShoot();
+    function clearBez() { clearTimeout(bezTimer); bezTimer = 0; }
+    // Take the ball away and drop a new one in, at x or anywhere.
+    function queue(x, t) {
+      clearBez();
+      if (aim) { aim = null; canvas.classList.remove('is-aiming'); }
       shot = null;
       trail = [];
       state = 'wait';
-      wait = 0.45;
+      wait = t;
+      nextSpot = x;
+    }
+    function setGame(name, keepStatus) {
+      const was = game;
+      game = name;
+      gameBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.game === name)));
+      hintEl.textContent = HINTS[name];
+      setLift(0);
+      banner = null;
+      if (was !== 'free' || name !== 'free') streak = 0;
+      clock = horse = null;
+      if (name === 'clock') {
+        clock = { left: 60, pts: 0, made: 0, shots: 0, threes: 0, phase: 'count', count: 3.6, shown: 4, moving: false };
+        queue(null, 0.1);
+        say('Get ready…');
+      } else if (name === 'horse') {
+        horse = { you: 0, bez: 0, setter: 'you', turn: 'you', phase: 'set', spot: 0, over: false };
+        nextSet('');
+      } else {
+        if (state === 'aim' || state === 'flight') queue(null, 0.2);
+        if (!keepStatus) say('Pull back anywhere and let go.');
+      }
+      sync();
+      dirty = true;
+      emit({ type: 'start', game: name, was, auto: !!keepStatus });
+    }
+
+    // 60 seconds: a countdown, then the clock. The hoop starts moving at 20.
+    function runClock(dt) {
+      const c = clock;
+      if (c.phase === 'count') {
+        c.count -= dt;
+        const n = Math.ceil(c.count - 0.6);
+        if (n === c.shown) return;
+        c.shown = n;
+        if (n > 0) { show(String(n), 0.8); Sound.play('tick'); return; }
+        show('GO', 0.7);
+        Sound.play('go');
+        c.phase = 'play';
+        say('Go!');
+        return;
+      }
+      if (c.phase !== 'play') return;
+      const before = Math.ceil(c.left);
+      c.left = Math.max(0, c.left - dt);
+      if (c.left <= 20) {
+        if (!c.moving) { c.moving = true; show('MOVE', 1.2); say('Twenty left. The hoop’s on the move.'); emit({ type: 'clock-move' }); }
+        setLift(Math.round(Math.sin((20 - c.left) * 1.1) * 12));
+      }
+      const left = Math.ceil(c.left);
+      if (left !== before) { sync(); if (left > 0 && left <= 5) Sound.play('tick'); }
+      if (c.left > 0) return;
+      c.phase = 'over';
+      Sound.play('buzzer');
+      if (state === 'aim' && aim && aim.id !== 'bez') { aim = null; canvas.classList.remove('is-aiming'); settle(); }
+      if (state === 'flight') say('Buzzer! It’s still in the air…');
+      else endClock();
+    }
+    function endClock() {
+      const c = clock, rec = c.pts > clockBest;
+      if (rec) { clockBest = c.pts; store.set(CLOCK_KEY, String(c.pts)); }
+      c.phase = 'done';
+      setLift(0);
+      show('TIME', 1.8);
+      sync();
+      say('Time! ' + c.pts + ' points, ' + c.made + ' of ' + c.shots + '.' + (rec ? ' New best!' : ' Best is ' + clockBest + '.'));
+      emit({ type: 'clock-end', pts: c.pts, made: c.made, shots: c.shots, threes: c.threes, best: clockBest, record: rec });
+      setTimeout(() => { if (clock === c) setGame('free', true); }, 2000);
+    }
+
+    // HORSE: make a shot and the other player has to match it from the same spot.
+    const other = (p) => (p === 'you' ? 'bez' : 'you');
+    const spelled = (n) => WORD.slice(0, n).split('').join('-');
+    const snapshot = () => ({ you: horse.you, bez: horse.bez, setter: horse.setter, spot: horse.spot });
+    function nextSet(lead) {
+      const h = horse;
+      h.phase = 'set';
+      h.turn = h.setter;
+      h.spot = 16 + Math.round(Math.random() * 108);
+      queue(h.spot, lead ? 0.8 : 0.2);
+      say((lead ? lead + ' ' : '') + (h.turn === 'you' ? 'Your set: make it and Bez has to match.' : 'Bez is setting one up.'));
+      sync();
+    }
+    function horseShot(s) {
+      const h = horse, who = s.by, made = s.scored;
+      if (h.phase === 'set') {
+        if (made) {
+          h.phase = 'match';
+          h.turn = other(who);
+          queue(h.spot, 0.8);
+          say(who === 'you' ? 'Good. Now Bez has to match it from there.' : 'Bez made it. Match it from the same spot.');
+          sync();
+          emit({ type: 'set', by: who, made, ...snapshot() });
+          return;
+        }
+        h.setter = other(who);
+        emit({ type: 'pass', by: who, made, ...snapshot() });
+        nextSet(who === 'you' ? 'Missed, so Bez sets.' : 'Bez missed.');
+        return;
+      }
+      if (made) {
+        emit({ type: 'matched', by: who, made, ...snapshot() });
+        nextSet(who === 'you' ? 'Matched!' : 'Bez matched it.');
+        return;
+      }
+      h[who]++;
+      Sound.play('letter');
+      show(WORD.slice(0, h[who]), 1.4);
+      if (h[who] >= 5) { endHorse(other(who)); return; }
+      emit({ type: 'letter', by: who, made, ...snapshot() });
+      nextSet(who === 'you' ? 'No match: ' + spelled(h.you) + ' for you.' : 'Bez missed the match: ' + spelled(h.bez) + ' for Bez.');
+    }
+    function endHorse(winner) {
+      const h = horse;
+      h.over = true;
+      record[winner === 'you' ? 'w' : 'l']++;
+      store.set(HORSE_KEY, JSON.stringify(record));
+      queue(null, 2.4);
+      setTimeout(() => { if (horse === h) show(winner === 'you' ? 'YOU WIN' : 'BEZ WINS', 2.2); }, 1400);
+      say((winner === 'you' ? 'Bez spelled HORSE. You win!' : 'That’s HORSE. Bez wins this one.') + ' Record: ' + record.w + '–' + record.l + '.');
+      sync();
+      emit({ type: 'end', winner, record: { ...record }, ...snapshot() });
+      setTimeout(() => { if (horse === h) setGame('free', true); }, 4200);
+    }
+    // Bez's turn: work out the shot, then miss it now and then like anyone.
+    function bezShoot() {
+      bezTimer = 0;
+      if (game !== 'horse' || horse.over || horse.turn !== 'bez' || state !== 'ready' || !raf) return;
+      const s = solve(ball.x) || { a: 1.05, p: 0.7 };
+      const behind = horse.bez - horse.you, k = behind >= 2 ? 0.8 : behind <= -2 ? 1.2 : 1;
+      const a = s.a + ((gauss() * 5 * k) * Math.PI) / 180, p = s.p * (1 + gauss() * 0.05 * k);
+      pullShoot(Math.cos(a) * p * VMAX, -Math.sin(a) * p * VMAX, 'bez');
+    }
+
+    /* Shots */
+    function scored() {
+      const three = shot.from < THREE, clean = !shot.rim && !shot.board;
+      Sound.play('swish');
+      Sound.play('score');
+      burst(clean ? 14 : 6);
+      const line = clean ? pick(LINES.swish) : shot.rim >= 3 ? pick(LINES.rattle) : shot.rim ? pick(LINES.roll) : pick(LINES.bank);
+      if (game === 'horse') { pop(clean ? 'SWISH' : 'GOOD'); return; }
+      if (shot.by === 'bez') { say('Bez: ' + line + ' Your turn.'); return; }
+      streak++;
+      if (game === 'clock') {
+        const pts = (three ? 3 : 2) * mult();
+        clock.pts += pts;
+        clock.made++;
+        if (three) clock.threes++;
+        pop('+' + pts);
+        if (clock.phase === 'over') { show('BUZZER BEATER', 1.6); say('At the buzzer! +' + pts); }
+        else say(streak === 3 ? 'Three straight: points doubled.' : streak === 6 ? 'Six straight: points tripled!' : line + ' +' + pts);
+        sync(true);
+        return;
+      }
+      const pts = three ? 3 : 2;
+      score += pts;
+      if (streak > best) { best = streak; store.set(KEY, String(best)); }
+      pop('+' + pts);
+      let msg;
+      if (streak === 3) msg = 'Heating up.';
+      else if (streak === 5) msg = 'On fire.';
+      else if (streak >= 8 && streak % 4 === 0) msg = 'Unconscious.';
+      else if (three) msg = pick(LINES.three);
+      else msg = line;
+      say(msg + ' +' + pts);
+      sync(true);
+    }
+    function shotEnd() {
+      const s = shot, by = s.by;
+      queue(null, game === 'clock' ? 0.15 : 0.45);
+      const report = { from: s.from, a: s.a, p: s.p, scored: s.scored, kind: verdict(s), bez: by === 'bez', by, game, rim: s.rim };
+      if (game === 'horse') horseShot(s);
+      else if (by === 'bez') { if (!s.scored) say('Even Bez misses. Your turn.'); }
+      else {
+        if (game === 'clock') clock.shots++;
+        if (!s.scored) {
+          const lost = streak >= 3;
+          streak = 0;
+          const msg = pick(s.rim ? LINES.clank : s.board ? LINES.glass : LINES.air);
+          if (game !== 'clock' || clock.phase === 'play') say(msg + (lost ? (game === 'clock' ? ' Bonus gone.' : ' Streak over.') : ''));
+          sync();
+        }
+        if (game === 'clock' && clock.phase === 'over') endClock();
+      }
+      watchers.forEach((fn) => fn(report));
     }
     // A new ball drops in somewhere on the floor.
-    function spawn() {
-      ball.x = 14 + Math.round(Math.random() * 116);
-      ball.y = FLOOR - R - 28;
-      ball.vx = 0; ball.vy = 0;
+    function spawn(x) {
+      ball.x = x == null ? 14 + Math.round(Math.random() * 110) : x;
+      ball.y = FLOOR - R - 22;
+      ball.vx = 0; ball.vy = 0; ball.w = 0;
       state = 'drop';
       rest = 0;
       dirty = true;
     }
     function settle() {
       ball.y = FLOOR - R;
-      ball.vx = 0; ball.vy = 0;
+      ball.vx = 0; ball.vy = 0; ball.w = 0;
       state = 'ready';
       dirty = true;
     }
-    function launch(vx, vy, bez) {
+    function launch(vx, vy, by = 'you') {
       settle();
-      ball.vx = vx; ball.vy = vy;
+      if (!canShoot(by)) return;
+      kick(ball, vx, vy);
+      acc = 0;
       shot = newShot(ball.x, vx, vy);
-      shot.bez = !!bez;
+      shot.by = by;
       state = 'flight';
       rest = 0;
       showKey = false;
       Sound.play('shoot');
     }
+    // Pull back slowly so you can see it, hold, then let go.
+    function pullShoot(vx, vy, by) {
+      settle();
+      const mine = { id: by, vx: 0, vy: 0 }, t0 = performance.now();
+      aim = mine;
+      state = 'aim';
+      showKey = false;
+      const pull = () => {
+        if (aim !== mine) return;
+        const k = Math.min(1, (performance.now() - t0) / 700);
+        mine.vx = vx * k; mine.vy = vy * k;
+        say('Bez: ' + readout(mine.vx, mine.vy));
+        dirty = true;
+        if (k < 1) requestAnimationFrame(pull);
+        else setTimeout(() => { if (aim === mine) { aim = null; launch(vx, vy, by); } }, 350);
+      };
+      requestAnimationFrame(pull);
+    }
     function update(dt) {
-      if (net > 0) { net = Math.max(0, net - dt * 1.4); netT += dt; dirty = true; }
-      if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(); return; }
+      now += dt;
+      juice(dt);
+      if (game === 'clock') runClock(dt);
+      if (game === 'horse' && state === 'ready' && horse.turn === 'bez' && !horse.over && !bezTimer) bezTimer = setTimeout(bezShoot, 450);
+      if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(nextSpot); return; }
       if (state !== 'flight' && state !== 'drop') return;
-      const n = Math.max(1, Math.ceil(dt * 480));
-      for (let i = 0; i < n; i++) if (step(ball, dt / n, shot, true)) scored();
+      // Fixed steps, the same as Bez's ghost balls, so what he works out is what happens.
+      for (acc += dt; acc >= H; acc -= H) {
+        if (step(ball, H, shot, true)) scored();
+        if (state === 'drop' && ball.y >= FLOOR - R - 0.01 && Math.abs(ball.vy) < 60) { settle(); return; } // one bounce and it's yours
+        if (shot && shot.scored && inNet()) { ball.vx -= ball.vx * 7 * H; ball.vy -= ball.vy * 3 * H; } // the net grabs it
+      }
       dirty = true;
-      const still = ball.y >= FLOOR - R - 0.01 && ball.vy === 0 && Math.abs(ball.vx) < 5;
-      rest = still ? rest + dt : 0;
-      if (state === 'drop') { if (rest > 0.05) settle(); return; }
+      // At rest anywhere: on the floor, on the stanchion, wedged on the rim.
+      rest = Math.hypot(ball.vx, ball.vy) < 6 ? rest + dt : 0;
+      if (state === 'drop') return;
       shot.t += dt;
-      if (streak >= 5) { trail.push([ball.x, ball.y]); if (trail.length > 10) trail.shift(); }
-      if (rest > 0.3 || shot.t > 7) shotEnd();
+      if (shot.floor && shot.landed == null) shot.landed = shot.t;
+      if (streak >= 5 && game !== 'horse' && shot.by === 'you') { trail.push([ball.x, ball.y]); if (trail.length > 10) trail.shift(); }
+      // Once it's down, don't make anyone wait for it to stop rolling.
+      const down = shot.landed != null && shot.t - shot.landed > (game === 'clock' ? 0 : shot.scored ? 0.7 : 1.4);
+      const quick = game !== 'free' && shot.scored && ball.y > RIM_Y + 18;
+      if (down || quick || rest > 0.3 || shot.t > 7) shotEnd();
     }
 
     /* Drawing, one pixel at a time */
@@ -2492,37 +2859,81 @@
       if (x >= 0 && y >= 0 && x < CW && y < CH) px[y * CW + x] = v;
     };
     const fill = ([x0, y0, x1, y1], v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, v); };
+    function line(x0, y0, x1, y1) {
+      x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+      const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let err = dx + dy;
+      for (let n = 0; n < 64; n++) {
+        set(x0, y0);
+        if (x0 === x1 && y0 === y1) break;
+        const e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+      }
+    }
+    // A 5-pixel-high font for the scoreboard bits; most letters are 3 wide, M, N and W need more.
+    const FONT = {
+      0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001011001111', 4: '101101111001001',
+      5: '111100111001111', 6: '111100111101111', 7: '111001010010010', 8: '111101111101111', 9: '111101111001111',
+      '+': '000010111010000', '!': '11101', ' ': '0000000000', A: '010101111101101', B: '110101110101110',
+      D: '110101101101110', E: '111100110100111', G: '011100101101011', H: '101101111101101', I: '111010010010111',
+      M: '1000111011101011000110001', N: '10011101101110011001', O: '010101101101010', R: '110101110101101',
+      S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010',
+      W: '1000110001101011010101010', Y: '101101010010010', Z: '111001010100111',
+    };
+    function text(str, x, y, k = 1) {
+      const glyphs = [...str].map((ch) => FONT[ch] || FONT[' ']);
+      const w = glyphs.reduce((n, gl) => n + (gl.length / 5 + 1) * k, -k);
+      for (const ink of [0, 1]) {
+        let gx0 = Math.round(x - w / 2);
+        glyphs.forEach((gl) => {
+          const gw = gl.length / 5;
+          for (let i = 0; i < gl.length; i++) {
+            if (gl[i] !== '1') continue;
+            const gx = gx0 + (i % gw) * k, gy = y + Math.floor(i / gw) * k;
+            if (ink) fill([gx, gy, gx + k - 1, gy + k - 1], 1);
+            else fill([gx - 1, gy - 1, gx + k, gy + k], 0); // a paper outline keeps it legible
+          }
+          gx0 += (gw + 1) * k;
+        });
+      }
+    }
     function drawBall() {
-      const cx = Math.round(ball.x), cy = Math.round(ball.y), c = Math.cos(ball.a), s = Math.sin(ball.a);
-      for (let j = -R; j <= R; j++) {
-        for (let i = -R; i <= R; i++) {
-          const d = i * i + j * j;
+      const q = ball.sq, nx = ball.nx, ny = ball.ny, ka = 1 / (1 - q), kb = 1 / (1 + q * 0.6);
+      const cx = Math.round(ball.x - nx * q * R), cy = Math.round(ball.y - ny * q * R);
+      const c = Math.cos(ball.a), s = Math.sin(ball.a);
+      for (let j = -R - 2; j <= R + 2; j++) {
+        for (let i = -R - 2; i <= R + 2; i++) {
+          // squashed along the last thing it hit, a little wider across
+          const al = (i * nx + j * ny) * ka, ac = (j * nx - i * ny) * kb;
+          const x = al * nx - ac * ny, y = al * ny + ac * nx, d = x * x + y * y;
           if (d > R * R + 3) continue;
           let v = 0;
           if (d > (R - 1) * (R - 1) + 2) v = 1;                    // outline
-          else if (Math.abs(i * c + j * s) < 0.6 || Math.abs(j * c - i * s) < 0.6) v = 1; // seams
-          else if (i + j > 1 && ((i + j) & 1) === 0) v = 1;          // shade
+          else if (Math.abs(x * c + y * s) < 0.6 || Math.abs(y * c - x * s) < 0.6) v = 1; // seams
+          else if (x + y > 1 && ((i + j) & 1) === 0) v = 1;          // shade
           set(cx + i, cy + j, v);
         }
       }
     }
     function drawNet() {
-      const sway = net * Math.sin(netT * 22) * 2.5;
-      for (let k = 0; k <= 12; k++) {
-        const y = RIM_Y + 2 + k, off = sway * (k / 12), pinch = k * 0.3;
-        const l = Math.round(RIM_F + pinch + off), r = Math.round(BOARD[0] - 2 - pinch + off);
-        const o = Math.round(off);
-        for (let x = l; x <= r; x++) {
-          if (x === l || x === r || (x - o + k) % 4 === 0 || (x - o - k + 48) % 4 === 0) set(x, y);
+      for (let i = 0; i < NS - 1; i++) {
+        for (let k = 0; k < NK; k++) {
+          const a = knot(i, k), b = knot(i + 1, k + 1), c = knot(i + 1, k), d = knot(i, k + 1);
+          line(a.x, a.y, b.x, b.y);
+          line(c.x, c.y, d.x, d.y);
         }
       }
+      for (const i of [0, NS - 1]) for (let k = 0; k < NK; k++) line(knot(i, k).x, knot(i, k).y, knot(i, k + 1).x, knot(i, k + 1).y);
     }
-    // Aim dots: the first moment of the arc, or all of it with training wheels on.
+    // Aim dots: the first moment of the arc, or all of it with the full arc on.
     function dots(vx, vy) {
-      let x = ball.x, y = ball.y;
-      for (let i = 1; i <= (assist ? 120 : 21) && y <= FLOOR - R; i++) {
-        vy += GRAV / 60; x += vx / 60; y += vy / 60;
-        if (i % 3 === 0) { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); }
+      const b = { x: ball.x, y: ball.y, vx: 0, vy: 0, w: 0, a: 0 };
+      kick(b, vx, vy);
+      for (let i = 1; i <= (assist ? 1200 : 210); i++) {
+        step(b, H, null, false);
+        if (i % 30 === 0) { set(b.x, b.y); set(b.x + 1, b.y); set(b.x, b.y + 1); set(b.x + 1, b.y + 1); }
+        if (i > 60 && b.y >= FLOOR - R) break;
       }
     }
     function draw() {
@@ -2553,11 +2964,20 @@
         }
       });
       drawBall();
-      // rim and net sit in front of the ball
-      fill([RIM_F - 1, RIM_Y, BOARD[0] - 1, RIM_Y + 1]);
+      // rim and net sit in front of the ball; the rim shudders when it's hit hard
+      const o = rimOff();
+      fill([RIM_F - 1, RIM_Y + o, BOARD[0] - 1, RIM_Y + 1 + o]);
       drawNet();
       if (aim) dots(aim.vx, aim.vy);
       else if (showKey && state === 'ready') dots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
+      sparks.forEach((p) => {
+        if (p.life < 0.15 && tick & 1) return;
+        set(p.x, p.y);
+        if (p.life > 0.3) { set(p.x - 1, p.y); set(p.x + 1, p.y); set(p.x, p.y - 1); set(p.x, p.y + 1); }
+      });
+      pops.forEach((p) => { if (p.t < 0.8 || tick & 2) text(p.text, p.x, Math.round(p.y - p.t * 16)); });
+      if (game === 'clock' && clock.phase !== 'count') text(String(Math.ceil(clock.left)), 14, 6, 2);
+      if (banner && (banner.t > 0.12 || tick & 2)) text(banner.text, 84, 34, banner.text.length > 8 ? 2 : 3);
       const { ink, paper } = Colors.get();
       blit(g, img, px, ink, paper);
     }
@@ -2574,11 +2994,14 @@
       last = performance.now();
       raf = requestAnimationFrame(frame);
     }
+    // Closing the window ends a game in progress.
     function stop() {
       cancelAnimationFrame(raf);
       raf = 0;
+      clearBez();
       if (aim) { aim = null; canvas.classList.remove('is-aiming'); state = 'ready'; }
       showKey = false;
+      if (game !== 'free') setGame('free');
     }
     function render() {
       if (!built) return;
@@ -2591,6 +3014,10 @@
       sync();
       draw();
     }
+    gameBtns.forEach((b) => b.addEventListener('click', () => {
+      setGame(b.dataset.game);
+      win.focus({ preventScroll: true }); // so Space shoots instead of pressing the button again
+    }));
 
     /* Pull back anywhere on the court, like a slingshot. */
     const toCourt = (e) => {
@@ -2598,7 +3025,7 @@
       return [((e.clientX - r.left) * CW) / r.width, ((e.clientY - r.top) * CH) / r.height];
     };
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || (state !== 'ready' && state !== 'drop')) return;
+      if (e.button !== 0 || !canAim()) return;
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
       settle();
@@ -2633,7 +3060,7 @@
 
     // Keyboard: arrows aim, Space or Enter shoots.
     function keydown(e) {
-      if (state !== 'ready' && state !== 'drop') return false;
+      if (!canAim()) return false;
       if (e.key === 'ArrowLeft') keyA = Math.min(1.5, keyA + 0.03);
       else if (e.key === 'ArrowRight') keyA = Math.max(0.15, keyA - 0.03);
       else if (e.key === 'ArrowUp') keyP = Math.min(1, keyP + 0.02);
@@ -2651,40 +3078,30 @@
       return true;
     }
 
-    /* For Bez: shot reports, a worked-out shot from any spot, and a demonstration. */
+    /* For Bez: shot reports, a worked-out shot from any spot, a demonstration, and the games. */
     function recommend(x) {
       const s = solve(x);
       return s && { deg: deg(s.a), pct: Math.round(s.p * 100) };
     }
     function demo() {
-      if (state !== 'ready' && state !== 'drop') return null;
+      if (game !== 'free' || (state !== 'ready' && state !== 'drop')) return null;
       settle();
       const s = solve(ball.x);
       if (!s) return null;
-      const vx = Math.cos(s.a) * s.p * VMAX, vy = -Math.sin(s.a) * s.p * VMAX;
-      const mine = { id: 'bez', vx: 0, vy: 0 }, t0 = performance.now();
-      aim = mine;
-      state = 'aim';
-      showKey = false;
-      // Pull back slowly so you can see it, hold, then let go.
-      const pull = () => {
-        if (aim !== mine) return;
-        const k = Math.min(1, (performance.now() - t0) / 700);
-        mine.vx = vx * k; mine.vy = vy * k;
-        say(readout(mine.vx, mine.vy));
-        dirty = true;
-        if (k < 1) requestAnimationFrame(pull);
-        else setTimeout(() => { if (aim === mine) { aim = null; launch(vx, vy, true); } }, 450);
-      };
-      requestAnimationFrame(pull);
+      pullShoot(Math.cos(s.a) * s.p * VMAX, -Math.sin(s.a) * s.p * VMAX, 'bez');
       return { deg: deg(s.a), pct: Math.round(s.p * 100) };
     }
 
     return {
-      build, start, stop, render, keydown, recommend, demo,
+      build, start, stop, render, keydown, recommend, demo, setGame,
       onShot: (fn) => watchers.add(fn),
+      onGame: (fn) => players.add(fn),
       set assist(on) { assist = on; dirty = true; },
       get assist() { return assist; },
+      get game() { return game; },
+      get record() { return { ...record }; },
+      get clockBest() { return clockBest; },
+      get best() { return best; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
   })();
