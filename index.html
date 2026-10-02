@@ -24,21 +24,13 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Instrument+Sans:wdth,wght@75..100,400..700&display=swap" rel="stylesheet">
 
 <script>
-  /* Pick the era and its display before first paint so there's no flash. */
+  /* Pick the theme before first paint so there's no flash. */
   (function () {
-    var d = document.documentElement, e, t;
-    var dark = matchMedia('(prefers-color-scheme: dark)').matches;
-    var eras = {
-      1984: ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'],
-      2005: ['blue', 'graphite'],
-      2026: ['light', 'dark']
-    };
+    var d = document.documentElement, t;
+    var ok = ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'];
     d.classList.add('js');
-    try { e = localStorage.getItem('adiel-era'); } catch (x) {}
-    if (!eras[e]) e = '1984';
-    try { t = localStorage.getItem(e === '1984' ? 'adiel-theme' : 'adiel-theme-' + e); } catch (x) {}
-    if (eras[e].indexOf(t) < 0) t = e === '2005' ? 'blue' : e === '2026' ? (dark ? 'dark' : 'light') : dark ? 'negative' : 'paper';
-    d.dataset.era = e;
+    try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
+    if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'negative' : 'paper';
     d.dataset.theme = t;
   })();
 </script>
@@ -543,14 +535,26 @@
   .hoops-bar { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
   .hoops-bar b { padding: 0 3px; font-weight: 700; }
   .hoops-bar b.is-lit { background: var(--ink); color: var(--paper); }
+  .hoops-bar i { font-style: normal; color: var(--graphite); }  /* HORSE letters not earned yet */
+  .games { display: flex; margin-bottom: 8px; }
+  .game {
+    flex: 1 1 0; min-width: 0; height: 20px; padding: 0 4px;
+    border: 1px solid var(--ink); background: var(--paper); color: var(--ink);
+    font-size: 11px; font-weight: 600; font-stretch: 92%; white-space: nowrap; cursor: default;
+  }
+  .game + .game { border-left: 0; }
+  .game:first-child { border-radius: 5px 0 0 5px; }
+  .game:last-child { border-radius: 0 5px 5px 0; }
+  .game[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .game:focus-visible { outline: 1px dotted currentColor; outline-offset: -4px; }
   .court {
     display: block; width: 402px; max-width: 100%; height: auto;
     border: 1px solid var(--ink);
     image-rendering: pixelated; touch-action: none; cursor: grab;
   }
   .court.is-aiming { cursor: grabbing; }
-  .hoops-status { min-height: 17px; max-width: 402px; margin-top: 8px; font-size: 12px; }
-  .hoops-hint { max-width: 402px; margin-top: 2px; font-size: 11px; color: var(--graphite); }
+  .hoops-status { min-height: 17px; margin-top: 8px; font-size: 12px; }
+  .hoops-hint { margin-top: 2px; font-size: 11px; color: var(--graphite); }
 
   /* Piano keys Bez wants you to play: a blinking dot, like the caret */
   .key.is-target::after {
@@ -613,6 +617,26 @@
   .note.is-done { color: var(--graphite); }
   .note.is-now { background: var(--ink); color: var(--paper); }
   .note.is-now small { color: var(--paper); }
+  .note.is-miss { color: var(--graphite); text-decoration: line-through; }
+  .b-ask { display: flex; gap: 6px; margin-top: 10px; }
+  .b-ask input {
+    flex: 1 1 auto; min-width: 0; height: 22px; padding: 0 7px;
+    border: 1px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink);
+    font: 500 12px var(--font);
+  }
+  .b-ask input::placeholder { color: var(--graphite); opacity: 1; }
+  .b-ask input:focus { outline: 1px dotted var(--ink); outline-offset: 2px; }
+  .b-ask .btn { height: 22px; }
+  .b-chips { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; }
+  .b-chip {
+    height: 20px; padding: 0 8px;
+    border: 1px dotted var(--ink); border-radius: 10px; background: var(--paper); color: var(--ink);
+    font-size: 11px; font-weight: 500; cursor: default;
+  }
+  .b-chip:hover, .b-chip:focus-visible { border-style: solid; background: var(--hl); color: var(--on-hl); outline: none; }
+  .b-chart { display: block; width: 200px; height: 60px; margin-top: 8px; border: 1px solid var(--ink); image-rendering: pixelated; }
+  .b-stars { letter-spacing: 1px; }
+  .b-text a { color: inherit; }
 
   /* Screen saver */
   .saver { position: fixed; inset: 0; z-index: 90; display: block; width: 100%; height: 100%; background: var(--desk-color); cursor: none; }
@@ -646,443 +670,6 @@
   /* Zoom rectangles */
   .zoom { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   .zoom i { position: absolute; border: 1px solid var(--ink); }
-
-  /* ============================================================
-     Eras. Everything above is 1984: one bit, six displays. Two
-     later eras change the whole machine (materials, type, motion,
-     sounds, and how the Piano, Hoops and Bez are drawn), each with
-     its own pair of displays. Same desk, three decades.
-  ============================================================ */
-
-  /* 2005 · Gel: candy buttons, pinstripes, brushed metal */
-  :root[data-era="2005"] {
-    --paper: #ffffff; --ink: #1b1b1b; --graphite: #6e6e6e;
-    --accent: #2f7de1; --on-accent: #ffffff;
-    --desk-color: #2a64b4; --desk-ink: #ffffff;
-    --bar-bg: #ececec; --bar-ink: #111111; --bar-dim: #8c8c8c;
-    --menu-bg: #ffffff; --menu-ink: #111111;
-    --hl: #2f6fe0; --on-hl: #ffffff;
-    --gel: #3f8ff0; --gel-hi: #d4e9ff; --gel-lo: #1c5cc2;
-    --win-shadow: 0 0 0 1px rgb(0 0 0 / .3), 0 14px 38px rgb(0 0 0 / .45);
-    --pop-shadow: 0 0 0 1px rgb(0 0 0 / .18), 0 8px 24px rgb(0 0 0 / .35);
-    --font: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Geneva, Verdana, sans-serif;
-    --bar: 22px;
-    --desk:
-      radial-gradient(130% 70% at 85% 115%, rgb(140 205 255 / .6), transparent 60%),
-      radial-gradient(80% 55% at 5% -5%, rgb(255 255 255 / .32), transparent 62%),
-      linear-gradient(165deg, transparent 38%, rgb(255 255 255 / .13) 47%, transparent 55%),
-      linear-gradient(165deg, transparent 54%, rgb(255 255 255 / .07) 60%, transparent 66%),
-      linear-gradient(180deg, #16438a, #2f78cc 58%, #6cb0ee);
-    color-scheme: light;
-  }
-  :root[data-era="2005"][data-theme="graphite"] {
-    --accent: #6c7a8c; --hl: #67768a;
-    --gel: #8b98aa; --gel-hi: #e6ebf1; --gel-lo: #5a6678;
-    --desk-color: #56606c;
-    --desk:
-      radial-gradient(130% 70% at 85% 115%, rgb(225 232 240 / .45), transparent 60%),
-      radial-gradient(80% 55% at 5% -5%, rgb(255 255 255 / .25), transparent 62%),
-      linear-gradient(165deg, transparent 38%, rgb(255 255 255 / .1) 47%, transparent 55%),
-      linear-gradient(180deg, #353c46, #687482 58%, #a6b0bc);
-  }
-
-  /* 2026 · Glass: translucent, soft, quiet */
-  :root[data-era="2026"] {
-    --paper: #ffffff; --ink: #1d1d1f; --graphite: #86868b;
-    --accent: #0a6cff; --on-accent: #ffffff;
-    --desk-color: #eceef2; --desk-ink: #1d1d1f;
-    --bar-bg: #f5f5f7; --bar-ink: #1d1d1f; --bar-dim: #a1a1a6;
-    --menu-bg: #ffffff; --menu-ink: #1d1d1f;
-    --hl: #0a6cff; --on-hl: #ffffff;
-    --glass: rgb(255 255 255 / .74); --glass-strong: rgb(250 250 252 / .9);
-    --hair: rgb(0 0 0 / .08); --fill-soft: rgb(0 0 0 / .05); --fill-mid: rgb(0 0 0 / .09);
-    --key-white: #ffffff; --key-black: #1d1d1f;
-    --win-shadow: 0 0 0 1px var(--hair), 0 28px 70px rgb(0 0 0 / .16), 0 4px 14px rgb(0 0 0 / .06);
-    --pop-shadow: 0 0 0 1px var(--hair), 0 14px 36px rgb(0 0 0 / .14);
-    --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI Variable Text", "Segoe UI", Roboto, "Instrument Sans", sans-serif;
-    --bar: 30px;
-    --desk:
-      radial-gradient(55% 45% at 88% 6%, rgb(10 108 255 / .1), transparent 70%),
-      radial-gradient(50% 45% at 6% 96%, rgb(255 122 26 / .08), transparent 70%);
-    color-scheme: light;
-  }
-  :root[data-era="2026"][data-theme="dark"] {
-    --paper: #1c1c1e; --ink: #f5f5f7; --graphite: #98989d;
-    --accent: #3d8bff;
-    --desk-color: #0e0e10; --desk-ink: #f5f5f7;
-    --bar-bg: #1c1c1e; --bar-ink: #f5f5f7; --bar-dim: #6e6e73;
-    --menu-bg: #2c2c2e; --menu-ink: #f5f5f7;
-    --hl: #3d8bff;
-    --glass: rgb(36 36 38 / .74); --glass-strong: rgb(44 44 46 / .9);
-    --hair: rgb(255 255 255 / .1); --fill-soft: rgb(255 255 255 / .07); --fill-mid: rgb(255 255 255 / .13);
-    --key-white: #e5e5ea; --key-black: #0a0a0a;
-    --win-shadow: 0 0 0 1px var(--hair), 0 28px 70px rgb(0 0 0 / .55);
-    --pop-shadow: 0 0 0 1px var(--hair), 0 14px 36px rgb(0 0 0 / .5);
-    --desk:
-      radial-gradient(55% 45% at 88% 6%, rgb(61 139 255 / .16), transparent 70%),
-      radial-gradient(50% 45% at 6% 96%, rgb(255 122 26 / .1), transparent 70%);
-    color-scheme: dark;
-  }
-
-  /* Each era draws its own desktop icons; the other eras' versions hide. */
-  :root:not([data-era="2005"]) .ico-2005, :root:not([data-era="2026"]) .ico-2026,
-  [data-era="2005"] .ico-1984, [data-era="2026"] .ico-1984 { display: none !important; }
-  [data-era="2005"] .bezel, [data-era="2005"] .fx, [data-era="2026"] .fx { display: none; }
-
-  /* ---- 2005 ---- */
-  [data-era="2005"] .menubar {
-    background: linear-gradient(#fbfbfb, #ededed 48%, #e1e1e1 52%, #eaeaea);
-    border-bottom: 1px solid #8e8e8e;
-    box-shadow: 0 1px 3px rgb(0 0 0 / .25);
-    font-weight: 400; font-stretch: normal;
-  }
-  [data-era="2005"] .mb-title[aria-expanded="true"], [data-era="2005"] button.mb-title:active, [data-era="2005"] a.mb-title:active,
-  [data-era="2005"] .mi:hover, [data-era="2005"] .mi:focus-visible, [data-era="2005"] .mi.is-lit {
-    background: linear-gradient(#64a0f3, #2a68d6); color: #fff;
-  }
-  [data-era="2005"] .mb-title.is-disabled { font-weight: 400; }
-  [data-era="2005"] .glyph { border-radius: 3px; background: linear-gradient(#94caff, #2470dc); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .28); }
-  [data-era="2005"] .glyph .g-ink { fill: transparent; }
-  [data-era="2005"] .glyph .g-paper { fill: #fff; }
-  [data-era="2005"] .theme-btn {
-    height: 17px; margin-top: 0; padding: 0 9px 0 7px;
-    border: 0; border-radius: 9px;
-    background: linear-gradient(#ffffff, #ececec 48%, #dcdcdc 52%, #f1f1f1);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .38), 0 1px 1px rgb(0 0 0 / .12);
-    font-weight: 400;
-  }
-  [data-era="2005"] .theme-btn:active { transform: none; background: linear-gradient(#c9c9c9, #e4e4e4); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .45); }
-  [data-era="2005"] .menu {
-    border: 0; border-radius: 0 0 6px 6px;
-    background: rgb(255 255 255 / .96);
-    box-shadow: 0 0 0 1px rgb(0 0 0 / .14), 0 8px 22px rgb(0 0 0 / .35);
-    font-weight: 400;
-  }
-  [data-era="2005"] .mi { height: 20px; }
-  [data-era="2005"] .sep { height: 1px; margin: 5px 0; background: #dadada; }
-  [data-era="2005"] .statement { font-weight: 700; letter-spacing: -0.045em; text-shadow: 0 2px 9px rgb(0 0 0 / .35), 0 1px 1px rgb(0 0 0 / .3); }
-  [data-era="2005"] .caret { background: #fff; }
-  [data-era="2005"] .chip::after { border: 0; border-radius: 4px; background: #ffffe1; color: #111; box-shadow: 0 0 0 1px rgb(0 0 0 / .25), 0 3px 8px rgb(0 0 0 / .25); font-weight: 400; font-stretch: normal; }
-  [data-era="2005"] .icon .ico-2005 { width: 48px; height: 48px; filter: drop-shadow(0 2px 2px rgb(0 0 0 / .4)); }
-  [data-era="2005"] .icon-label {
-    padding: 0 6px; border-radius: 8px;
-    background: transparent; color: #fff;
-    font-weight: 700; font-stretch: normal; text-shadow: 0 1px 3px rgb(0 0 0 / .85);
-  }
-  [data-era="2005"] .icon.is-selected .ico-2005 { border-radius: 6px; background: rgb(0 0 0 / .28); }
-  [data-era="2005"] .icon.is-selected .icon-label { background: #2c5fc7; text-shadow: none; }
-
-  [data-era="2005"] .window {
-    border: 0; border-radius: 7px 7px 5px 5px;
-    background: repeating-linear-gradient(#ffffff 0 2px, #f1f1f1 2px 4px);
-  }
-  [data-era="2005"] .titlebar {
-    height: 22px; border-bottom: 1px solid #a1a1a1; border-radius: 7px 7px 0 0;
-    background: linear-gradient(#ebebeb, #cdcdcd);
-  }
-  [data-era="2005"] .window:not(.is-active) .titlebar { background: linear-gradient(#f7f7f7, #e8e8e8); border-bottom-color: #c6c6c6; }
-  [data-era="2005"] .window.is-active .titlebar::before { display: none; }
-  [data-era="2005"] .wtitle { padding: 0 60px; background: transparent; font-size: 13px; font-weight: 400; font-stretch: normal; line-height: 22px; text-shadow: 0 1px 0 rgb(255 255 255 / .7); }
-  [data-era="2005"] .window:not(.is-active) .wtitle { color: #8b8b8b; font-weight: 400; }
-  /* Traffic lights. Only the red one closes; the other two are for looks. */
-  [data-era="2005"] .closebox {
-    left: 8px; top: 5px; width: 12px; height: 12px;
-    border: 0; border-radius: 50%; visibility: visible;
-    background: radial-gradient(circle at 50% 26%, #ffd0c8 0 16%, #f3594b 54%, #b6261a);
-    box-shadow: inset 0 0 0 .5px rgb(0 0 0 / .5);
-  }
-  [data-era="2005"] .closebox::before {
-    content: ""; position: absolute; left: 20px; top: 0; width: 32px; height: 12px; pointer-events: none;
-    background:
-      radial-gradient(circle at 6px 3.4px, rgb(255 255 255 / .8) 0 1.4px, transparent 2.6px),
-      radial-gradient(circle at 6px 6px, #f7c330 0 4.4px, #9d6f05 5.4px, transparent 6px),
-      radial-gradient(circle at 26px 3.4px, rgb(255 255 255 / .8) 0 1.4px, transparent 2.6px),
-      radial-gradient(circle at 26px 6px, #50c444 0 4.4px, #23801b 5.4px, transparent 6px);
-  }
-  [data-era="2005"] .closebox svg { display: none; }
-  [data-era="2005"] .window:not(.is-active) .closebox, [data-era="2026"] .window:not(.is-active) .closebox { visibility: visible; }
-  [data-era="2005"] .closebox:active { filter: brightness(.75); }
-  [data-era="2005"][data-theme="graphite"] .closebox,
-  [data-era="2005"] .window:not(.is-active) .closebox { background: radial-gradient(circle at 50% 26%, #ffffff 0 16%, #b9c1cc 54%, #7c8796); }
-  [data-era="2005"][data-theme="graphite"] .closebox::before,
-  [data-era="2005"] .window:not(.is-active) .closebox::before {
-    background:
-      radial-gradient(circle at 6px 6px, #c3cad4 0 4.4px, #7c8796 5.4px, transparent 6px),
-      radial-gradient(circle at 26px 6px, #c3cad4 0 4.4px, #7c8796 5.4px, transparent 6px);
-  }
-  [data-era="2005"] .btn {
-    height: 21px; padding: 0 16px;
-    border: 0; border-radius: 11px;
-    background: linear-gradient(#ffffff, #f1f1f1 45%, #dedede 55%, #f6f6f6);
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .33), 0 1px 2px rgb(0 0 0 / .18);
-    color: #111; font-size: 13px; font-weight: 400; font-stretch: normal;
-  }
-  [data-era="2005"] .btn:active { background: linear-gradient(#c8c8c8, #e8e8e8); color: #111; }
-  [data-era="2005"] .btn.is-default {
-    margin: 0; color: #0a1d38;
-    background: linear-gradient(var(--gel-hi), var(--gel) 48%, var(--gel-lo) 52%, var(--gel-hi));
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .4), 0 1px 2px rgb(0 0 0 / .2);
-    animation: gel-pulse 1.6s ease-in-out infinite alternate; /* the default button breathes */
-  }
-  @keyframes gel-pulse { to { filter: brightness(1.16) saturate(.85); } }
-  [data-era="2005"] .btn-sm { height: 18px; padding: 0 10px; border-radius: 9px; font-size: 11px; }
-  [data-era="2005"] .btn:focus-visible { outline: 3px solid rgb(63 143 240 / .55); outline-offset: 0; }
-  [data-era="2005"] .track { height: 14px; padding: 0; border: 0; border-radius: 7px; background: linear-gradient(#d8d8d8, #f8f8f8); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .3), inset 0 1px 2px rgb(0 0 0 / .2); overflow: hidden; }
-  [data-era="2005"] .fill {
-    border-radius: 7px;
-    background:
-      linear-gradient(rgb(255 255 255 / .55), rgb(255 255 255 / .08) 50%, rgb(0 0 0 / .06) 51%, rgb(255 255 255 / .22)),
-      linear-gradient(135deg, var(--gel-hi) 25%, var(--gel) 25% 50%, var(--gel-hi) 50% 75%, var(--gel) 75%) 0 0 / 16px 16px;
-    box-shadow: inset 0 0 0 1px rgb(0 0 0 / .25);
-    animation: barber .7s linear infinite; /* the barber pole */
-  }
-  @keyframes barber { to { background-position: 0 0, 16px 0; } }
-  [data-era="2005"] .scroll::-webkit-scrollbar { width: 15px; }
-  [data-era="2005"] .scroll::-webkit-scrollbar-track { border-left: 1px solid #c8c8c8; background: linear-gradient(90deg, #dedede, #f8f8f8); }
-  [data-era="2005"] .scroll::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: linear-gradient(90deg, var(--gel-lo), var(--gel) 40%, var(--gel-hi) 52%, var(--gel)) padding-box; }
-  [data-era="2005"] .rule { background: #d6d6d6; }
-  [data-era="2005"] .comments { border-color: #bdbdbd; border-radius: 4px; background: #fff; box-shadow: inset 0 1px 2px rgb(0 0 0 / .08); }
-  [data-era="2005"] .portrait { border-color: #a5a5a5; border-radius: 4px; box-shadow: 0 2px 6px rgb(0 0 0 / .22); }
-  [data-era="2005"] .mini { border: 0; border-radius: 9px; background: linear-gradient(#fff, #e6e6e6 48%, #d6d6d6 52%, #f0f0f0); box-shadow: inset 0 0 0 1px rgb(0 0 0 / .35); }
-  [data-era="2005"] .mini:active { background: linear-gradient(#c8c8c8, #e8e8e8); color: var(--ink); }
-  [data-era="2005"] .checkbox .box { border-color: #8a8a8a; border-radius: 3px; background: linear-gradient(#fff, #e4e4e4); }
-  [data-era="2005"] .checkbox input:checked + .box { border-color: var(--gel-lo); background: linear-gradient(var(--gel-hi), var(--gel)); }
-  /* The Piano is brushed metal, like the music apps of the day. */
-  [data-era="2005"] #piano {
-    background:
-      repeating-linear-gradient(0deg, rgb(255 255 255 / .1) 0 1px, rgb(0 0 0 / .035) 1px 2px, transparent 2px 3px),
-      linear-gradient(#dcdcdc, #b6b6b6);
-  }
-  [data-era="2005"] #piano .titlebar { background: transparent; border-bottom-color: transparent; }
-  [data-era="2005"] .keys { border-color: #2b2b2b; border-radius: 3px; background: #2b2b2b; box-shadow: 0 2px 6px rgb(0 0 0 / .35); }
-  [data-era="2005"] .wk { border-right-color: #9b9b9b; border-radius: 0 0 4px 4px; background: linear-gradient(#ffffff, #f4f4f4 72%, #d9d9d9); box-shadow: inset 0 -4px 0 rgb(0 0 0 / .06); }
-  [data-era="2005"] .bk { border: 0; border-radius: 0 0 3px 3px; background: linear-gradient(90deg, #3c3c3c, #121212 30% 70%, #2b2b2b); box-shadow: inset 0 -5px 0 #2e2e2e, 0 2px 3px rgb(0 0 0 / .45); }
-  [data-era="2005"] .wk.is-down { background: linear-gradient(#e2efff, #a8cffd); }
-  [data-era="2005"] .bk.is-down { background: linear-gradient(var(--gel), var(--gel-lo)); }
-  [data-era="2005"] .key.is-down .key-label { background: transparent; color: var(--ink); }
-  [data-era="2005"] .bk .key-label, [data-era="2005"] .bk.is-down .key-label { color: #c8c8c8; }
-  [data-era="2005"] .key.is-target::after {
-    width: 10px; height: 10px; margin-left: -5px; border-radius: 50%;
-    background: radial-gradient(circle at 50% 30%, #fff 0 15%, var(--gel) 58%, var(--gel-lo));
-    box-shadow: 0 0 6px var(--gel);
-    animation: gel-pulse .8s ease-in-out infinite alternate;
-  }
-  [data-era="2005"] .tools { border-color: #929292; border-radius: 4px; background: #b4b4b4; overflow: hidden; }
-  [data-era="2005"] .tool { background: linear-gradient(#ffffff, #e7e7e7); }
-  [data-era="2005"] .tool[aria-pressed="true"] { background: linear-gradient(var(--gel-hi), var(--gel)); }
-  [data-era="2005"] .tool[aria-pressed="true"] .i-ink { fill: #0a1d38; }
-  [data-era="2005"] .tool[aria-pressed="true"] .i-fill { fill: #fff; }
-  [data-era="2005"] .sheet, [data-era="2005"] .pat { border-color: #8e8e8e; }
-  [data-era="2005"] .pat { border-radius: 3px; }
-  [data-era="2005"] .pat[aria-pressed="true"] { border: 2px solid var(--gel); }
-  [data-era="2005"] .court { border-color: #8a8a8a; border-radius: 4px; }
-  [data-era="2005"] .hoops-bar b.is-lit { border-radius: 4px; background: var(--gel); color: #fff; }
-  /* Bez's balloon is a pale yellow help tag. */
-  [data-era="2005"] .balloon {
-    --paper: #ffffe1; --tail-ink: rgb(0 0 0 / .3);
-    border: 0; border-radius: 14px; background: var(--paper); color: #111;
-    box-shadow: 0 0 0 1px var(--tail-ink), 0 10px 28px rgb(0 0 0 / .35);
-  }
-  [data-era="2005"] .b-item { border-radius: 4px; }
-  [data-era="2005"] .note.is-now { border-radius: 4px; background: var(--gel); color: #fff; }
-  [data-era="2005"] .alert {
-    grid-template-columns: 48px 1fr;
-    border: 0; border-radius: 9px;
-    background: repeating-linear-gradient(#ffffff 0 2px, #f1f1f1 2px 4px);
-    box-shadow: 0 0 0 1px rgb(0 0 0 / .3), 0 18px 50px rgb(0 0 0 / .5);
-  }
-  [data-era="2005"] .alert .ico-2005 { width: 48px; height: 48px; }
-  [data-era="2005"] .alert h2 { font-stretch: normal; }
-
-  /* ---- 2026 ---- */
-  [data-era="2026"] .bezel { border-radius: 12px; }
-  [data-era="2026"] .menubar {
-    background: color-mix(in srgb, var(--bar-bg) 72%, transparent);
-    -webkit-backdrop-filter: blur(24px) saturate(180%); backdrop-filter: blur(24px) saturate(180%);
-    border-bottom: 1px solid var(--hair);
-    padding-left: max(10px, env(safe-area-inset-left, 0px));
-    font-weight: 500; font-stretch: normal;
-  }
-  [data-era="2026"] .mb-left { gap: 2px; padding: 4px 0; }
-  [data-era="2026"] .mb-title { border-radius: 6px; }
-  [data-era="2026"] .mb-title .name { font-weight: 700; }
-  [data-era="2026"] .mb-title[aria-expanded="true"], [data-era="2026"] button.mb-title:active, [data-era="2026"] a.mb-title:active {
-    background: var(--fill-mid); color: inherit;
-  }
-  [data-era="2026"] .mb-title.is-disabled { font-weight: 500; }
-  [data-era="2026"] .glyph .g-ink { rx: 3px; }
-  [data-era="2026"] .theme-btn { height: 22px; margin-top: 0; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; box-shadow: none; font-weight: 500; }
-  [data-era="2026"] .theme-btn:hover { background: var(--fill-soft); }
-  [data-era="2026"] .theme-btn:active { transform: none; box-shadow: none; background: var(--fill-mid); }
-  [data-era="2026"] .theme-btn svg { display: none; }
-  [data-era="2026"] .sfx { border-radius: 6px; height: 22px; }
-  [data-era="2026"] .sfx:active { background: var(--fill-mid); color: inherit; }
-  [data-era="2026"] .menu {
-    top: calc(100% + 6px); min-width: 220px; padding: 5px;
-    border: 0; border-radius: 11px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-  }
-  [data-era="2026"] .mi { height: 24px; padding: 0 10px 0 26px; border-radius: 6px; }
-  [data-era="2026"] .mi:hover, [data-era="2026"] .mi:focus-visible, [data-era="2026"] .mi.is-lit { background: var(--accent); color: #fff; }
-  [data-era="2026"] .sep { height: 1px; margin: 5px 9px; background: var(--hair); }
-  [data-era="2026"] .statement { font-family: var(--sans); font-weight: 600; letter-spacing: -0.05em; }
-  [data-era="2026"] .chip::after { border: 0; border-radius: 8px; background: var(--glass-strong); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); font-weight: 500; font-stretch: normal; }
-  [data-era="2026"] .icon { gap: 6px; }
-  [data-era="2026"] .icon .ico-2026 { width: 44px; height: 44px; filter: drop-shadow(0 3px 6px rgb(0 0 0 / .14)); }
-  [data-era="2026"] .icon-label { padding: 1px 7px; border-radius: 6px; background: transparent; color: var(--desk-ink); font-weight: 500; font-stretch: normal; }
-  [data-era="2026"] .icon.is-selected .ico-2026 { filter: drop-shadow(0 3px 6px rgb(0 0 0 / .14)) brightness(.82); }
-  [data-era="2026"] .icon.is-selected .icon-label { background: var(--accent); color: #fff; }
-
-  [data-era="2026"] .window {
-    border: 0; border-radius: 14px; overflow: hidden;
-    background: var(--glass);
-    -webkit-backdrop-filter: blur(28px) saturate(180%); backdrop-filter: blur(28px) saturate(180%);
-  }
-  [data-era="2026"] .titlebar { height: 38px; border-bottom: 0; }
-  [data-era="2026"] .window.is-active .titlebar::before { display: none; }
-  [data-era="2026"] .wtitle { background: transparent; font-size: 13px; font-weight: 600; font-stretch: normal; line-height: 38px; }
-  [data-era="2026"] .window:not(.is-active) .wtitle { color: var(--graphite); font-weight: 600; }
-  [data-era="2026"] .closebox {
-    left: 15px; top: 13px; width: 12px; height: 12px;
-    border: 0; border-radius: 50%; visibility: visible;
-    background: var(--fill-mid); box-shadow: none;
-    transition: background .15s;
-  }
-  [data-era="2026"] .closebox svg { display: none; }
-  [data-era="2026"] .closebox:hover, [data-era="2026"] .closebox:focus-visible { background: #ff5f57; }
-  [data-era="2026"] .wbody { padding-top: 4px; }
-  [data-era="2026"] .about { padding: 6px 22px 24px; }
-  [data-era="2026"] .btn {
-    height: 28px; padding: 0 15px;
-    border: 0; border-radius: 999px;
-    background: var(--fill-soft); color: var(--ink);
-    font-size: 13px; font-weight: 500; font-stretch: normal;
-    transition: background .15s, transform .1s;
-  }
-  [data-era="2026"] .btn:hover { background: var(--fill-mid); }
-  [data-era="2026"] .btn:active { transform: scale(.97); background: var(--fill-mid); color: var(--ink); }
-  [data-era="2026"] .btn.is-default { margin: 0; background: var(--accent); color: #fff; box-shadow: none; }
-  [data-era="2026"] .btn-sm { height: 24px; padding: 0 11px; font-size: 12px; }
-  [data-era="2026"] .btn:focus-visible { outline: 2px solid color-mix(in srgb, var(--accent) 55%, transparent); outline-offset: 2px; }
-  [data-era="2026"] .track { height: 6px; padding: 0; border: 0; border-radius: 3px; background: var(--fill-mid); overflow: hidden; }
-  [data-era="2026"] .fill { border-radius: 3px; background: var(--accent); transition: width .9s cubic-bezier(.2, .8, .2, 1); }
-  [data-era="2026"] .scroll::-webkit-scrollbar { width: 11px; }
-  [data-era="2026"] .scroll::-webkit-scrollbar-track { border: 0; background: transparent; }
-  [data-era="2026"] .scroll::-webkit-scrollbar-thumb { border: 3px solid transparent; border-radius: 6px; background: var(--fill-mid) padding-box; }
-  [data-era="2026"] .rule { background: var(--hair); }
-  [data-era="2026"] .comments { border: 0; border-radius: 12px; background: var(--fill-soft); }
-  [data-era="2026"] .portrait { border: 0; border-radius: 18px; background: var(--fill-soft); }
-  [data-era="2026"] .mini { width: 24px; height: 22px; border: 0; border-radius: 7px; background: var(--fill-soft); }
-  [data-era="2026"] .mini:active { background: var(--fill-mid); color: var(--ink); }
-  [data-era="2026"] .checkbox .box { width: 16px; height: 16px; border: 1.5px solid var(--bar-dim); border-radius: 5px; background: transparent; }
-  [data-era="2026"] .checkbox input:checked + .box { border-color: var(--accent); background: var(--accent); }
-  [data-era="2026"] .keys { border-color: transparent; border-radius: 10px; background: var(--fill-mid); overflow: hidden; }
-  [data-era="2026"] .wk { border-right-color: transparent; border-radius: 0 0 6px 6px; background: var(--key-white) padding-box; transition: background-color .1s; }
-  [data-era="2026"] .bk { border: 0; border-radius: 0 0 5px 5px; background: var(--key-black); transition: background-color .1s; }
-  [data-era="2026"] .key.is-down { background: var(--accent) padding-box; }
-  [data-era="2026"] .key.is-down .key-label { background: transparent; color: #fff; }
-  [data-era="2026"] .key-label { font-weight: 500; }
-  [data-era="2026"] .bk .key-label { color: rgb(255 255 255 / .6); }
-  [data-era="2026"] .key.is-target::after {
-    width: 8px; height: 8px; margin-left: -4px; border-radius: 50%;
-    background: var(--accent);
-    animation: halo 1.2s ease-in-out infinite;
-  }
-  @keyframes halo {
-    from { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 45%, transparent); }
-    to { box-shadow: 0 0 0 8px color-mix(in srgb, var(--accent) 0%, transparent); }
-  }
-  [data-era="2026"] .tools { gap: 3px; border: 0; background: transparent; }
-  [data-era="2026"] .tool { height: 26px; border-radius: 7px; background: var(--fill-soft); }
-  [data-era="2026"] .tool[aria-pressed="true"] { background: var(--accent); }
-  [data-era="2026"] .tool[aria-pressed="true"] .i-ink { fill: #fff; }
-  [data-era="2026"] .tool[aria-pressed="true"] .i-fill { fill: var(--accent); }
-  [data-era="2026"] .sheet { border-color: var(--hair); border-radius: 10px; overflow: hidden; }
-  [data-era="2026"] .pat { border-color: var(--hair); border-radius: 6px; }
-  [data-era="2026"] .pat[aria-pressed="true"] { border: 2px solid var(--accent); padding: 1px; }
-  [data-era="2026"] .court { border-color: var(--hair); border-radius: 12px; }
-  [data-era="2026"] .hoops-bar b.is-lit { border-radius: 5px; background: var(--accent); color: #fff; }
-  [data-era="2026"] .balloon {
-    --paper: #ffffff; --tail-ink: var(--hair);
-    border: 0; border-radius: 16px; background: var(--paper);
-    box-shadow: 0 0 0 1px var(--hair), 0 18px 44px rgb(0 0 0 / .16);
-  }
-  [data-era="2026"][data-theme="dark"] .balloon { --paper: #2c2c2e; box-shadow: 0 0 0 1px var(--hair), 0 18px 44px rgb(0 0 0 / .5); }
-  [data-era="2026"] .b-item { border-radius: 6px; }
-  [data-era="2026"] .b-item:hover, [data-era="2026"] .b-item:focus-visible { background: var(--accent); color: #fff; }
-  [data-era="2026"] .note.is-now { border-radius: 6px; background: var(--accent); color: #fff; }
-  [data-era="2026"] .alert {
-    grid-template-columns: 44px 1fr;
-    border: 0; border-radius: 18px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-    box-shadow: var(--pop-shadow);
-  }
-  [data-era="2026"] .alert .ico-2026 { width: 44px; height: 44px; }
-  [data-era="2026"] .alert h2 { font-stretch: normal; }
-
-  /* Both later eras: smooth balloon tails, checkmarks, crisp-free canvases */
-  [data-era="2005"] .b-tail .t-px, [data-era="2026"] .b-tail .t-px,
-  [data-era="1984"] .b-tail .t-vec { display: none; }
-  .b-tail .t-vec-fill { fill: var(--paper); }
-  .b-tail .t-vec-line { fill: none; stroke: var(--tail-ink, var(--ink)); stroke-width: 1px; vector-effect: non-scaling-stroke; }
-  [data-era="2005"] .checkbox .box svg, [data-era="2026"] .checkbox .box svg { display: none; }
-  [data-era="2005"] .checkbox input:checked + .box::after, [data-era="2026"] .checkbox input:checked + .box::after {
-    content: ""; width: 4px; height: 8px; margin-top: -2px;
-    border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
-  }
-  [data-era="2005"] .court, [data-era="2026"] .court,
-  [data-era="2005"] .bez-me canvas, [data-era="2026"] .bez-me canvas { image-rendering: auto; }
-
-  /* Windows open and close with each era's own motion (1984 draws zoom rectangles). */
-  [data-era="2005"] .window.is-opening { animation: gel-open .3s cubic-bezier(.2, .9, .25, 1.12) both; }
-  [data-era="2026"] .window.is-opening { animation: glass-open .32s cubic-bezier(.2, .8, .2, 1) both; }
-  @keyframes gel-open { from { opacity: 0; transform: scale(.55); } }
-  @keyframes glass-open { from { opacity: 0; transform: scale(.96) translateY(8px); } }
-  .window.ghost { position: fixed; z-index: 44; margin: 0; pointer-events: none; }
-  [data-era="2005"] .window.ghost { animation: gel-close .22s ease-in both; }
-  [data-era="2026"] .window.ghost { animation: glass-close .2s ease both; }
-  @keyframes gel-close { to { opacity: 0; transform: scale(.6); } }
-  @keyframes glass-close { to { opacity: 0; transform: scale(.97); } }
-
-  /* Era menu, and the year that flashes up when you travel */
-  .mi[aria-checked]::before { content: ""; position: absolute; left: 9px; }
-  .mi[aria-checked="true"]::before { content: "✓"; }
-  .mi small { font-size: 11px; opacity: .65; }
-  .hud {
-    position: fixed; z-index: 96; left: 50%; top: 46%;
-    display: grid; justify-items: center; gap: 4px;
-    padding: 18px 30px 16px;
-    background: var(--paper); color: var(--ink);
-    border: 2px solid var(--ink); box-shadow: var(--pop-shadow);
-    transform: translate(-50%, -50%);
-    pointer-events: none;
-    animation: hud-1bit 1.4s steps(1, end) both;
-  }
-  .hud b { font-size: 64px; font-weight: 700; letter-spacing: -0.05em; line-height: 1; font-variant-numeric: tabular-nums; }
-  .hud span { font-size: 13px; font-weight: 600; }
-  @keyframes hud-1bit { 0%, 99% { visibility: visible; } 100% { visibility: hidden; } }
-  [data-era="2005"] .hud {
-    width: 200px; height: 200px; place-content: center;
-    border: 0; border-radius: 28px; background: rgb(0 0 0 / .6); color: #fff; box-shadow: none;
-    animation: hud-fade 1.5s ease both;
-  }
-  [data-era="2026"] .hud {
-    padding: 22px 38px 18px; border: 0; border-radius: 30px;
-    background: var(--glass-strong);
-    -webkit-backdrop-filter: blur(30px) saturate(180%); backdrop-filter: blur(30px) saturate(180%);
-    animation: hud-glass 1.5s cubic-bezier(.2, .8, .2, 1) both;
-  }
-  @keyframes hud-fade { 0% { opacity: 0; } 12%, 70% { opacity: 1; } 100% { opacity: 0; } }
-  @keyframes hud-glass { 0% { opacity: 0; transform: translate(-50%, -46%) scale(.94); } 14%, 70% { opacity: 1; transform: translate(-50%, -50%); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(.98); } }
-
-  /* Travelling between eras: the new one opens out in a circle from the menu. */
-  .is-era-shift::view-transition-new(root) { animation: era-in .7s cubic-bezier(.65, 0, .35, 1) both; }
-  @keyframes era-in { from { clip-path: circle(0 at var(--ox, 0) var(--oy, 0)); } to { clip-path: circle(150vmax at var(--ox, 0) var(--oy, 0)); } }
-  [data-era="2005"]:not(.is-era-shift)::view-transition-new(root),
-  [data-era="2026"]:not(.is-era-shift)::view-transition-new(root) { animation: fade .3s ease both; }
-  @keyframes fade { from { opacity: 0; } }
 
   /* ------------------------------------------------------------
      Responsive + motion preferences
@@ -1121,7 +708,6 @@
     .caret, .key.is-target::after { animation: none; }
     .chip, .chip::after { transition: none; }
     .bez .bez-me { animation: none !important; }
-    .btn.is-default, .fill, .key.is-target::after, .window.is-opening, .window.ghost { animation: none !important; }
   }
 </style>
 </head>
@@ -1129,93 +715,6 @@
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <symbol id="i-burst" viewBox="0 0 11 11"><path d="M5 0h1v4H5zM5 7h1v4H5zM0 5h4v1H0zM7 5h4v1H7zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM7 7h1v1H7zM8 8h1v1H8zM9 9h1v1H9zM9 1h1v1H9zM8 2h1v1H8zM7 3h1v1H7zM3 7h1v1H3zM2 8h1v1H2zM1 9h1v1H1z"/></symbol>
-
-  <!-- 2005 icons: glossy, lit from above -->
-  <defs>
-    <linearGradient id="g5-gloss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
-    <radialGradient id="g5-blue" cx=".5" cy=".38" r=".68"><stop offset="0" stop-color="#bfe0ff"/><stop offset=".55" stop-color="#3a8ae8"/><stop offset="1" stop-color="#0d4cae"/></radialGradient>
-    <linearGradient id="g5-paper" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#e0e0e0"/></linearGradient>
-    <linearGradient id="g5-black" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c5c5c"/><stop offset=".45" stop-color="#1c1c1c"/><stop offset="1" stop-color="#000"/></linearGradient>
-    <radialGradient id="g5-ball" cx=".38" cy=".3" r=".78"><stop offset="0" stop-color="#ffd2a4"/><stop offset=".5" stop-color="#f37a24"/><stop offset="1" stop-color="#9f420a"/></radialGradient>
-    <linearGradient id="g5-wood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f9e8cb"/><stop offset="1" stop-color="#d5ab72"/></linearGradient>
-    <linearGradient id="g5-folder" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#c3e3ff"/><stop offset="1" stop-color="#5aa2ec"/></linearGradient>
-    <linearGradient id="g5-folder-back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#8ec5fb"/><stop offset="1" stop-color="#3b82d4"/></linearGradient>
-    <linearGradient id="g6-about" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a3abb9"/><stop offset="1" stop-color="#5c6575"/></linearGradient>
-    <linearGradient id="g6-paint" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffb340"/><stop offset=".5" stop-color="#ff3d6e"/><stop offset="1" stop-color="#7a5cff"/></linearGradient>
-    <linearGradient id="g6-hoops" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff9d42"/><stop offset="1" stop-color="#f05f0e"/></linearGradient>
-    <linearGradient id="g6-work" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46a0ff"/><stop offset="1" stop-color="#0a66f0"/></linearGradient>
-  </defs>
-  <symbol id="e5-about" viewBox="0 0 48 48">
-    <circle cx="24" cy="25" r="20" fill="url(#g5-blue)" stroke="#0b3d8c"/>
-    <circle cx="24" cy="15" r="3.3" fill="#fff"/>
-    <rect x="20.7" y="20.5" width="6.6" height="16" rx="3.3" fill="#fff"/>
-    <ellipse cx="24" cy="13.5" rx="15" ry="8" fill="url(#g5-gloss)" opacity=".75"/>
-  </symbol>
-  <symbol id="e5-readme" viewBox="0 0 48 48">
-    <path d="M11 4h19l9 9v30a1.5 1.5 0 0 1-1.5 1.5h-25A1.5 1.5 0 0 1 11 43z" fill="url(#g5-paper)" stroke="#8a8a8a"/>
-    <path d="M30 4v7.5a1.5 1.5 0 0 0 1.5 1.5H39" fill="#d6d6d6" stroke="#8a8a8a" stroke-linejoin="round"/>
-    <path d="M16 20h17M16 24.5h17M16 29h17M16 33.5h11" stroke="#a6a6a6" stroke-width="1.6" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="e5-piano" viewBox="0 0 48 48">
-    <rect x="3" y="12" width="42" height="26" rx="4" fill="url(#g5-black)" stroke="#000"/>
-    <rect x="6" y="18.5" width="36" height="16.5" rx="1.5" fill="#fff"/>
-    <path d="M11.1 18.5v16.5M16.3 18.5v16.5M21.4 18.5v16.5M26.6 18.5v16.5M31.7 18.5v16.5M36.9 18.5v16.5" stroke="#9a9a9a" stroke-width=".8"/>
-    <path d="M9.4 18.5h3.4v9.5H9.4zM14.6 18.5H18V28h-3.4zM24.9 18.5h3.4V28h-3.4zM30 18.5h3.4V28H30zM35.2 18.5h3.4V28h-3.4z" fill="#141414"/>
-    <rect x="3.6" y="12.6" width="40.8" height="5" rx="2.5" fill="url(#g5-gloss)" opacity=".55"/>
-  </symbol>
-  <symbol id="e5-paint" viewBox="0 0 48 48">
-    <path d="M24 7C12 7 4 14.5 4 23.5 4 32 11 38 18 37c3.5-.5 3.6-3.6 6.5-3.6 3 0 4 3.6 8.5 3.6C39.5 37 44 31.5 44 24 44 14 35.5 7 24 7z" fill="url(#g5-wood)" stroke="#a07644"/>
-    <ellipse cx="16" cy="29" rx="3.4" ry="2.8" fill="#b88a52"/>
-    <circle cx="12.5" cy="20" r="3.4" fill="#e6463b"/>
-    <circle cx="20" cy="14" r="3.4" fill="#f5c12b"/>
-    <circle cx="29" cy="13.5" r="3.4" fill="#37b24a"/>
-    <circle cx="36.5" cy="19.5" r="3.4" fill="#2f7de1"/>
-    <path d="M11.4 18.8a1.2 1.2 0 1 0 0 .1M18.9 12.8a1.2 1.2 0 1 0 0 .1M27.9 12.3a1.2 1.2 0 1 0 0 .1M35.4 18.3a1.2 1.2 0 1 0 0 .1" fill="none" stroke="#fff" stroke-opacity=".75" stroke-width="1.4"/>
-    <path d="M44.5 5.5 29 29" stroke="#7a4a1e" stroke-width="3.2" stroke-linecap="round"/>
-    <path d="M30.4 27.1 27.6 31.4" stroke="#c7cbd1" stroke-width="3.8"/>
-    <path d="M27.4 31.2c-2 2.6-2.6 4.8-4.8 7.4 3.4-.9 5.6-3 6.6-5.9z" fill="#1d1d1d"/>
-  </symbol>
-  <symbol id="e5-hoops" viewBox="0 0 48 48">
-    <circle cx="24" cy="24" r="19" fill="url(#g5-ball)" stroke="#7a3307"/>
-    <path d="M5 24h38M24 5v38M11.5 10.5c5.5 7 5.5 20 0 27M36.5 10.5c-5.5 7-5.5 20 0 27" fill="none" stroke="#5a2606" stroke-width="1.3"/>
-    <ellipse cx="20" cy="13.5" rx="10" ry="5.5" fill="url(#g5-gloss)" opacity=".8"/>
-  </symbol>
-  <symbol id="e5-work" viewBox="0 0 48 48">
-    <path d="M4 12.5A2.5 2.5 0 0 1 6.5 10h11l3.5 3.5h20.5A2.5 2.5 0 0 1 44 16v23.5a2.5 2.5 0 0 1-2.5 2.5h-35A2.5 2.5 0 0 1 4 39.5z" fill="url(#g5-folder-back)" stroke="#2d6cbd"/>
-    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17h35a2.5 2.5 0 0 1 2.5 2.5v20a2.5 2.5 0 0 1-2.5 2.5h-35A2.5 2.5 0 0 1 4 39.5z" fill="url(#g5-folder)" stroke="#2d6cbd"/>
-    <rect x="5" y="18" width="38" height="9" rx="2" fill="url(#g5-gloss)" opacity=".7"/>
-  </symbol>
-
-  <!-- 2026 icons: flat squircles -->
-  <symbol id="e6-about" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-about)"/>
-    <circle cx="22" cy="17.5" r="6" fill="#fff"/>
-    <path d="M10.5 35.5c1.5-6.5 6.2-9.5 11.5-9.5s10 3 11.5 9.5z" fill="#fff"/>
-  </symbol>
-  <symbol id="e6-readme" viewBox="0 0 44 44">
-    <rect x="2.5" y="2.5" width="39" height="39" rx="10.2" fill="#fff" stroke="#dedee3"/>
-    <rect x="11" y="11" width="15" height="3.4" rx="1.7" fill="#1d1d1f"/>
-    <path d="M12.2 19.7h19.6M12.2 24.7h19.6M12.2 29.7h19.6M12.2 34.7h11.6" stroke="#c7c7cc" stroke-width="2.4" stroke-linecap="round"/>
-  </symbol>
-  <symbol id="e6-piano" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="#1d1d1f"/>
-    <path d="M9 13h26v19a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2z" fill="#fff"/>
-    <path d="M14.2 13v21M19.4 13v21M24.6 13v21M29.8 13v21" stroke="#1d1d1f" stroke-width="1.2"/>
-    <path d="M12.6 13h3.2v11h-3.2zM17.8 13H21v11h-3.2zM28.2 13h3.2v11h-3.2z" fill="#1d1d1f"/>
-  </symbol>
-  <symbol id="e6-paint" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-paint)"/>
-    <path d="M11 30c4-9 8-1 12-8s6-8 10-6" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
-  </symbol>
-  <symbol id="e6-hoops" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-hoops)"/>
-    <circle cx="22" cy="22" r="12" fill="none" stroke="#fff" stroke-width="2"/>
-    <path d="M10 22h24M22 10v24M14.2 13.5c3.6 4.6 3.6 12.4 0 17M29.8 13.5c-3.6 4.6-3.6 12.4 0 17" fill="none" stroke="#fff" stroke-width="2"/>
-  </symbol>
-  <symbol id="e6-work" viewBox="0 0 44 44">
-    <rect x="2" y="2" width="40" height="40" rx="10.5" fill="url(#g6-work)"/>
-    <path d="M10 15.5a2.5 2.5 0 0 1 2.5-2.5h6l2.5 2.5h10.5a2.5 2.5 0 0 1 2.5 2.5v11.5a2.5 2.5 0 0 1-2.5 2.5h-19a2.5 2.5 0 0 1-2.5-2.5z" fill="#fff"/>
-  </symbol>
 </svg>
 
 <header class="menubar">
@@ -1245,14 +744,6 @@
     </div>
     <span class="mb-title is-disabled mb-work" aria-disabled="true" title="Coming soon">Work</span>
     <a class="mb-title" href="mailto:hello@adiel.design">Contact</a>
-    <div class="mb-menu">
-      <button class="mb-title" id="menu-era" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-era" title="Travel to another era (E)">Era</button>
-      <ul class="menu" id="m-era" role="menu" aria-labelledby="menu-era" hidden>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="1984" aria-checked="false"><span>1984</span><small>One-bit</small></button></li>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="2005" aria-checked="false"><span>2005</span><small>Gel</small></button></li>
-        <li role="none"><button class="mi" role="menuitemradio" type="button" data-to-era="2026" aria-checked="false"><span>2026</span><small>Glass</small></button></li>
-      </ul>
-    </div>
   </nav>
   <div class="mb-right">
     <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
@@ -1289,7 +780,7 @@
     </header>
     <div class="wbody">
       <p class="w-lead">A new portfolio is in progress.</p>
-      <p class="w-sub">Selected work will be back here soon. Until then, open <span class="nowrap"><button class="inline-link" type="button" data-win="about">About Me</button>,</span> play the <span class="nowrap"><button class="inline-link" type="button" data-win="piano">Piano</button>,</span> draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <span class="nowrap"><button class="inline-link" type="button" data-win="hoops">Hoops</button>.</span></p>
+      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button>, play the <button class="inline-link" type="button" data-win="piano">Piano</button>, draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <button class="inline-link" type="button" data-win="hoops">Hoops</button>.</p>
       <div class="progress">
         <div class="track" role="progressbar" aria-label="Portfolio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61"><div class="fill" id="fill"></div></div>
         <span class="pct" id="pct" aria-hidden="true">61%</span>
@@ -1417,79 +908,70 @@
     <h2 class="wtitle" id="hoops-title">Hoops</h2>
   </header>
   <div class="wbody hoops-body">
-    <div class="hoops-bar">
+    <div class="games" role="group" aria-label="Game">
+      <button class="game" type="button" data-game="free" aria-pressed="true">Shootaround</button>
+      <button class="game" type="button" data-game="clock" aria-pressed="false">60 Seconds</button>
+      <button class="game" type="button" data-game="horse" aria-pressed="false">HORSE vs Bez</button>
+    </div>
+    <div class="hoops-bar" id="h-stats">
       <span>Score <b id="h-score">0</b></span>
       <span>Streak <b id="h-streak">0</b></span>
       <span>Best streak <b id="h-best">0</b></span>
     </div>
     <canvas class="court" id="court" width="200" height="140" role="img" aria-label="Basketball court"></canvas>
     <p class="hoops-status" id="hoops-status" aria-live="polite">Pull back anywhere and let go.</p>
-    <p class="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
+    <p class="hoops-hint" id="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
   </div>
 </section>
 
 <nav class="icons" aria-label="Desktop">
   <button class="icon" id="icon-about" type="button" data-open="about" aria-label="About Me">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M4 8h24v18H4z"/>
       <path class="i-ink" d="M4 7h24v1H4zM4 26h24v1H4zM3 8h1v18H3zM28 8h1v18h-1zM5 10h11v1H5zM5 22h11v1H5zM5 11h1v11H5zM15 11h1v11h-1zM9 12h3v1H9zM8 13h5v3H8zM9 16h3v1H9zM8 18h5v1H8zM7 19h7v3H7zM18 12h7v1h-7zM18 15h8v1h-8zM18 18h6v1h-6zM18 21h8v1h-8z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-about"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-about"/></svg>
     <span class="icon-label" aria-hidden="true">About Me</span>
   </button>
   <button class="icon" id="icon-readme" type="button" data-open="readme" aria-label="Read Me">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M7 3h13v26H7zM20 9h6v20h-6zM21 4h1v4h-1zM22 5h1v3h-1zM23 6h1v2h-1zM24 7h1v1h-1z"/>
       <path class="i-ink" d="M6 2h15v1H6zM6 3h1v27H6zM7 29h20v1H7zM26 8h1v21h-1zM21 3h1v1h-1zM22 4h1v1h-1zM23 5h1v1h-1zM24 6h1v1h-1zM25 7h1v1h-1zM20 3h1v6h-1zM21 8h5v1h-5zM10 13h12v1H10zM10 16h12v1H10zM10 19h12v1H10zM10 22h8v1h-8z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-readme"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-readme"/></svg>
     <span class="icon-label" aria-hidden="true">Read Me</span>
   </button>
   <button class="icon" id="icon-piano" type="button" data-open="piano" aria-label="Piano">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M3 10h27v14H3z"/>
       <path class="i-ink" d="M3 9h27v1H3zM3 24h27v1H3zM2 10h1v14H2zM30 10h1v14h-1zM3 12h27v1H3zM6 13h1v11H6zM10 13h1v11h-1zM14 13h1v11h-1zM18 13h1v11h-1zM22 13h1v11h-1zM26 13h1v11h-1zM5 13h3v7H5zM9 13h3v7H9zM17 13h3v7h-3zM21 13h3v7h-3zM25 13h3v7h-3z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-piano"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-piano"/></svg>
     <span class="icon-label" aria-hidden="true">Piano</span>
   </button>
   <button class="icon" id="icon-paint" type="button" data-open="paint" aria-label="Paint">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M28 2h2v1h-2zM27 3h2v1h-2zM26 4h2v1h-2zM26 5h2v1h-2zM25 6h2v1h-2zM24 7h2v1h-2zM3 8h19v1h-19zM23 8h2v1h-2zM3 9h18v1h-18zM22 9h2v1h-2zM3 10h5v1h-5zM9 10h11v1h-11zM21 10h2v1h-2zM3 11h4v1h-4zM8 11h1v1h-1zM10 11h10v1h-10zM21 11h2v1h-2zM3 12h3v1h-3zM7 12h1v1h-1zM9 12h1v1h-1zM11 12h8v1h-8zM20 12h2v1h-2zM24 12h1v1h-1zM3 13h2v1h-2zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM12 13h6v1h-6zM24 13h1v1h-1zM3 14h3v1h-3zM7 14h1v1h-1zM9 14h1v1h-1zM11 14h8v1h-8zM24 14h1v1h-1zM3 15h4v1h-4zM8 15h1v1h-1zM10 15h9v1h-9zM22 15h3v1h-3zM3 16h5v1h-5zM9 16h9v1h-9zM22 16h3v1h-3zM3 17h14v1h-14zM21 17h4v1h-4zM3 18h13v1h-13zM19 18h6v1h-6zM3 19h13v1h-13zM17 19h8v1h-8zM3 20h6v1h-6zM11 20h14v1h-14zM3 21h4v1h-4zM13 21h12v1h-12zM3 22h3v1h-3zM9 22h2v1h-2zM14 22h11v1h-11zM3 23h2v1h-2zM7 23h6v1h-6zM16 23h2v1h-2zM20 23h5v1h-5zM3 24h1v1h-1zM6 24h8v1h-8zM20 24h5v1h-5zM3 25h1v1h-1zM5 25h11v1h-11zM18 25h7v1h-7zM3 26h22v1h-22zM3 27h22v1h-22z"/>
       <path class="i-ink" d="M27 2h1v1h-1zM30 2h2v1h-2zM26 3h1v1h-1zM29 3h2v1h-2zM25 4h1v1h-1zM28 4h2v1h-2zM25 5h1v1h-1zM28 5h2v1h-2zM24 6h1v1h-1zM27 6h2v1h-2zM2 7h22v1h-22zM26 7h2v1h-2zM2 8h1v1h-1zM22 8h1v1h-1zM25 8h2v1h-2zM2 9h1v1h-1zM21 9h1v1h-1zM24 9h2v1h-2zM2 10h1v1h-1zM8 10h1v1h-1zM20 10h1v1h-1zM23 10h3v1h-3zM2 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM20 11h1v1h-1zM23 11h3v1h-3zM2 12h1v1h-1zM6 12h1v1h-1zM8 12h1v1h-1zM10 12h1v1h-1zM19 12h1v1h-1zM22 12h2v1h-2zM25 12h1v1h-1zM2 13h1v1h-1zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h1v1h-1zM18 13h6v1h-6zM25 13h1v1h-1zM2 14h1v1h-1zM6 14h1v1h-1zM8 14h1v1h-1zM10 14h1v1h-1zM19 14h5v1h-5zM25 14h1v1h-1zM2 15h1v1h-1zM7 15h1v1h-1zM9 15h1v1h-1zM19 15h3v1h-3zM25 15h1v1h-1zM2 16h1v1h-1zM8 16h1v1h-1zM18 16h4v1h-4zM25 16h1v1h-1zM2 17h1v1h-1zM17 17h4v1h-4zM25 17h1v1h-1zM2 18h1v1h-1zM16 18h3v1h-3zM25 18h1v1h-1zM2 19h1v1h-1zM16 19h1v1h-1zM25 19h1v1h-1zM2 20h1v1h-1zM9 20h2v1h-2zM25 20h1v1h-1zM2 21h1v1h-1zM7 21h6v1h-6zM25 21h1v1h-1zM2 22h1v1h-1zM6 22h3v1h-3zM11 22h3v1h-3zM25 22h1v1h-1zM2 23h1v1h-1zM5 23h2v1h-2zM13 23h3v1h-3zM18 23h2v1h-2zM25 23h1v1h-1zM2 24h1v1h-1zM4 24h2v1h-2zM14 24h6v1h-6zM25 24h1v1h-1zM2 25h1v1h-1zM4 25h1v1h-1zM16 25h2v1h-2zM25 25h1v1h-1zM2 26h1v1h-1zM25 26h1v1h-1zM2 27h1v1h-1zM25 27h1v1h-1zM2 28h24v1h-24z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-paint"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-paint"/></svg>
     <span class="icon-label" aria-hidden="true">Paint</span>
   </button>
   <button class="icon" id="icon-hoops" type="button" data-open="hoops" aria-label="Hoops">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M14 3h16v1h-16zM14 4h16v1h-16zM14 5h16v1h-16zM14 6h16v1h-16zM6 7h1v1h-1zM8 7h1v1h-1zM14 7h4v1h-4zM26 7h4v1h-4zM5 8h2v1h-2zM8 8h2v1h-2zM14 8h4v1h-4zM19 8h6v1h-6zM26 8h4v1h-4zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM14 9h4v1h-4zM19 9h6v1h-6zM26 9h4v1h-4zM3 10h4v1h-4zM8 10h4v1h-4zM14 10h4v1h-4zM19 10h6v1h-6zM26 10h4v1h-4zM14 11h4v1h-4zM19 11h6v1h-6zM26 11h4v1h-4zM3 12h4v1h-4zM8 12h4v1h-4zM14 12h4v1h-4zM19 12h6v1h-6zM26 12h4v1h-4zM4 13h1v1h-1zM6 13h1v1h-1zM8 13h1v1h-1zM10 13h1v1h-1zM14 13h4v1h-4zM19 13h6v1h-6zM26 13h4v1h-4zM5 14h2v1h-2zM8 14h2v1h-2zM6 15h1v1h-1zM8 15h1v1h-1zM18 17h1v1h-1zM21 17h1v1h-1zM24 17h1v1h-1zM17 18h1v1h-1zM19 18h2v1h-2zM22 18h2v1h-2zM25 18h2v1h-2zM18 19h1v1h-1zM21 19h1v1h-1zM24 19h1v1h-1zM18 20h1v1h-1zM21 20h1v1h-1zM24 20h1v1h-1zM19 21h2v1h-2zM22 21h2v1h-2zM21 22h1v1h-1zM24 22h1v1h-1zM21 23h1v1h-1zM20 24h1v1h-1zM22 24h2v1h-2z"/>
       <path class="i-ink" d="M13 2h18v1h-18zM13 3h1v1h-1zM30 3h1v1h-1zM13 4h1v1h-1zM30 4h1v1h-1zM13 5h1v1h-1zM30 5h1v1h-1zM5 6h5v1h-5zM13 6h1v1h-1zM30 6h1v1h-1zM4 7h2v1h-2zM7 7h1v1h-1zM9 7h2v1h-2zM13 7h1v1h-1zM18 7h8v1h-8zM30 7h1v1h-1zM3 8h2v1h-2zM7 8h1v1h-1zM10 8h2v1h-2zM13 8h1v1h-1zM18 8h1v1h-1zM25 8h1v1h-1zM30 8h1v1h-1zM2 9h2v1h-2zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h3v1h-3zM18 9h1v1h-1zM25 9h1v1h-1zM30 9h1v1h-1zM2 10h1v1h-1zM7 10h1v1h-1zM12 10h2v1h-2zM18 10h1v1h-1zM25 10h1v1h-1zM30 10h1v1h-1zM2 11h12v1h-12zM18 11h1v1h-1zM25 11h1v1h-1zM30 11h1v1h-1zM2 12h1v1h-1zM7 12h1v1h-1zM12 12h2v1h-2zM18 12h1v1h-1zM25 12h1v1h-1zM30 12h1v1h-1zM2 13h2v1h-2zM5 13h1v1h-1zM7 13h1v1h-1zM9 13h1v1h-1zM11 13h3v1h-3zM18 13h1v1h-1zM25 13h1v1h-1zM30 13h1v1h-1zM3 14h2v1h-2zM7 14h1v1h-1zM10 14h2v1h-2zM13 14h18v1h-18zM4 15h2v1h-2zM7 15h1v1h-1zM9 15h2v1h-2zM15 15h14v1h-14zM5 16h5v1h-5zM15 16h14v1h-14zM16 17h2v1h-2zM19 17h2v1h-2zM22 17h2v1h-2zM25 17h3v1h-3zM16 18h1v1h-1zM18 18h1v1h-1zM21 18h1v1h-1zM24 18h1v1h-1zM27 18h1v1h-1zM2 19h1v1h-1zM17 19h1v1h-1zM19 19h2v1h-2zM22 19h2v1h-2zM25 19h2v1h-2zM17 20h1v1h-1zM19 20h2v1h-2zM22 20h2v1h-2zM25 20h2v1h-2zM18 21h1v1h-1zM21 21h1v1h-1zM24 21h2v1h-2zM18 22h3v1h-3zM22 22h2v1h-2zM25 22h1v1h-1zM1 23h1v1h-1zM19 23h2v1h-2zM22 23h3v1h-3zM19 24h1v1h-1zM21 24h1v1h-1zM24 24h1v1h-1zM0 27h1v1h-1zM16 29h1v1h-1zM18 29h1v1h-1zM20 29h1v1h-1zM22 29h1v1h-1zM24 29h1v1h-1zM26 29h1v1h-1zM19 30h1v1h-1zM21 30h1v1h-1zM23 30h1v1h-1zM25 30h1v1h-1z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-hoops"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-hoops"/></svg>
     <span class="icon-label" aria-hidden="true">Hoops</span>
   </button>
   <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
-    <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
       <path class="i-fill" d="M4 7h8v20H4zM12 8h2v19h-2zM14 9h14v18H14z"/>
       <path class="i-ink" d="M4 6h8v1H4zM12 7h1v1h-1zM13 8h1v1h-1zM14 8h14v1H14zM3 7h1v21H3zM28 9h1v19h-1zM4 27h24v1H4zM4 11h24v1H4z"/>
     </svg>
-    <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-work"/></svg>
-    <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-work"/></svg>
     <span class="icon-label" aria-hidden="true">Work</span>
   </button>
 </nav>
 
 <div class="scrim" id="scrim" hidden></div>
 <section class="alert" id="alert" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-text" hidden>
-  <svg class="ico-2005" viewBox="0 0 48 48" aria-hidden="true"><use href="#e5-work"/></svg>
-  <svg class="ico-2026" viewBox="0 0 44 44" aria-hidden="true"><use href="#e6-work"/></svg>
-  <svg class="ico-1984" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+  <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
     <defs>
       <pattern id="stripes" width="8" height="8" patternUnits="userSpaceOnUse">
         <path class="i-ink" d="M0 0h4v1H0zM0 1h3v1H0zM7 1h1v1H7zM0 2h2v1H0zM6 2h2v1H6zM0 3h1v1H0zM5 3h3v1H5zM4 4h4v1H4zM3 5h4v1H3zM2 6h4v1H2zM1 7h4v1H1z"/>
@@ -1520,7 +1002,6 @@
 </div>
 
 <canvas class="saver" id="saver" aria-hidden="true" hidden></canvas>
-<div class="hud" id="hud" role="status" hidden><b id="hud-year"></b><span id="hud-name"></span></div>
 <div class="fx" aria-hidden="true"></div>
 <div class="bezel" aria-hidden="true"></div>
 
@@ -1612,30 +1093,8 @@
     }
 
     const FX = {
-      // Clicks: a mechanical switch in 1984, a soft gel pop in 2005, a faint tick in 2026.
-      down() {
-        const e = root.dataset.era;
-        if (e === '2026') { hit({ f: 5600, type: 'highpass', q: 0.7, gain: 0.06, dur: 0.012 }); return; }
-        if (e === '2005') { tone({ f: 1500, f2: 820, gain: 0.035, dur: 0.035 }); hit({ f: 2400, q: 1.2, gain: 0.04, dur: 0.012 }); return; }
-        hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 });
-      },
-      up() { if (root.dataset.era === '1984') hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
-      // The later eras' displays
-      blue() { tone({ f: 880, gain: 0.03, dur: 0.12 }); tone({ f: 1320, gain: 0.025, dur: 0.16, at: 0.06 }); },
-      graphite() { tone({ f: 660, gain: 0.03, dur: 0.12 }); tone({ f: 990, gain: 0.025, dur: 0.16, at: 0.06 }); },
-      light() { tone({ f: 1760, gain: 0.025, dur: 0.09 }); },
-      dark() { tone({ f: 1175, gain: 0.025, dur: 0.11 }); },
-      // Travelling between eras
-      era1984() { tone({ f: 1000, type: 'square', gain: 0.03, dur: 0.12 }); tone({ f: 1500, type: 'square', gain: 0.025, dur: 0.1, at: 0.13 }); },
-      era2005() { // a slow, warm chord of our own
-        [196, 293.66, 392, 493.88, 587.33].forEach((f, i) => tone({ f, type: 'triangle', gain: 0.022, dur: 1.6, at: i * 0.012 }));
-        tone({ f: 1174.66, gain: 0.01, dur: 1.2, at: 0.03 });
-      },
-      era2026() {
-        hit({ f: 1800, q: 0.4, gain: 0.05, dur: 0.25 });
-        tone({ f: 1318.5, gain: 0.03, dur: 0.3, at: 0.08 });
-        tone({ f: 1975.5, gain: 0.022, dur: 0.4, at: 0.16 });
-      },
+      down() { hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 }); },
+      up() { hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
       open() { tone({ f: 660, type: 'triangle', gain: 0.035, dur: 0.09 }); tone({ f: 990, type: 'triangle', gain: 0.03, dur: 0.12, at: 0.045 }); },
       close() { tone({ f: 880, type: 'triangle', gain: 0.03, dur: 0.08 }); tone({ f: 587, type: 'triangle', gain: 0.028, dur: 0.11, at: 0.04 }); },
       alert() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 784, type: 'square', gain: 0.022, dur: 0.11, at: 0.09 }); },
@@ -1662,6 +1121,11 @@
       },
       swish() { hit({ f: 5200, q: 0.5, gain: 0.08, dur: 0.24 }); hit({ f: 8000, q: 0.8, gain: 0.04, dur: 0.18, at: 0.04 }); },
       score() { tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.1, at: 0.08 }); tone({ f: 1175, type: 'triangle', gain: 0.03, dur: 0.18, at: 0.16 }); },
+      tick() { tone({ f: 1480, type: 'square', gain: 0.018, dur: 0.035 }); },
+      tock() { tone({ f: 990, type: 'square', gain: 0.014, dur: 0.03 }); },
+      go() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1760, type: 'square', gain: 0.022, dur: 0.22, at: 0.08 }); },
+      buzzer() { tone({ f: 196, type: 'sawtooth', gain: 0.05, dur: 0.75 }); tone({ f: 207, type: 'square', gain: 0.03, dur: 0.75 }); },
+      letter() { tone({ f: 330, f2: 165, type: 'square', gain: 0.03, dur: 0.28 }); },
       // Bez
       bezIn() { tone({ f: 660, f2: 990, gain: 0.04, dur: 0.12 }); tone({ f: 1320, type: 'triangle', gain: 0.025, dur: 0.1, at: 0.09 }); },
       bezOut() { tone({ f: 990, f2: 560, gain: 0.035, dur: 0.14 }); },
@@ -1892,40 +1356,30 @@
   };
 
   /* ==========================================================
-     Eras and displays. An era is the whole machine; a display
-     is a variation within it. 1984 has six, the later eras two.
+     Themes
   ========================================================== */
-  const ERAS = {
-    1984: { name: 'One-bit', displays: [['paper', 'Paper'], ['negative', 'Negative'], ['amber', 'Amber'], ['pocket', 'Pocket'], ['ega', 'EGA'], ['textmode', 'Text Mode']] },
-    2005: { name: 'Gel', displays: [['blue', 'Blue'], ['graphite', 'Graphite']] },
-    2026: { name: 'Glass', displays: [['light', 'Light'], ['dark', 'Dark']] },
-  };
-  const ERA_IDS = Object.keys(ERAS);
-  const era = () => root.dataset.era;
-  const displays = () => ERAS[era()].displays;
-  const ids = () => displays().map((t) => t[0]);
-  const themeKey = (e) => (e === '1984' ? 'adiel-theme' : 'adiel-theme-' + e);
-  function firstDisplay(e) {
-    const saved = store.get(themeKey(e));
-    if (ERAS[e].displays.some(([id]) => id === saved)) return saved;
-    const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-    return e === '2005' ? 'blue' : e === '2026' ? (dark ? 'dark' : 'light') : dark ? 'negative' : 'paper';
-  }
+  const THEMES = [
+    ['paper', 'Paper'],
+    ['negative', 'Negative'],
+    ['amber', 'Amber'],
+    ['pocket', 'Pocket'],
+    ['ega', 'EGA'],
+    ['textmode', 'Text Mode'],
+  ];
+  const ids = THEMES.map((t) => t[0]);
   const themeMeta = $('meta[name="theme-color"]');
   const themeBtn = $('#theme-btn');
   const themeName = $('#theme-name');
-  const eraBtn = $('#menu-era');
   function syncTheme() {
-    const list = displays(), i = Math.max(0, ids().indexOf(root.dataset.theme));
-    const next = list[(i + 1) % list.length][1];
-    themeName.textContent = list[i][1];
-    themeBtn.setAttribute('aria-label', 'Display: ' + list[i][1] + '. Switch to ' + next);
+    const i = Math.max(0, ids.indexOf(root.dataset.theme));
+    const next = THEMES[(i + 1) % THEMES.length][1];
+    themeName.textContent = THEMES[i][1];
+    themeBtn.setAttribute('aria-label', 'Display: ' + THEMES[i][1] + '. Switch to ' + next);
     themeMeta.content = getComputedStyle(root).getPropertyValue('--bar-bg').trim() || '#ffffff';
-    $$('[data-to-era]').forEach((b) => b.setAttribute('aria-checked', String(b.dataset.toEra === era())));
-    eraBtn.setAttribute('aria-label', 'Era: ' + era() + ', ' + ERAS[era()].name);
   }
-  // Everything drawn by script picks up the new look.
-  function redraw() {
+  function applyTheme(id) {
+    root.dataset.theme = id;
+    store.set('adiel-theme', id);
     Colors.reset();
     syncTheme();
     Portrait.render();
@@ -1934,52 +1388,16 @@
     Bez.render();
     updateDock();
   }
-  function applyTheme(id) {
-    root.dataset.theme = id;
-    store.set(themeKey(era()), id);
-    redraw();
-  }
   function setTheme(id) {
-    if (!ids().includes(id) || id === root.dataset.theme) return;
+    if (!ids.includes(id) || id === root.dataset.theme) return;
     Sound.play(id);
     if (document.startViewTransition && !reduced.matches) document.startViewTransition(() => applyTheme(id));
     else applyTheme(id);
   }
   function cycleTheme() {
-    const list = ids();
-    setTheme(list[(list.indexOf(root.dataset.theme) + 1) % list.length]);
+    const i = ids.indexOf(root.dataset.theme);
+    setTheme(ids[(i + 1) % ids.length]);
   }
-
-  // Travelling: the new era opens out in a circle from the Era menu, and its year flashes up.
-  const hud = $('#hud');
-  let hudTimer = 0;
-  function setEra(e) {
-    if (!ERAS[e] || e === era()) return;
-    Sound.play('era' + e);
-    const go = () => {
-      root.dataset.era = e;
-      root.dataset.theme = firstDisplay(e);
-      store.set('adiel-era', e);
-      redraw();
-      $('#hud-year').textContent = e;
-      $('#hud-name').textContent = ERAS[e].name;
-      hud.hidden = false;
-      hud.style.animation = 'none';
-      void hud.offsetWidth;
-      hud.style.animation = '';
-      clearTimeout(hudTimer);
-      hudTimer = setTimeout(() => { hud.hidden = true; }, 1500);
-      Bez.travelled(e);
-    };
-    if (document.startViewTransition && !reduced.matches) {
-      const r = eraBtn.getBoundingClientRect();
-      root.style.setProperty('--ox', Math.round(r.left + r.width / 2) + 'px');
-      root.style.setProperty('--oy', Math.round(r.top + r.height / 2) + 'px');
-      root.classList.add('is-era-shift');
-      document.startViewTransition(go).finished.finally(() => root.classList.remove('is-era-shift'));
-    } else go();
-  }
-  const cycleEra = () => setEra(ERA_IDS[(ERA_IDS.indexOf(era()) + 1) % ERA_IDS.length]);
   themeBtn.addEventListener('click', cycleTheme);
   syncTheme();
 
@@ -2054,13 +1472,12 @@
       const item = e.target.closest('.mi');
       if (!item) return;
       const { win } = item.dataset;
-      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez'), to = item.dataset.toEra;
-      if (!win && !saver && !bez && !to) { closeMenu(); return; } // links navigate normally
+      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez');
+      if (!win && !saver && !bez) { closeMenu(); return; } // links navigate normally
       blinkThen(rec, item, () => {
         closeMenu();
         if (saver) Saver.start();
         else if (bez) Bez.summon(true);
-        else if (to) setEra(to);
         else openWin(W[win], { scroll: true });
       });
     });
@@ -2085,12 +1502,12 @@
   const stack = [];
   const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
   const visibleBox = (el) => (el && el.getClientRects().length ? box(el) : null);
-  const iconSvg = (win) => $('#' + win.dataset.icon + ' .ico-' + era());
+  const iconSvg = (win) => $('#' + win.dataset.icon + ' svg');
   const isDocked = (win) => win === W.readme && root.classList.contains('is-docked');
-  const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot]):not(.ghost)');
+  const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot])');
 
   function setActive(win) {
-    $$('.window:not(.ghost)').forEach((w) => w.classList.toggle('is-active', w === win));
+    $$('.window').forEach((w) => w.classList.toggle('is-active', w === win));
     if (win !== W.piano) Piano.releaseAll();
   }
   function raise(win) {
@@ -2167,38 +1584,12 @@
     raise(win);
     const to = box(win);
     Sound.play('open');
-    const shown = () => {
+    zoom(visibleBox(iconSvg(win)), to, () => {
       win.style.visibility = '';
       if (h.after) h.after();
       if (opts.focus !== false) win.focus({ preventScroll: true });
       if (opts.scroll && isDocked(win)) win.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'nearest' });
-    };
-    if (era() === '1984') { zoom(visibleBox(iconSvg(win)), to, shown); return; }
-    // Later eras: the window grows out of its icon.
-    const from = visibleBox(iconSvg(win));
-    win.style.transformOrigin = from ? Math.round(from.x + from.w / 2 - to.x) + 'px ' + Math.round(from.y + from.h / 2 - to.y) + 'px' : '';
-    win.classList.remove('is-opening');
-    void win.offsetWidth;
-    win.classList.add('is-opening');
-    setTimeout(() => win.classList.remove('is-opening'), 380);
-    shown();
-  }
-  // Later eras fade a copy of the window out where it was.
-  function ghost(win, r) {
-    if (reduced.matches) return;
-    const g = win.cloneNode(true);
-    g.removeAttribute('id');
-    $$('[id]', g).forEach((n) => n.removeAttribute('id'));
-    g.classList.remove('is-opening');
-    g.classList.add('ghost');
-    g.hidden = false;
-    g.inert = true;
-    g.setAttribute('aria-hidden', 'true');
-    Object.assign(g.style, { left: r.x + 'px', top: r.y + 'px', right: 'auto', bottom: 'auto', width: r.w + 'px', height: r.h + 'px', zIndex: '44', visibility: '' });
-    const from = $$('canvas', win);
-    $$('canvas', g).forEach((c, i) => { try { c.getContext('2d').drawImage(from[i], 0, 0); } catch (e) {} });
-    document.body.append(g);
-    setTimeout(() => g.remove(), 280);
+    });
   }
   function closeWin(win) {
     if (win.hidden) return;
@@ -2214,8 +1605,7 @@
     if (i > -1) stack.splice(i, 1);
     setActive(stack[stack.length - 1] || null);
     Sound.play('close');
-    if (era() === '1984') zoom(from, visibleBox(iconSvg(win)), () => {});
-    else ghost(win, from);
+    zoom(from, visibleBox(iconSvg(win)), () => {});
   }
 
   function placeWin(win, x, y) {
@@ -2396,7 +1786,7 @@
     const held = [];
     const down = new Map();
     const ptr = new Map();
-    const heard = new Set();
+    const heard = new Set(), lifted = new Set();
     const octaveName = (m) => 'C' + (Math.floor(m / 12) - 1);
 
     function makeKey(off, cls) {
@@ -2468,6 +1858,7 @@
       if (!rec) return;
       voices.delete(src);
       mark(rec.off, -1);
+      if (!src.startsWith('bez')) lifted.forEach((fn) => fn(base + rec.off));
       if (sustain.checked) held.push(rec.v); else rec.v.stop(0.3);
     }
     function releaseAll() { Array.from(voices.keys()).forEach(release); }
@@ -2551,6 +1942,7 @@
     return {
       layout, warm, releaseAll, keydown, keyup, target, play, label, home,
       onNote: (fn) => heard.add(fn),
+      onRelease: (fn) => lifted.add(fn),
       get base() { return base; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
@@ -2928,114 +2320,182 @@
     const CW = canvas.width, CH = canvas.height;
     const img = g.createImageData(CW, CH);
     const px = new Uint8Array(CW * CH);
-    const scoreEl = $('#h-score'), streakEl = $('#h-streak'), bestEl = $('#h-best');
-    const statusEl = $('#hoops-status');
-    const KEY = 'adiel-hoops-best';
+    const statsEl = $('#h-stats'), statusEl = $('#hoops-status'), hintEl = $('#hoops-hint');
+    const gameBtns = $$('.game', win);
+    const KEY = 'adiel-hoops-best', CLOCK_KEY = 'adiel-hoops-clock', HORSE_KEY = 'adiel-hoops-horse';
     const FLOOR = 126, R = 5, GRAV = 430, VMAX = 470, PULL = 64, THREE = 72;
-    const RIM_Y = 58, RIM_F = 153;               // rim height and front edge
-    const BOARD = [175, 24, 178, 62];            // x0, y0, x1, y1, inclusive
-    const ARM = [179, 42, 186, 44];
-    const POLE = [187, 38, 189, FLOOR - 1];
+    const INV_I = 1.5 / (R * R);                 // a hollow ball: I = ⅔mR²
+    const SPIN = 0.3, MAGNUS = 0.0025, DRAG = 0.05, H = 1 / 600;
+    const RIM_F = 152, RIM_B = 172;              // front and back of the rim
     const LINES = {
       swish: ['Swish.', 'Nothing but net.', 'Cash.', 'Wet.'],
       bank: ['Off the glass.', 'Bank is open.', 'Called glass.'],
       roll: ['Friendly bounce.', 'Rolled in.', 'Kissed the rim.'],
+      rattle: ['Rattled in.', 'Shooter’s touch.', 'It had eyes.'],
       three: ['From downtown.', 'Deep three.', 'Splash.'],
       air: ['Airball.', 'All air.', 'Nowhere near it.'],
       clank: ['Clank.', 'Rim out.', 'In and out.', 'So close.'],
       glass: ['All glass, no net.', 'Off the board.'],
     };
+    const HINTS = {
+      free: 'Or aim with the arrow keys and shoot with Space. Threes from behind the line.',
+      clock: 'Score all you can in 60 seconds. Three in a row doubles your points, six triples them.',
+      horse: 'Make your shot and Bez has to match it from the same spot. Miss a match, take a letter.',
+    };
+    const WORD = 'HORSE';
     const pick = (a) => a[Math.floor(Math.random() * a.length)];
-    const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, a: 0 };
-    const watchers = new Set(), solved = new Map();
+    const gauss = () => { let u = 0; while (!u) u = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * Math.random()); };
+    const ball = { x: 50, y: FLOOR - R, vx: 0, vy: 0, w: 0, a: 0, sq: 0, nx: 0, ny: -1 };
+    const watchers = new Set(), players = new Set(), solved = new Map();
     let built = false, state = 'ready', shot = null, aim = null, assist = false;
     let keyA = 0.95, keyP = 0.72, showKey = false;
     let score = 0, streak = 0, best = parseInt(store.get(KEY), 10) || 0;
-    let net = 0, netT = 0, wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0;
+    let wait = 0, rest = 0, trail = [], raf = 0, last = 0, dirty = true, tick = 0, now = 0, acc = 0, litUntil = 0;
+    let shake = 0, sparks = [], pops = [], banner = null, nextSpot = null;
+    let game = 'free', clock = null, horse = null, bezTimer = 0;
+    let clockBest = parseInt(store.get(CLOCK_KEY), 10) || 0;
+    const record = (() => { try { return JSON.parse(store.get(HORSE_KEY)) || { w: 0, l: 0 }; } catch (e) { return { w: 0, l: 0 }; } })();
+    // The hoop rides up and down late in a 60-second game; these move with it.
+    let lift = null, RIM_Y, BOARD, ARM, POLE;
+    function setLift(v) {
+      if (v === lift) return;
+      lift = v;
+      RIM_Y = 58 + v;
+      BOARD = [175, 24 + v, 178, 62 + v];        // x0, y0, x1, y1, inclusive
+      ARM = [179, 42 + v, 186, 44 + v];
+      POLE = [187, 38 + v, 189, FLOOR - 1];
+      dirty = true;
+    }
+    setLift(0);
 
     const say = (text) => { statusEl.textContent = text; };
+    const emit = (e) => players.forEach((fn) => fn(e));
+    const mult = () => (streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
+    const word = (n) => WORD.slice(0, n) + (n < 5 ? '<i>' + WORD.slice(n) + '</i>' : '');
+    function turnText() {
+      const h = horse;
+      if (h.over) return h.you >= 5 ? 'Bez wins' : 'You win';
+      if (h.phase === 'set') return h.turn === 'you' ? 'Your set' : 'Bez sets';
+      return h.turn === 'you' ? 'Match it' : 'Bez to match';
+    }
     function sync(flash) {
-      scoreEl.textContent = score;
-      streakEl.textContent = streak;
-      bestEl.textContent = best;
-      if (flash) {
-        scoreEl.classList.add('is-lit');
-        setTimeout(() => scoreEl.classList.remove('is-lit'), 450);
+      if (flash) { litUntil = performance.now() + 450; setTimeout(() => sync(), 460); }
+      const lit = performance.now() < litUntil ? ' is-lit' : '';
+      if (game === 'clock') {
+        statsEl.innerHTML = '<span>Time <b>' + Math.ceil(clock.left) + '</b></span><span>Points <b class="h-main' + lit + '">' + clock.pts +
+          '</b></span><span>Bonus <b>×' + mult() + '</b></span><span>Best <b>' + clockBest + '</b></span>';
+      } else if (game === 'horse') {
+        statsEl.innerHTML = '<span>You <b>' + word(horse.you) + '</b></span><span>' + turnText() + '</span><span>Bez <b>' + word(horse.bez) + '</b></span>';
+      } else {
+        statsEl.innerHTML = '<span>Score <b id="h-score" class="h-main' + lit + '">' + score + '</b></span><span>Streak <b id="h-streak">' + streak +
+          '</b></span><span>Best streak <b id="h-best">' + best + '</b></span>';
       }
     }
     const thump = (name, v) => Sound.play(name, clamp(v / 320, 0.15, 1));
 
-    /* Physics. It runs on the real ball, and on ghost balls when Bez
-       works out a shot, so it takes the body and shot record to use. */
-    function hitRect(b, [x0, y0, x1, y1]) {
-      const cx = clamp(b.x, x0, x1 + 1), cy = clamp(b.y, y0, y1 + 1);
-      const dx = b.x - cx, dy = b.y - cy, d = Math.hypot(dx, dy);
-      if (d >= R || d === 0) return 0;
-      const nx = dx / d, ny = dy / d;
-      b.x = cx + nx * R; b.y = cy + ny * R;
+    /* Physics. A spinning, hollow ball: every contact pushes back along
+       the normal and rubs along the surface, trading speed for spin.
+       It runs on the real ball and on ghost balls when Bez works out
+       a shot, so it takes the body and shot record to use. */
+    let cnx = 0, cny = 0;
+    function contact(b, nx, ny, e, mu) {
       const vn = b.vx * nx + b.vy * ny;
       if (vn >= 0) return 0;
-      b.vx -= 1.6 * vn * nx; b.vy -= 1.6 * vn * ny;
+      const jn = -(1 + e) * vn, tx = -ny, ty = nx, lim = mu * jn;
+      const jt = clamp(-(b.vx * tx + b.vy * ty - b.w * R) / (1 + R * R * INV_I), -lim, lim);
+      b.vx += jn * nx + jt * tx;
+      b.vy += jn * ny + jt * ty;
+      b.w -= jt * R * INV_I;
+      cnx = nx; cny = ny;
       return -vn;
     }
-    function hitPoint(b, x, y, r) {
-      const dx = b.x - x, dy = b.y - y, d = Math.hypot(dx, dy);
-      if (d >= R + r || d === 0) return 0;
-      const nx = dx / d, ny = dy / d;
+    function hitRect(b, r, e, mu) {
+      const cx = clamp(b.x, r[0], r[2] + 1), cy = clamp(b.y, r[1], r[3] + 1);
+      const dx = b.x - cx, dy = b.y - cy, dd = dx * dx + dy * dy;
+      if (dd >= R * R || dd === 0) return 0;
+      const d = Math.sqrt(dd), nx = dx / d, ny = dy / d;
+      b.x = cx + nx * R; b.y = cy + ny * R;
+      return contact(b, nx, ny, e, mu);
+    }
+    function hitPoint(b, x, y, r, e, mu) {
+      const dx = b.x - x, dy = b.y - y, dd = dx * dx + dy * dy;
+      if (dd >= (R + r) * (R + r) || dd === 0) return 0;
+      const d = Math.sqrt(dd), nx = dx / d, ny = dy / d;
       b.x = x + nx * (R + r); b.y = y + ny * (R + r);
-      const vn = b.vx * nx + b.vy * ny;
-      if (vn >= 0) return 0;
-      b.vx -= 1.5 * vn * nx; b.vy -= 1.5 * vn * ny;
-      return -vn;
+      return contact(b, nx, ny, e, mu);
+    }
+    function squash(b, v) {
+      const q = Math.min(0.35, v / 700);
+      if (v > 40 && q > b.sq) { b.sq = q; b.nx = cnx; b.ny = cny; }
     }
     const newShot = (x, vx = 0, vy = 0) => ({
-      from: x, rim: false, board: false, scored: false, t: 0,
+      from: x, rim: 0, board: false, scored: false, under: false, floor: false, landed: null, t: 0, by: 'you',
       apex: FLOOR, cross: null, first: null, a: Math.atan2(-vy, vx), p: Math.hypot(vx, vy) / VMAX,
     });
+    // Every shot leaves the hand with a little backspin.
+    function kick(b, vx, vy) {
+      b.vx = vx; b.vy = vy;
+      b.w = (-Math.sign(vx) * SPIN * Math.hypot(vx, vy)) / R;
+    }
     // One step for body b; returns true on the step the ball drops through the hoop.
     function step(b, h, s, loud) {
       const py = b.y;
-      b.vy += GRAV * h;
+      b.vx += (-DRAG * b.vx - MAGNUS * b.w * b.vy) * h;          // air, and backspin lifts a touch
+      b.vy += (GRAV - DRAG * b.vy + MAGNUS * b.w * b.vx) * h;
       b.x += b.vx * h;
       b.y += b.vy * h;
-      b.a += (b.vx * h) / R;
+      b.a += b.w * h;
+      b.w -= b.w * 0.1 * h;
       if (b.y >= FLOOR - R) {
         b.y = FLOOR - R;
-        if (b.vy > 0) {
-          if (loud && b.vy > 45) thump('bounce', b.vy);
-          b.vy = b.vy > 32 ? -b.vy * 0.62 : 0;
-          b.vx *= 0.88;
-        }
-        if (b.vy === 0) b.vx -= b.vx * Math.min(1, 1.6 * h); // rolling
+        const hf = contact(b, 0, -1, b.vy > 32 ? 0.64 : 0, 0.45);
+        if (hf && s) s.floor = true;
+        if (loud && hf > 45) { thump('bounce', hf); squash(b, hf); }
+        if (Math.abs(b.vy) < 1) { b.vy = 0; b.vx -= b.vx * Math.min(1, 1.4 * h); b.w = b.vx / R; } // rolling
       }
-      if (b.x < R) { b.x = R; b.vx = Math.abs(b.vx) * 0.6; }
-      if (b.x > CW - R) { b.x = CW - R; b.vx = -Math.abs(b.vx) * 0.6; }
-      const hb = hitRect(b, BOARD);
-      if (hb) { if (s) { s.board = true; s.first = s.first || 'board'; } if (loud && hb > 30) thump('board', hb); }
-      const hp = Math.max(hitRect(b, ARM), hitRect(b, POLE));
-      if (loud && hp > 30) thump('board', hp);
-      const hr = hitPoint(b, RIM_F, RIM_Y + 1, 1.5);
-      if (hr) { if (s) { s.rim = true; s.first = s.first || 'rim'; } if (loud && hr > 25) thump('rim', hr); }
+      if (b.x < R) { b.x = R; contact(b, 1, 0, 0.6, 0.3); }
+      if (b.x > CW - R) { b.x = CW - R; contact(b, -1, 0, 0.6, 0.3); }
+      const hb = hitRect(b, BOARD, 0.6, 0.3);
+      if (hb) {
+        if (s) { s.board = true; s.first = s.first || 'board'; }
+        if (loud) { if (hb > 30) thump('board', hb); squash(b, hb); }
+      }
+      const ha = hitRect(b, ARM, 0.5, 0.3);
+      if (loud && ha > 30) { thump('board', ha); squash(b, ha); }
+      const hp = hitRect(b, POLE, 0.5, 0.3);
+      if (loud && hp > 30) { thump('board', hp); squash(b, hp); }
+      const rf = hitPoint(b, RIM_F, RIM_Y + 1, 1.5, 0.5, 0.35);
+      if (rf && loud) squash(b, rf);
+      const rb = hitPoint(b, RIM_B, RIM_Y + 1, 1.5, 0.5, 0.35);
+      if (rb && loud) squash(b, rb);
+      const hr = Math.max(rf, rb);
+      if (hr) {
+        if (s) { if (!s.rim || hr > 12) s.rim++; s.first = s.first || (rf ? 'front' : 'back'); }
+        if (loud && hr > 25) { thump('rim', hr); shake = Math.max(shake, Math.min(2, hr / 90)); }
+      }
       if (!s) return false;
       if (b.y < s.apex) s.apex = b.y;
-      const down = py < RIM_Y + 1 && b.y >= RIM_Y + 1 && b.vy > 0;
+      const line = RIM_Y + 1, inside = b.x > RIM_F && b.x < RIM_B;
+      if (py > line && b.y <= line && inside) s.under = true;   // up through the net doesn't count
+      const down = py < line && b.y >= line && b.vy > 0;
       if (down && s.cross === null) s.cross = b.x;
-      if (down && !s.scored && b.x > RIM_F && b.x < BOARD[0]) { s.scored = true; return true; }
+      if (down && inside && !s.scored && !s.under && !s.floor) { s.scored = true; return true; }
       return false;
     }
     // What happened, in coaching terms.
     function verdict(s) {
       if (s.scored) return !s.rim && !s.board ? 'swish' : s.rim ? 'roll' : 'bank';
       if (s.apex > RIM_Y - 3) return 'low';
-      if (s.first) return s.first === 'board' ? 'long' : 'rim';
-      return s.cross !== null && s.cross >= BOARD[0] ? 'long' : 'short';
+      if (s.first) return s.first === 'front' ? 'rim' : s.first === 'back' ? 'back' : 'long';
+      return s.cross !== null && s.cross >= RIM_B ? 'long' : 'short';
     }
     // Fly a ghost ball silently until it scores or clearly can't.
     function simulate(x, vx, vy) {
-      const b = { x, y: FLOOR - R, vx, vy, a: 0 }, s = newShot(x, vx, vy), h = 1 / 480;
-      for (let t = 0; t < 3; t += h) {
-        if (step(b, h, s, false)) break;
-        if (s.cross !== null && b.y > RIM_Y + 16) break;
+      const b = { x, y: FLOOR - R, vx: 0, vy: 0, w: 0, a: 0 }, s = newShot(x, vx, vy);
+      kick(b, vx, vy);
+      for (let t = 0; t < 3; t += H) {
+        if (step(b, H, s, false)) break;
+        if (b.vy > 0 && b.y > RIM_Y + 16) break;   // falling past the net
         if (t > 0.1 && b.y >= FLOOR - R) break;
       }
       return s;
@@ -3043,7 +2503,8 @@
     // Search angle × pull for makes from x, and take the middle of the widest band.
     function solve(x) {
       x = Math.round(x);
-      if (solved.has(x)) return solved.get(x);
+      const key = x + ':' + lift;
+      if (solved.has(key)) return solved.get(key);
       const as = [], ps = [];
       for (let a = 0.6; a <= 1.4; a += 0.025) as.push(a);
       for (let p = 0.35; p <= 1.0001; p += 0.015) ps.push(p);
@@ -3058,84 +2519,360 @@
         for (let di = -2; di <= 2; di++) for (let dj = -2; dj <= 2; dj++) n += (grid[i + di] && grid[i + di][j + dj]) || 0;
         if (n > most) { most = n; best = { a: as[i], p: ps[j] }; }
       }));
-      solved.set(x, best);
+      solved.set(key, best);
       return best;
     }
     const deg = (a) => Math.round((a * 180) / Math.PI);
     const readout = (vx, vy) => 'Angle ' + deg(Math.atan2(-vy, vx)) + '° · Power ' + Math.round((Math.hypot(vx, vy) / VMAX) * 100) + '%';
-    function scored() {
-      const pts = shot.from < THREE ? 3 : 2;
-      const clean = !shot.rim && !shot.board;
-      net = 1;
-      Sound.play('swish');
-      Sound.play('score');
-      if (shot.bez) { say('Bez: ' + pick(clean ? LINES.swish : LINES.roll) + ' Your turn.'); return; }
-      score += pts;
-      streak++;
-      if (streak > best) { best = streak; store.set(KEY, String(best)); }
-      net = 1;
-      let line;
-      if (streak === 3) line = 'Heating up.';
-      else if (streak === 5) line = 'On fire.';
-      else if (streak >= 8 && streak % 4 === 0) line = 'Unconscious.';
-      else if (pts === 3) line = pick(LINES.three);
-      else line = pick(clean ? LINES.swish : shot.rim ? LINES.roll : LINES.bank);
-      say(line + ' +' + pts);
-      sync(true);
+
+    /* The net: six strings of knots that hang from the rim, get shoved
+       by the ball and swing back. String goes slack; it never stretches. */
+    const NS = 6, NK = 5, SEG = 2.6, PINCH = 0.1;
+    const knots = [];
+    const knot = (i, k) => knots[i * (NK + 1) + k];
+    const rimOff = () => Math.round(Math.sin(now * 70) * shake);
+    const anchor = (i) => [RIM_F + (i * (RIM_B - RIM_F)) / (NS - 1), RIM_Y + 1.5 + rimOff()];
+    for (let i = 0; i < NS; i++) for (let k = 0; k <= NK; k++) {
+      const [ax, ay] = anchor(i), x = ax + ((RIM_F + RIM_B) / 2 - ax) * k * PINCH, y = ay + k * SEG;
+      knots.push({ x, y, px: x, py: y });
     }
-    function shotEnd() {
-      if (shot.bez && !shot.scored) say('Even Bez misses. Your turn.');
-      else if (!shot.scored) {
-        const lost = streak >= 3;
-        streak = 0;
-        say(pick(shot.rim ? LINES.clank : shot.board ? LINES.glass : LINES.air) + (lost ? ' Streak over.' : ''));
-        sync();
+    function tie(a, b, len, pinned) {
+      const dx = b.x - a.x, dy = b.y - a.y, d = Math.sqrt(dx * dx + dy * dy);
+      if (d <= len) return;
+      const k = (d - len) / d;
+      if (pinned) { b.x -= dx * k; b.y -= dy * k; return; }
+      a.x += dx * k * 0.5; a.y += dy * k * 0.5;
+      b.x -= dx * k * 0.5; b.y -= dy * k * 0.5;
+    }
+    function shove() {
+      const rr = R + 0.6;
+      if (ball.x < RIM_F - 10 || ball.x > RIM_B + 10 || ball.y < RIM_Y - 8 || ball.y > RIM_Y + 24) return;
+      knots.forEach((n, j) => {
+        if (j % (NK + 1) === 0) return;
+        const dx = n.x - ball.x, dy = n.y - ball.y, d2 = dx * dx + dy * dy;
+        if (d2 >= rr * rr || !d2) return;
+        const d = Math.sqrt(d2);
+        n.x = ball.x + (dx / d) * rr; n.y = ball.y + (dy / d) * rr;
+      });
+    }
+    function netStep(dt) {
+      const gy = 260 * dt * dt;
+      for (let i = 0; i < NS; i++) {
+        const [ax, ay] = anchor(i), a = knot(i, 0);
+        a.x = a.px = ax; a.y = a.py = ay;
+        for (let k = 1; k <= NK; k++) {
+          const n = knot(i, k), vx = (n.x - n.px) * 0.93, vy = (n.y - n.py) * 0.93;
+          n.px = n.x; n.py = n.y;
+          n.x += vx; n.y += vy + gy;
+        }
       }
-      const report = { from: shot.from, a: shot.a, p: shot.p, scored: shot.scored, kind: verdict(shot), bez: !!shot.bez };
-      watchers.forEach((fn) => fn(report));
+      shove();
+      for (let it = 0; it < 4; it++) {
+        for (let i = 0; i < NS; i++) for (let k = 0; k < NK; k++) tie(knot(i, k), knot(i, k + 1), SEG, k === 0);
+        for (let k = 1; k <= NK; k++) for (let i = 0; i < NS - 1; i++) tie(knot(i, k), knot(i + 1, k), ((RIM_B - RIM_F) / (NS - 1)) * (1 - k * PINCH), false);
+      }
+      shove();
+      // Worth a redraw only if a knot moved a visible amount.
+      return knots.some((n) => Math.abs(n.x - n.px) + Math.abs(n.y - n.py) > 0.05);
+    }
+    const inNet = () => ball.x > RIM_F - 3 && ball.x < RIM_B + 3 && ball.y > RIM_Y && ball.y < RIM_Y + 3 + NK * SEG;
+
+    /* A little celebration: sparks off the net, points that float up,
+       and big words across the court. */
+    function burst(n) {
+      for (let i = 0; i < n; i++) {
+        sparks.push({ x: RIM_F + 3 + Math.random() * 14, y: RIM_Y + 3 + Math.random() * 8,
+          vx: (Math.random() - 0.5) * 110, vy: -50 - Math.random() * 90, life: 0.45 + Math.random() * 0.4 });
+      }
+    }
+    const pop = (text) => pops.push({ text, x: (RIM_F + RIM_B) / 2 - 4, y: RIM_Y - 12, t: 0 });
+    const show = (text, secs) => { banner = { text, t: 0, secs }; dirty = true; };
+    function juice(dt) {
+      if (ball.sq) { ball.sq = ball.sq < 0.02 ? 0 : ball.sq * Math.exp(-dt * 16); dirty = true; }
+      if (shake) { shake = shake < 0.1 ? 0 : shake * Math.exp(-dt * 8); dirty = true; }
+      if (sparks.length) {
+        sparks.forEach((p) => { p.vy += 240 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; });
+        sparks = sparks.filter((p) => p.life > 0);
+        dirty = true;
+      }
+      if (pops.length) { pops.forEach((p) => { p.t += dt; }); pops = pops.filter((p) => p.t < 1); dirty = true; }
+      if (banner) { banner.t += dt; if (banner.t > banner.secs) banner = null; dirty = true; }
+      if (netStep(dt)) dirty = true;
+    }
+
+    /* Games: free shooting, 60 seconds on the clock, and HORSE against Bez. */
+    function canShoot(by = 'you') {
+      if (by !== 'you') return true;
+      if (game === 'clock') return clock.phase === 'play';
+      if (game === 'horse') return !horse.over && horse.turn === 'you';
+      return true;
+    }
+    const canAim = () => (state === 'ready' || state === 'drop') && canShoot();
+    function clearBez() { clearTimeout(bezTimer); bezTimer = 0; }
+    // Take the ball away and drop a new one in, at x or anywhere.
+    function queue(x, t) {
+      clearBez();
+      if (aim) { aim = null; canvas.classList.remove('is-aiming'); }
       shot = null;
       trail = [];
       state = 'wait';
-      wait = 0.45;
+      wait = t;
+      nextSpot = x;
+    }
+    function setGame(name, keepStatus) {
+      const was = game;
+      game = name;
+      gameBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.game === name)));
+      hintEl.textContent = HINTS[name];
+      setLift(0);
+      banner = null;
+      if (was !== 'free' || name !== 'free') streak = 0;
+      clock = horse = null;
+      if (name === 'clock') {
+        clock = { left: 60, pts: 0, made: 0, shots: 0, threes: 0, phase: 'count', count: 3.6, shown: 4, moving: false };
+        queue(null, 0.1);
+        say('Get ready…');
+      } else if (name === 'horse') {
+        horse = { you: 0, bez: 0, setter: 'you', turn: 'you', phase: 'set', spot: 0, over: false };
+        nextSet('');
+      } else {
+        if (state === 'aim' || state === 'flight') queue(null, 0.2);
+        if (!keepStatus) say('Pull back anywhere and let go.');
+      }
+      sync();
+      dirty = true;
+      emit({ type: 'start', game: name, was, auto: !!keepStatus });
+    }
+
+    // 60 seconds: a countdown, then the clock. The hoop starts moving at 20.
+    function runClock(dt) {
+      const c = clock;
+      if (c.phase === 'count') {
+        c.count -= dt;
+        const n = Math.ceil(c.count - 0.6);
+        if (n === c.shown) return;
+        c.shown = n;
+        if (n > 0) { show(String(n), 0.8); Sound.play('tick'); return; }
+        show('GO', 0.7);
+        Sound.play('go');
+        c.phase = 'play';
+        say('Go!');
+        return;
+      }
+      if (c.phase !== 'play') return;
+      const before = Math.ceil(c.left);
+      c.left = Math.max(0, c.left - dt);
+      if (c.left <= 20) {
+        if (!c.moving) { c.moving = true; show('MOVE', 1.2); say('Twenty left. The hoop’s on the move.'); emit({ type: 'clock-move' }); }
+        setLift(Math.round(Math.sin((20 - c.left) * 1.1) * 12));
+      }
+      const left = Math.ceil(c.left);
+      if (left !== before) { sync(); if (left > 0 && left <= 5) Sound.play('tick'); }
+      if (c.left > 0) return;
+      c.phase = 'over';
+      Sound.play('buzzer');
+      if (state === 'aim' && aim && aim.id !== 'bez') { aim = null; canvas.classList.remove('is-aiming'); settle(); }
+      if (state === 'flight') say('Buzzer! It’s still in the air…');
+      else endClock();
+    }
+    function endClock() {
+      const c = clock, rec = c.pts > clockBest;
+      if (rec) { clockBest = c.pts; store.set(CLOCK_KEY, String(c.pts)); }
+      c.phase = 'done';
+      setLift(0);
+      show('TIME', 1.8);
+      sync();
+      say('Time! ' + c.pts + ' points, ' + c.made + ' of ' + c.shots + '.' + (rec ? ' New best!' : ' Best is ' + clockBest + '.'));
+      emit({ type: 'clock-end', pts: c.pts, made: c.made, shots: c.shots, threes: c.threes, best: clockBest, record: rec });
+      setTimeout(() => { if (clock === c) setGame('free', true); }, 2000);
+    }
+
+    // HORSE: make a shot and the other player has to match it from the same spot.
+    const other = (p) => (p === 'you' ? 'bez' : 'you');
+    const spelled = (n) => WORD.slice(0, n).split('').join('-');
+    const snapshot = () => ({ you: horse.you, bez: horse.bez, setter: horse.setter, spot: horse.spot });
+    function nextSet(lead) {
+      const h = horse;
+      h.phase = 'set';
+      h.turn = h.setter;
+      h.spot = 16 + Math.round(Math.random() * 108);
+      queue(h.spot, lead ? 0.8 : 0.2);
+      say((lead ? lead + ' ' : '') + (h.turn === 'you' ? 'Your set: make it and Bez has to match.' : 'Bez is setting one up.'));
+      sync();
+    }
+    function horseShot(s) {
+      const h = horse, who = s.by, made = s.scored;
+      if (h.phase === 'set') {
+        if (made) {
+          h.phase = 'match';
+          h.turn = other(who);
+          queue(h.spot, 0.8);
+          say(who === 'you' ? 'Good. Now Bez has to match it from there.' : 'Bez made it. Match it from the same spot.');
+          sync();
+          emit({ type: 'set', by: who, made, ...snapshot() });
+          return;
+        }
+        h.setter = other(who);
+        emit({ type: 'pass', by: who, made, ...snapshot() });
+        nextSet(who === 'you' ? 'Missed, so Bez sets.' : 'Bez missed.');
+        return;
+      }
+      if (made) {
+        emit({ type: 'matched', by: who, made, ...snapshot() });
+        nextSet(who === 'you' ? 'Matched!' : 'Bez matched it.');
+        return;
+      }
+      h[who]++;
+      Sound.play('letter');
+      show(WORD.slice(0, h[who]), 1.4);
+      if (h[who] >= 5) { endHorse(other(who)); return; }
+      emit({ type: 'letter', by: who, made, ...snapshot() });
+      nextSet(who === 'you' ? 'No match: ' + spelled(h.you) + ' for you.' : 'Bez missed the match: ' + spelled(h.bez) + ' for Bez.');
+    }
+    function endHorse(winner) {
+      const h = horse;
+      h.over = true;
+      record[winner === 'you' ? 'w' : 'l']++;
+      store.set(HORSE_KEY, JSON.stringify(record));
+      queue(null, 2.4);
+      setTimeout(() => { if (horse === h) show(winner === 'you' ? 'YOU WIN' : 'BEZ WINS', 2.2); }, 1400);
+      say((winner === 'you' ? 'Bez spelled HORSE. You win!' : 'That’s HORSE. Bez wins this one.') + ' Record: ' + record.w + '–' + record.l + '.');
+      sync();
+      emit({ type: 'end', winner, record: { ...record }, ...snapshot() });
+      setTimeout(() => { if (horse === h) setGame('free', true); }, 4200);
+    }
+    // Bez's turn: work out the shot, then miss it now and then like anyone.
+    function bezShoot() {
+      bezTimer = 0;
+      if (game !== 'horse' || horse.over || horse.turn !== 'bez' || state !== 'ready' || !raf) return;
+      const s = solve(ball.x) || { a: 1.05, p: 0.7 };
+      const behind = horse.bez - horse.you, k = behind >= 2 ? 0.8 : behind <= -2 ? 1.2 : 1;
+      const a = s.a + ((gauss() * 5 * k) * Math.PI) / 180, p = s.p * (1 + gauss() * 0.05 * k);
+      pullShoot(Math.cos(a) * p * VMAX, -Math.sin(a) * p * VMAX, 'bez');
+    }
+
+    /* Shots */
+    function scored() {
+      const three = shot.from < THREE, clean = !shot.rim && !shot.board;
+      Sound.play('swish');
+      Sound.play('score');
+      burst(clean ? 14 : 6);
+      const line = clean ? pick(LINES.swish) : shot.rim >= 3 ? pick(LINES.rattle) : shot.rim ? pick(LINES.roll) : pick(LINES.bank);
+      if (game === 'horse') { pop(clean ? 'SWISH' : 'GOOD'); return; }
+      if (shot.by === 'bez') { say('Bez: ' + line + ' Your turn.'); return; }
+      streak++;
+      if (game === 'clock') {
+        const pts = (three ? 3 : 2) * mult();
+        clock.pts += pts;
+        clock.made++;
+        if (three) clock.threes++;
+        pop('+' + pts);
+        if (clock.phase === 'over') { show('BUZZER BEATER', 1.6); say('At the buzzer! +' + pts); }
+        else say(streak === 3 ? 'Three straight: points doubled.' : streak === 6 ? 'Six straight: points tripled!' : line + ' +' + pts);
+        sync(true);
+        return;
+      }
+      const pts = three ? 3 : 2;
+      score += pts;
+      if (streak > best) { best = streak; store.set(KEY, String(best)); }
+      pop('+' + pts);
+      let msg;
+      if (streak === 3) msg = 'Heating up.';
+      else if (streak === 5) msg = 'On fire.';
+      else if (streak >= 8 && streak % 4 === 0) msg = 'Unconscious.';
+      else if (three) msg = pick(LINES.three);
+      else msg = line;
+      say(msg + ' +' + pts);
+      sync(true);
+    }
+    function shotEnd() {
+      const s = shot, by = s.by;
+      queue(null, game === 'clock' ? 0.15 : 0.45);
+      const report = { from: s.from, a: s.a, p: s.p, scored: s.scored, kind: verdict(s), bez: by === 'bez', by, game, rim: s.rim };
+      if (game === 'horse') horseShot(s);
+      else if (by === 'bez') { if (!s.scored) say('Even Bez misses. Your turn.'); }
+      else {
+        if (game === 'clock') clock.shots++;
+        if (!s.scored) {
+          const lost = streak >= 3;
+          streak = 0;
+          const msg = pick(s.rim ? LINES.clank : s.board ? LINES.glass : LINES.air);
+          if (game !== 'clock' || clock.phase === 'play') say(msg + (lost ? (game === 'clock' ? ' Bonus gone.' : ' Streak over.') : ''));
+          sync();
+        }
+        if (game === 'clock' && clock.phase === 'over') endClock();
+      }
+      watchers.forEach((fn) => fn(report));
     }
     // A new ball drops in somewhere on the floor.
-    function spawn() {
-      ball.x = 14 + Math.round(Math.random() * 116);
-      ball.y = FLOOR - R - 28;
-      ball.vx = 0; ball.vy = 0;
+    function spawn(x) {
+      ball.x = x == null ? 14 + Math.round(Math.random() * 110) : x;
+      ball.y = FLOOR - R - 22;
+      ball.vx = 0; ball.vy = 0; ball.w = 0;
       state = 'drop';
       rest = 0;
       dirty = true;
     }
     function settle() {
       ball.y = FLOOR - R;
-      ball.vx = 0; ball.vy = 0;
+      ball.vx = 0; ball.vy = 0; ball.w = 0;
       state = 'ready';
       dirty = true;
     }
-    function launch(vx, vy, bez) {
+    function launch(vx, vy, by = 'you') {
       settle();
-      ball.vx = vx; ball.vy = vy;
+      if (!canShoot(by)) return;
+      kick(ball, vx, vy);
+      acc = 0;
       shot = newShot(ball.x, vx, vy);
-      shot.bez = !!bez;
+      shot.by = by;
       state = 'flight';
       rest = 0;
       showKey = false;
       Sound.play('shoot');
     }
+    // Pull back slowly so you can see it, hold, then let go.
+    function pullShoot(vx, vy, by) {
+      settle();
+      const mine = { id: by, vx: 0, vy: 0 }, t0 = performance.now();
+      aim = mine;
+      state = 'aim';
+      showKey = false;
+      const pull = () => {
+        if (aim !== mine) return;
+        const k = Math.min(1, (performance.now() - t0) / 700);
+        mine.vx = vx * k; mine.vy = vy * k;
+        say('Bez: ' + readout(mine.vx, mine.vy));
+        dirty = true;
+        if (k < 1) requestAnimationFrame(pull);
+        else setTimeout(() => { if (aim === mine) { aim = null; launch(vx, vy, by); } }, 350);
+      };
+      requestAnimationFrame(pull);
+    }
     function update(dt) {
-      if (net > 0) { net = Math.max(0, net - dt * 1.4); netT += dt; dirty = true; }
-      if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(); return; }
+      now += dt;
+      juice(dt);
+      if (game === 'clock') runClock(dt);
+      if (game === 'horse' && state === 'ready' && horse.turn === 'bez' && !horse.over && !bezTimer) bezTimer = setTimeout(bezShoot, 450);
+      if (state === 'wait') { wait -= dt; if (wait <= 0) spawn(nextSpot); return; }
       if (state !== 'flight' && state !== 'drop') return;
-      const n = Math.max(1, Math.ceil(dt * 480));
-      for (let i = 0; i < n; i++) if (step(ball, dt / n, shot, true)) scored();
+      // Fixed steps, the same as Bez's ghost balls, so what he works out is what happens.
+      for (acc += dt; acc >= H; acc -= H) {
+        if (step(ball, H, shot, true)) scored();
+        if (state === 'drop' && ball.y >= FLOOR - R - 0.01 && Math.abs(ball.vy) < 60) { settle(); return; } // one bounce and it's yours
+        if (shot && shot.scored && inNet()) { ball.vx -= ball.vx * 7 * H; ball.vy -= ball.vy * 3 * H; } // the net grabs it
+      }
       dirty = true;
-      const still = ball.y >= FLOOR - R - 0.01 && ball.vy === 0 && Math.abs(ball.vx) < 5;
-      rest = still ? rest + dt : 0;
-      if (state === 'drop') { if (rest > 0.05) settle(); return; }
+      // At rest anywhere: on the floor, on the stanchion, wedged on the rim.
+      rest = Math.hypot(ball.vx, ball.vy) < 6 ? rest + dt : 0;
+      if (state === 'drop') return;
       shot.t += dt;
-      if (streak >= 5) { trail.push([ball.x, ball.y]); if (trail.length > 10) trail.shift(); }
-      if (rest > 0.3 || shot.t > 7) shotEnd();
+      if (shot.floor && shot.landed == null) shot.landed = shot.t;
+      if (streak >= 5 && game !== 'horse' && shot.by === 'you') { trail.push([ball.x, ball.y]); if (trail.length > 10) trail.shift(); }
+      // Once it's down, don't make anyone wait for it to stop rolling.
+      const down = shot.landed != null && shot.t - shot.landed > (game === 'clock' ? 0 : shot.scored ? 0.7 : 1.4);
+      const quick = game !== 'free' && shot.scored && ball.y > RIM_Y + 18;
+      if (down || quick || rest > 0.3 || shot.t > 7) shotEnd();
     }
 
     /* Drawing, one pixel at a time */
@@ -3144,52 +2881,85 @@
       if (x >= 0 && y >= 0 && x < CW && y < CH) px[y * CW + x] = v;
     };
     const fill = ([x0, y0, x1, y1], v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, v); };
+    function line(x0, y0, x1, y1) {
+      x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+      const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let err = dx + dy;
+      for (let n = 0; n < 64; n++) {
+        set(x0, y0);
+        if (x0 === x1 && y0 === y1) break;
+        const e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+      }
+    }
+    // A 5-pixel-high font for the scoreboard bits; most letters are 3 wide, M, N and W need more.
+    const FONT = {
+      0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001011001111', 4: '101101111001001',
+      5: '111100111001111', 6: '111100111101111', 7: '111001010010010', 8: '111101111101111', 9: '111101111001111',
+      '+': '000010111010000', '!': '11101', ' ': '0000000000', A: '010101111101101', B: '110101110101110',
+      D: '110101101101110', E: '111100110100111', G: '011100101101011', H: '101101111101101', I: '111010010010111',
+      M: '1000111011101011000110001', N: '10011101101110011001', O: '010101101101010', R: '110101110101101',
+      S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010',
+      W: '1000110001101011010101010', Y: '101101010010010', Z: '111001010100111',
+    };
+    function text(str, x, y, k = 1) {
+      const glyphs = [...str].map((ch) => FONT[ch] || FONT[' ']);
+      const w = glyphs.reduce((n, gl) => n + (gl.length / 5 + 1) * k, -k);
+      for (const ink of [0, 1]) {
+        let gx0 = Math.round(x - w / 2);
+        glyphs.forEach((gl) => {
+          const gw = gl.length / 5;
+          for (let i = 0; i < gl.length; i++) {
+            if (gl[i] !== '1') continue;
+            const gx = gx0 + (i % gw) * k, gy = y + Math.floor(i / gw) * k;
+            if (ink) fill([gx, gy, gx + k - 1, gy + k - 1], 1);
+            else fill([gx - 1, gy - 1, gx + k, gy + k], 0); // a paper outline keeps it legible
+          }
+          gx0 += (gw + 1) * k;
+        });
+      }
+    }
     function drawBall() {
-      const cx = Math.round(ball.x), cy = Math.round(ball.y), c = Math.cos(ball.a), s = Math.sin(ball.a);
-      for (let j = -R; j <= R; j++) {
-        for (let i = -R; i <= R; i++) {
-          const d = i * i + j * j;
+      const q = ball.sq, nx = ball.nx, ny = ball.ny, ka = 1 / (1 - q), kb = 1 / (1 + q * 0.6);
+      const cx = Math.round(ball.x - nx * q * R), cy = Math.round(ball.y - ny * q * R);
+      const c = Math.cos(ball.a), s = Math.sin(ball.a);
+      for (let j = -R - 2; j <= R + 2; j++) {
+        for (let i = -R - 2; i <= R + 2; i++) {
+          // squashed along the last thing it hit, a little wider across
+          const al = (i * nx + j * ny) * ka, ac = (j * nx - i * ny) * kb;
+          const x = al * nx - ac * ny, y = al * ny + ac * nx, d = x * x + y * y;
           if (d > R * R + 3) continue;
           let v = 0;
           if (d > (R - 1) * (R - 1) + 2) v = 1;                    // outline
-          else if (Math.abs(i * c + j * s) < 0.6 || Math.abs(j * c - i * s) < 0.6) v = 1; // seams
-          else if (i + j > 1 && ((i + j) & 1) === 0) v = 1;          // shade
+          else if (Math.abs(x * c + y * s) < 0.6 || Math.abs(y * c - x * s) < 0.6) v = 1; // seams
+          else if (x + y > 1 && ((i + j) & 1) === 0) v = 1;          // shade
           set(cx + i, cy + j, v);
         }
       }
     }
     function drawNet() {
-      const sway = net * Math.sin(netT * 22) * 2.5;
-      for (let k = 0; k <= 12; k++) {
-        const y = RIM_Y + 2 + k, off = sway * (k / 12), pinch = k * 0.3;
-        const l = Math.round(RIM_F + pinch + off), r = Math.round(BOARD[0] - 2 - pinch + off);
-        const o = Math.round(off);
-        for (let x = l; x <= r; x++) {
-          if (x === l || x === r || (x - o + k) % 4 === 0 || (x - o - k + 48) % 4 === 0) set(x, y);
+      for (let i = 0; i < NS - 1; i++) {
+        for (let k = 0; k < NK; k++) {
+          const a = knot(i, k), b = knot(i + 1, k + 1), c = knot(i + 1, k), d = knot(i, k + 1);
+          line(a.x, a.y, b.x, b.y);
+          line(c.x, c.y, d.x, d.y);
         }
       }
+      for (const i of [0, NS - 1]) for (let k = 0; k < NK; k++) line(knot(i, k).x, knot(i, k).y, knot(i, k + 1).x, knot(i, k + 1).y);
     }
-    // Aim dots: the first moment of the arc, or all of it with training wheels on.
-    function arc(vx, vy) {
-      const pts = [];
-      let x = ball.x, y = ball.y;
-      for (let i = 1; i <= (assist ? 120 : 21) && y <= FLOOR - R; i++) {
-        vy += GRAV / 60; x += vx / 60; y += vy / 60;
-        if (i % 3 === 0) pts.push([x, y]);
+    // Aim dots: the first moment of the arc, or all of it with the full arc on.
+    function dots(vx, vy) {
+      const b = { x: ball.x, y: ball.y, vx: 0, vy: 0, w: 0, a: 0 };
+      kick(b, vx, vy);
+      for (let i = 1; i <= (assist ? 1200 : 210); i++) {
+        step(b, H, null, false);
+        if (i % 30 === 0) { set(b.x, b.y); set(b.x + 1, b.y); set(b.x, b.y + 1); set(b.x + 1, b.y + 1); }
+        if (i > 60 && b.y >= FLOOR - R) break;
       }
-      return pts;
-    }
-    const aiming = () => (aim ? arc(aim.vx, aim.vy)
-      : showKey && state === 'ready' ? arc(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX) : []);
-    const hiRes = () => root.dataset.era !== '1984';
-    // 1984 draws 200×140 real pixels; the later eras draw smooth shapes at screen resolution.
-    function fit() {
-      const s = hiRes() ? Math.max(2, Math.round(2 * (window.devicePixelRatio || 1))) : 1;
-      if (canvas.width !== CW * s) { canvas.width = CW * s; canvas.height = CH * s; }
     }
     function draw() {
       tick++;
-      if (hiRes()) { drawSmooth(); return; }
       px.fill(0);
       // floor: a line over a light dither, and the three-point line
       for (let x = 0; x < CW; x++) {
@@ -3216,119 +2986,22 @@
         }
       });
       drawBall();
-      // rim and net sit in front of the ball
-      fill([RIM_F - 1, RIM_Y, BOARD[0] - 1, RIM_Y + 1]);
+      // rim and net sit in front of the ball; the rim shudders when it's hit hard
+      const o = rimOff();
+      fill([RIM_F - 1, RIM_Y + o, BOARD[0] - 1, RIM_Y + 1 + o]);
       drawNet();
-      aiming().forEach(([x, y]) => { set(x, y); set(x + 1, y); set(x, y + 1); set(x + 1, y + 1); });
+      if (aim) dots(aim.vx, aim.vy);
+      else if (showKey && state === 'ready') dots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
+      sparks.forEach((p) => {
+        if (p.life < 0.15 && tick & 1) return;
+        set(p.x, p.y);
+        if (p.life > 0.3) { set(p.x - 1, p.y); set(p.x + 1, p.y); set(p.x, p.y - 1); set(p.x, p.y + 1); }
+      });
+      pops.forEach((p) => { if (p.t < 0.8 || tick & 2) text(p.text, p.x, Math.round(p.y - p.t * 16)); });
+      if (game === 'clock' && clock.phase !== 'count') text(String(Math.ceil(clock.left)), 14, 6, 2);
+      if (banner && (banner.t > 0.12 || tick & 2)) text(banner.text, 84, 34, banner.text.length > 8 ? 2 : 3);
       const { ink, paper } = Colors.get();
       blit(g, img, px, ink, paper);
-    }
-
-    /* The later eras' court: glossy wood and glass in 2005, a few quiet lines in 2026. */
-    const COURTS = {
-      blue: { sky: ['#c4e1ff', '#f6fbff'], net: '#7c8ea3', glass: ['#f2f8ff', '#9db9da'], edge: '#4f6b8f', dot: '#2f7de1' },
-      graphite: { sky: ['#d9dee5', '#f7f8fa'], net: '#8a929c', glass: ['#f6f7f9', '#aab3bf'], edge: '#5c6673', dot: '#6c7a8c' },
-      light: { bg: '#ffffff', floor: '#f2f2f5', line: '#d1d1d6', ink: '#1d1d1f', net: '#b7b7bd', shadow: 'rgb(0 0 0 / .12)' },
-      dark: { bg: '#1c1c1e', floor: '#232326', line: '#3a3a3c', ink: '#f5f5f7', net: '#636366', shadow: 'rgb(0 0 0 / .45)' },
-    };
-    function drawSmooth() {
-      const s = canvas.width / CW, gel = root.dataset.era === '2005';
-      const P = COURTS[root.dataset.theme] || COURTS.light, accent = rgb(Colors.get().accent);
-      const lin = (x0, y0, x1, y1, stops) => { const gr = g.createLinearGradient(x0, y0, x1, y1); stops.forEach((c, i) => gr.addColorStop(i / (stops.length - 1), c)); return gr; };
-      const rr = (x, y, w, h, r) => { g.beginPath(); g.roundRect(x, y, w, h, r); };
-      g.setTransform(s, 0, 0, s, 0, 0);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      // backdrop and floor
-      g.fillStyle = gel ? lin(0, 0, 0, FLOOR, P.sky) : P.bg;
-      g.fillRect(0, 0, CW, CH);
-      if (gel) {
-        g.fillStyle = lin(0, FLOOR, 0, CH, ['#e7b072', '#b8773b']);
-        g.fillRect(0, FLOOR, CW, CH - FLOOR);
-        g.strokeStyle = 'rgb(110 60 15 / .22)';
-        g.lineWidth = 0.35;
-        for (let x = 9; x < CW; x += 23) { g.beginPath(); g.moveTo(x, FLOOR); g.lineTo(x - 6, CH); g.stroke(); }
-        g.fillStyle = 'rgb(255 255 255 / .35)';
-        g.fillRect(0, FLOOR, CW, 0.8);
-        g.fillStyle = 'rgb(255 255 255 / .85)';
-        g.fillRect(THREE - 0.45, FLOOR + 0.8, 0.9, CH - FLOOR);
-      } else {
-        g.fillStyle = P.floor;
-        g.fillRect(0, FLOOR, CW, CH - FLOOR);
-        g.fillStyle = P.line;
-        g.fillRect(0, FLOOR, CW, 0.5);
-        g.fillRect(THREE - 0.3, FLOOR, 0.6, CH - FLOOR);
-      }
-      // stanchion and backboard
-      if (gel) {
-        g.fillStyle = lin(183, 0, 193, 0, ['#9aa4b1', '#e8ecf1', '#7b8592']);
-        rr(183, FLOOR - 5, 11, 5, 1.5); g.fill();
-        g.fillStyle = lin(187, 0, 190, 0, ['#8d97a4', '#eef1f5', '#6c7683']);
-        g.fillRect(POLE[0], POLE[1], 3, POLE[3] - POLE[1] + 1);
-        g.fillRect(ARM[0], ARM[1], ARM[2] - ARM[0] + 1, 3);
-        g.fillStyle = lin(BOARD[0], 0, BOARD[2] + 1, 0, P.glass);
-        rr(BOARD[0], BOARD[1], 4, BOARD[3] - BOARD[1] + 1, 1); g.fill();
-        g.strokeStyle = P.edge; g.lineWidth = 0.4; g.stroke();
-      } else {
-        g.fillStyle = P.ink;
-        rr(184, FLOOR - 3, 9, 3, 1.5); g.fill();
-        g.fillRect(POLE[0] + 0.6, POLE[1], 1.6, POLE[3] - POLE[1] + 1);
-        g.fillRect(ARM[0], ARM[1] + 0.7, ARM[2] - ARM[0] + 1, 1.2);
-        rr(BOARD[0] + 1, BOARD[1], 2.2, BOARD[3] - BOARD[1] + 1, 1.1); g.fill();
-      }
-      // shadow, smaller and fainter the higher the ball
-      const lift = clamp((FLOOR - R - ball.y) / 90, 0, 0.85);
-      g.fillStyle = gel ? 'rgb(70 35 5 / .3)' : P.shadow;
-      g.globalAlpha = 1 - lift * 0.7;
-      g.beginPath(); g.ellipse(ball.x, FLOOR + 0.6, R * (1 - lift * 0.55), 1.1, 0, 0, Math.PI * 2); g.fill();
-      g.globalAlpha = 1;
-      // on fire
-      trail.forEach(([tx, ty], n) => {
-        g.globalAlpha = ((n + 1) / trail.length) * 0.32;
-        g.fillStyle = gel ? '#ff9a2e' : accent;
-        g.beginPath(); g.arc(tx, ty, R * (0.5 + n * 0.04), 0, Math.PI * 2); g.fill();
-      });
-      g.globalAlpha = 1;
-      // the ball
-      g.save();
-      g.translate(ball.x, ball.y);
-      if (gel) { const rg = g.createRadialGradient(-1.6, -2, 0.4, 0, 0, R); rg.addColorStop(0, '#ffcf9e'); rg.addColorStop(0.55, '#f37a24'); rg.addColorStop(1, '#a5450b'); g.fillStyle = rg; }
-      else g.fillStyle = '#ff7a1a';
-      g.beginPath(); g.arc(0, 0, R, 0, Math.PI * 2); g.fill();
-      g.rotate(ball.a);
-      g.strokeStyle = gel ? '#5a2606' : '#a8470d';
-      g.lineWidth = 0.42;
-      g.beginPath();
-      g.moveTo(-R, 0); g.lineTo(R, 0); g.moveTo(0, -R); g.lineTo(0, R);
-      g.moveTo(-R * 0.7, -R * 0.7); g.quadraticCurveTo(-R * 0.22, 0, -R * 0.7, R * 0.7);
-      g.moveTo(R * 0.7, -R * 0.7); g.quadraticCurveTo(R * 0.22, 0, R * 0.7, R * 0.7);
-      g.stroke();
-      g.restore();
-      if (gel) { g.fillStyle = 'rgb(255 255 255 / .45)'; g.beginPath(); g.ellipse(ball.x - 1, ball.y - 2.5, 2.8, 1.5, 0, 0, Math.PI * 2); g.fill(); }
-      // rim and net, in front of the ball
-      const sway = net * Math.sin(netT * 22) * 2.5, top = RIM_Y + 2, bot = RIM_Y + 14;
-      const l0 = RIM_F, r0 = BOARD[0] - 1, l1 = RIM_F + 3.6 + sway, r1 = BOARD[0] - 4.6 + sway;
-      g.strokeStyle = P.net;
-      g.lineWidth = 0.42;
-      g.beginPath();
-      for (let i = 0; i <= 5; i++) {
-        const tx = l0 + ((r0 - l0) * i) / 5;
-        if (i < 5) { g.moveTo(tx, top); g.lineTo(l1 + ((r1 - l1) * (i + 1)) / 5, bot); }
-        if (i > 0) { g.moveTo(tx, top); g.lineTo(l1 + ((r1 - l1) * (i - 1)) / 5, bot); }
-      }
-      g.moveTo(l0, top); g.lineTo(l1, bot); g.moveTo(r0, top); g.lineTo(r1, bot);
-      g.stroke();
-      g.fillStyle = gel ? lin(0, RIM_Y, 0, RIM_Y + 2, ['#ff8a5c', '#d23c12']) : '#ff6b2c';
-      rr(RIM_F - 1.5, RIM_Y, BOARD[0] - RIM_F + 1.5, 2, 1); g.fill();
-      // aim
-      aiming().forEach(([x, y], i, all) => {
-        g.globalAlpha = gel ? 1 : 1 - (i / all.length) * 0.6;
-        g.beginPath(); g.arc(x, y, 0.95, 0, Math.PI * 2);
-        if (gel) { g.fillStyle = '#fff'; g.fill(); g.strokeStyle = P.dot; g.lineWidth = 0.45; g.stroke(); }
-        else { g.fillStyle = accent; g.fill(); }
-      });
-      g.globalAlpha = 1;
-      g.setTransform(1, 0, 0, 1, 0, 0);
     }
 
     function frame(t) {
@@ -3343,25 +3016,30 @@
       last = performance.now();
       raf = requestAnimationFrame(frame);
     }
+    // Closing the window ends a game in progress.
     function stop() {
       cancelAnimationFrame(raf);
       raf = 0;
+      clearBez();
       if (aim) { aim = null; canvas.classList.remove('is-aiming'); state = 'ready'; }
       showKey = false;
+      if (game !== 'free') setGame('free');
     }
     function render() {
       if (!built) return;
-      fit();
       dirty = true;
       if (!raf) draw();
     }
     function build() {
       if (built) return;
       built = true;
-      fit();
       sync();
       draw();
     }
+    gameBtns.forEach((b) => b.addEventListener('click', () => {
+      setGame(b.dataset.game);
+      win.focus({ preventScroll: true }); // so Space shoots instead of pressing the button again
+    }));
 
     /* Pull back anywhere on the court, like a slingshot. */
     const toCourt = (e) => {
@@ -3369,7 +3047,7 @@
       return [((e.clientX - r.left) * CW) / r.width, ((e.clientY - r.top) * CH) / r.height];
     };
     canvas.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0 || (state !== 'ready' && state !== 'drop')) return;
+      if (e.button !== 0 || !canAim()) return;
       e.preventDefault();
       canvas.setPointerCapture(e.pointerId);
       settle();
@@ -3404,7 +3082,7 @@
 
     // Keyboard: arrows aim, Space or Enter shoots.
     function keydown(e) {
-      if (state !== 'ready' && state !== 'drop') return false;
+      if (!canAim()) return false;
       if (e.key === 'ArrowLeft') keyA = Math.min(1.5, keyA + 0.03);
       else if (e.key === 'ArrowRight') keyA = Math.max(0.15, keyA - 0.03);
       else if (e.key === 'ArrowUp') keyP = Math.min(1, keyP + 0.02);
@@ -3422,40 +3100,30 @@
       return true;
     }
 
-    /* For Bez: shot reports, a worked-out shot from any spot, and a demonstration. */
+    /* For Bez: shot reports, a worked-out shot from any spot, a demonstration, and the games. */
     function recommend(x) {
       const s = solve(x);
       return s && { deg: deg(s.a), pct: Math.round(s.p * 100) };
     }
     function demo() {
-      if (state !== 'ready' && state !== 'drop') return null;
+      if (game !== 'free' || (state !== 'ready' && state !== 'drop')) return null;
       settle();
       const s = solve(ball.x);
       if (!s) return null;
-      const vx = Math.cos(s.a) * s.p * VMAX, vy = -Math.sin(s.a) * s.p * VMAX;
-      const mine = { id: 'bez', vx: 0, vy: 0 }, t0 = performance.now();
-      aim = mine;
-      state = 'aim';
-      showKey = false;
-      // Pull back slowly so you can see it, hold, then let go.
-      const pull = () => {
-        if (aim !== mine) return;
-        const k = Math.min(1, (performance.now() - t0) / 700);
-        mine.vx = vx * k; mine.vy = vy * k;
-        say(readout(mine.vx, mine.vy));
-        dirty = true;
-        if (k < 1) requestAnimationFrame(pull);
-        else setTimeout(() => { if (aim === mine) { aim = null; launch(vx, vy, true); } }, 450);
-      };
-      requestAnimationFrame(pull);
+      pullShoot(Math.cos(s.a) * s.p * VMAX, -Math.sin(s.a) * s.p * VMAX, 'bez');
       return { deg: deg(s.a), pct: Math.round(s.p * 100) };
     }
 
     return {
-      build, start, stop, render, keydown, recommend, demo,
+      build, start, stop, render, keydown, recommend, demo, setGame,
       onShot: (fn) => watchers.add(fn),
+      onGame: (fn) => players.add(fn),
       set assist(on) { assist = on; dirty = true; },
       get assist() { return assist; },
+      get game() { return game; },
+      get record() { return { ...record }; },
+      get clockBest() { return clockBest; },
+      get best() { return best; },
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
   })();
@@ -3721,12 +3389,7 @@
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.fillStyle = rgb(deskInk);
       ctx.beginPath();
-      if (root.dataset.era === '1984') {
-        for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
-      } else { // later eras: smooth round dots, no snapping to the grid
-        const r = size * 0.46;
-        for (let i = 0; i < N; i++) { const x = X[i] * s + s / 2, y = Y[i] * s + s / 2; ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2); }
-      }
+      for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
       ctx.fill();
       if (withCaret) {
         ctx.fillStyle = rgb(accent);
@@ -3847,6 +3510,7 @@
     const px = new Uint8Array(SW * SH); // 0 clear, 1 ink, 2 paper, 3 accent
     const balloon = $('#bez-balloon'), tail = $('#bez-tail');
     const textEl = $('#bez-text'), extraEl = $('#bez-extra'), actionsEl = $('#bez-actions');
+    const fine = matchMedia('(pointer: fine)');
     const KEY = 'adiel-bez';
     const NOTE = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
     const PITCH = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
@@ -3858,6 +3522,8 @@
       const [, l, sharp, o, d] = t.match(/^([A-G])(#?)(\d)(?::([\d.]+))?$/);
       return [12 * (+o + 1) + PITCH[l] + (sharp ? 1 : 0), d ? +d : 1];
     });
+    // Chord progressions: "C4 E4 G4 | F4 A4 C5".
+    const chords = (s) => s.split('|').map((c) => song(c).map(([m]) => m));
     const LESSONS = [
       { id: 'five', name: 'Five fingers', beat: 0.4,
         intro: 'Thumb on C, then one finger per key up to G, and back down.',
@@ -3878,25 +3544,53 @@
         intro: 'Beethoven again. The famous wobble uses a black key, D♯, which is P.',
         notes: song('E5 D#5 E5 D#5 E5 B4 D5 C5 A4:3 C4 E4 A4 B4:3 E4 G#4 B4 C5:3 E4 E5 D#5 E5 D#5 E5 B4 D5 C5 A4:4') },
     ];
+    const CHORD_SETS = [
+      { id: 'three', name: 'Three chords', beat: 0.8,
+        intro: 'C, F and G: the three chords under half the songs you know.',
+        chords: chords('C4 E4 G4 | F4 A4 C5 | G4 B4 D5 | C4 E4 G4') },
+      { id: 'pop', name: 'Four-chord pop', beat: 0.8,
+        intro: 'C, G, A minor, F. Loop it and you can play along with the radio.',
+        chords: chords('C4 E4 G4 | G4 B4 D5 | A4 C5 E5 | F4 A4 C5') },
+      { id: 'minor', name: 'Minor mood', beat: 0.8,
+        intro: 'A minor, D minor, E major, and home. Darker, a bit cinematic.',
+        chords: chords('A4 C5 E5 | D4 F4 A4 | E4 G#4 B4 | A4 C5 E5') },
+    ];
+    // Chord shapes from the root, and what to call them.
+    const SHAPES = [
+      [[0, 4, 7], ' major', ''], [[0, 3, 7], ' minor', 'm'], [[0, 3, 6], ' diminished', 'dim'], [[0, 4, 8], ' augmented', 'aug'],
+      [[0, 2, 7], 'sus2', 'sus2'], [[0, 5, 7], 'sus4', 'sus4'], [[0, 4, 7, 10], '7', '7'], [[0, 4, 7, 11], 'maj7', 'maj7'],
+      [[0, 3, 7, 10], 'm7', 'm7'], [[0, 3, 6, 10], 'm7♭5', 'm7♭5'], [[0, 3, 6, 9], 'dim7', 'dim7'], [[0, 4, 7, 9], '6', '6'],
+      [[0, 3, 7, 9], 'm6', 'm6'], [[0, 2, 4, 7], 'add9', 'add9'],
+    ];
+    const INTERVALS = ['unison', 'minor second', 'major second', 'minor third', 'major third', 'perfect fourth', 'tritone',
+      'perfect fifth', 'minor sixth', 'major sixth', 'minor seventh', 'major seventh', 'octave'];
     const TIPS = {
       low: ['That one never got above the rim. Pull back further.', 'Needs more legs. Pull back further.'],
       short: ['Short. Same angle, a little more pull.', 'Just short. Give it a bit more.'],
       rim: ['Front rim. So close: add a touch of arc.', 'Rim! Nudge the angle up a little.'],
-      long: ['Too hot, off the back. Ease up a little.', 'A bit strong. Pull back less.'],
+      back: ['Back rim. Ease off the power a hair.', 'Long, off the back iron. A touch softer.'],
+      long: ['Too hot, off the glass. Ease up a little.', 'A bit strong. Pull back less.'],
     };
+    const ZONES = [['Deep three', 0, 50], ['Three', 50, 72], ['Mid-range', 72, 100], ['Close', 100, 200]];
     const TAIL = [
       '#..........#', ' #.........#', '  #........#', '   #.......#', '    #......#', '     #.....#',
       '      #....#', '       #...#', '        #..#', '         #.#', '          ##',
     ];
-    tail.innerHTML = '<path class="t-px t-fill" d="' + pixPath(TAIL, '.') + '"/><path class="t-px t-ink" d="' + pixPath(TAIL, '#') + '"/>' +
-      '<path class="t-vec t-vec-fill" shape-rendering="geometricPrecision" d="M0 0H12V11Z"/><path class="t-vec t-vec-line" shape-rendering="geometricPrecision" d="M0 0L12 11V0"/>';
+    tail.innerHTML = '<path class="t-fill" d="' + pixPath(TAIL, '.') + '"/><path class="t-ink" d="' + pixPath(TAIL, '#') + '"/>';
 
     const saved = (() => { try { return JSON.parse(store.get(KEY)) || {}; } catch (e) { return {}; } })();
     saved.met = saved.met || {};
     saved.done = saved.done || [];
+    saved.stars = saved.stars || {};
+    saved.trouble = saved.trouble || {};
+    saved.ear = saved.ear || { level: 1, best: 0 };
     const keep = () => store.set(KEY, JSON.stringify(saved));
-    let shown = false, mode = null, lesson = null, misses = 0, offer = 0, ticker = 0;
+    let shown = false, mode = null, lesson = null, rhythm = null, quiz = null, misses = 0, offer = 0, ticker = 0;
     let mood = 'idle', moodUntil = 0, talkUntil = 0, blinkAt = 0, blinkUntil = 0;
+    const held = new Map();      // keys you're holding down, and since when
+    const recent = [];           // the last notes you played, for recognising songs
+    const shots = [];            // your recent Hoops shots, with what Bez would have done
+    let lastChord = '', lastSongAt = -1e9, chordTimer = 0;
 
     /* Drawing Bez: handles behind, the anchor square in front, then a face. */
     const put = (x, y, v) => {
@@ -3911,9 +3605,11 @@
         if (r <= 5) put(kx + i, ky + j, r >= 4 ? 1 : 3);
       }
     }
+    const busy = () => !!(lesson || rhythm || quiz);
     // Which way to point: at the key to play, or at the court.
     function pointing() {
-      const t = lesson ? $('.key.is-target', W.piano) : mode === 'coach' && !W.hoops.hidden ? $('#court') : null;
+      const t = busy() ? $('.key.is-target', W.piano) || W.piano
+        : (mode === 'coach' || mode === 'horse') && !W.hoops.hidden ? $('#court') : null;
       if (!t || !t.getClientRects().length) return null;
       const a = t.getBoundingClientRect(), b = canvas.getBoundingClientRect();
       const d = deg(Math.atan2(b.top + b.height / 2 - (a.top + a.height / 2), a.left + a.width / 2 - (b.left + b.width / 2)));
@@ -3922,7 +3618,7 @@
     function pose(t) {
       const still = reduced.matches, s = t / 1000, sway = still ? 0 : Math.sin(s * 1.6) * 5;
       const p = { l: 205 + sway, r: -25 - sway, eyes: 'open', mouth: 'smile', look: 0 };
-      if (t > moodUntil) mood = lesson || mode === 'coach' ? 'point' : 'idle';
+      if (t > moodUntil) mood = busy() || mode === 'coach' || mode === 'horse' ? 'point' : 'idle';
       if (mood === 'wave') { p.r = 55 + (still ? 0 : Math.sin(s * 14) * 22); p.eyes = 'happy'; p.mouth = 'grin'; }
       else if (mood === 'cheer') { p.l = 122; p.r = 58; p.eyes = 'happy'; p.mouth = 'grin'; }
       else if (mood === 'oops') { p.l = 225; p.r = -45; p.eyes = 'squint'; p.mouth = 'flat'; }
@@ -3940,78 +3636,8 @@
       if (t < blinkUntil && p.eyes === 'open') p.eyes = 'shut';
       return p;
     }
-    // 1984 Bez is 44×36 real pixels; later eras draw him smooth at screen resolution.
-    function fit() {
-      const s = root.dataset.era === '1984' ? 1 : Math.max(2, Math.round(2 * (window.devicePixelRatio || 1)));
-      if (canvas.width !== SW * s) { canvas.width = SW * s; canvas.height = SH * s; }
-    }
-    function drawSmooth(p, t) {
-      const s = canvas.width / SW, gel = root.dataset.era === '2005', dark = root.dataset.theme === 'dark';
-      const { ink, paper, accent } = Colors.get();
-      const cx = 22, cy = 18 + (reduced.matches ? 0 : Math.sin(t / 380) * 0.5);
-      g.setTransform(1, 0, 0, 1, 0, 0);
-      g.clearRect(0, 0, canvas.width, canvas.height);
-      g.setTransform(s, 0, 0, s, 0, 0);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      // handles, with a knob for each hand
-      [p.l, p.r].forEach((d) => {
-        const a = (d * Math.PI) / 180, kx = cx + Math.cos(a) * 15, ky = cy - Math.sin(a) * 15;
-        g.strokeStyle = gel ? '#4a4a4a' : rgb(ink);
-        g.lineWidth = gel ? 0.8 : 0.7;
-        g.beginPath(); g.moveTo(cx, cy); g.lineTo(kx, ky); g.stroke();
-        g.beginPath(); g.arc(kx, ky, 2.5, 0, Math.PI * 2);
-        if (gel) {
-          const rg = g.createRadialGradient(kx - 0.7, ky - 1, 0.2, kx, ky, 2.5);
-          rg.addColorStop(0, '#e6f3ff'); rg.addColorStop(0.5, '#3f8ff0'); rg.addColorStop(1, '#1c5cc2');
-          g.fillStyle = rg; g.fill();
-          g.strokeStyle = 'rgb(0 0 0 / .35)'; g.lineWidth = 0.35; g.stroke();
-        } else {
-          g.fillStyle = rgb(accent); g.fill();
-          g.strokeStyle = rgb(paper); g.lineWidth = 0.6; g.stroke();
-        }
-      });
-      // the anchor: a rounded square, glossy in 2005
-      g.save();
-      g.shadowColor = gel ? 'rgb(0 0 0 / .35)' : dark ? 'rgb(0 0 0 / .55)' : 'rgb(0 0 0 / .16)';
-      g.shadowBlur = 3 * s;
-      g.shadowOffsetY = s;
-      g.beginPath();
-      g.roundRect(cx - 7, cy - 7, 14, 14, gel ? 2.2 : 3.4);
-      if (gel) { const lg = g.createLinearGradient(0, cy - 7, 0, cy + 7); lg.addColorStop(0, '#ffffff'); lg.addColorStop(1, '#d9d9d9'); g.fillStyle = lg; }
-      else g.fillStyle = rgb(paper);
-      g.fill();
-      g.restore();
-      g.lineWidth = gel ? 0.7 : 0.5;
-      g.strokeStyle = gel ? '#5a5a5a' : dark ? 'rgb(255 255 255 / .22)' : 'rgb(0 0 0 / .14)';
-      g.stroke();
-      if (gel) { g.fillStyle = 'rgb(255 255 255 / .6)'; g.beginPath(); g.roundRect(cx - 6.2, cy - 6.4, 12.4, 5.2, [1.6, 1.6, 3, 3]); g.fill(); }
-      // face
-      const fc = gel ? '#1b1b1b' : rgb(ink);
-      g.fillStyle = fc;
-      g.strokeStyle = fc;
-      g.lineWidth = 0.75;
-      [-3, 3].forEach((ex, side) => {
-        const x = cx + ex + p.look, y = cy - 1.5;
-        g.beginPath();
-        if (p.eyes === 'open') { g.roundRect(x - 0.9, y - 1.5, 1.8, 3, 0.9); g.fill(); }
-        else if (p.eyes === 'shut') { g.moveTo(x - 1, y + 1); g.lineTo(x + 1, y + 1); g.stroke(); }
-        else if (p.eyes === 'up') { g.roundRect(x - 0.9, y - 2.8, 1.8, 2, 0.9); g.fill(); }
-        else if (p.eyes === 'happy') { g.moveTo(x - 1.5, y + 0.9); g.quadraticCurveTo(x, y - 1.6, x + 1.5, y + 0.9); g.stroke(); }
-        else { const o = side ? -1 : 1; g.moveTo(x - o, y - 1.3); g.lineTo(x + o * 0.9, y); g.lineTo(x - o, y + 1.3); g.stroke(); } // > <
-      });
-      const my = cy + 3;
-      g.beginPath();
-      if (p.mouth === 'smile') { g.moveTo(cx - 2, my - 0.6); g.quadraticCurveTo(cx, my + 1.6, cx + 2, my - 0.6); g.stroke(); }
-      else if (p.mouth === 'flat') { g.moveTo(cx - 1.8, my + 0.3); g.lineTo(cx + 1.8, my + 0.3); g.stroke(); }
-      else if (p.mouth === 'open') { g.ellipse(cx, my + 0.2, 1.2, 1.15, 0, 0, Math.PI * 2); g.fill(); }
-      else { g.moveTo(cx - 2.8, my - 0.9); g.quadraticCurveTo(cx, my + 3.6, cx + 2.8, my - 0.9); g.closePath(); g.fill(); }
-      g.setTransform(1, 0, 0, 1, 0, 0);
-    }
     function draw() {
       const t = performance.now(), p = pose(t);
-      fit();
-      if (root.dataset.era !== '1984') { drawSmooth(p, t); return; }
       const cx = 22, cy = 18 + (reduced.matches ? 0 : Math.floor(t / 600) % 2);
       px.fill(0);
       handle(cx, cy, p.l);
@@ -4059,27 +3685,60 @@
       el.classList.toggle('is-flip-x', flipX);
       el.classList.toggle('is-flip-y', b.top - h - 12 < menubar.offsetHeight + 6);
     }
+    const button = (label, fn, cls = 'btn btn-sm') => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = cls;
+      b.textContent = label;
+      b.addEventListener('click', fn);
+      return b;
+    };
     function say(html, { extra = null, actions = [], quiet = false, focus = false } = {}) {
       textEl.innerHTML = html;
       extraEl.replaceChildren(...(extra ? [extra] : []));
-      actionsEl.replaceChildren(...actions.map(([label, fn]) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'btn btn-sm';
-        b.textContent = label;
-        b.addEventListener('click', fn);
-        return b;
-      }));
+      actionsEl.replaceChildren(...actions.map(([label, fn]) => button(label, fn)));
       balloon.hidden = false;
       me.setAttribute('aria-expanded', 'true');
       if (!quiet) talkUntil = performance.now() + Math.min(1600, 300 + textEl.textContent.length * 16);
       place();
-      if (focus) { const b = $('button', balloon); if (b) b.focus({ preventScroll: true }); }
+      if (focus) {
+        // With a mouse, straight into the ask box; on touch, no surprise keyboard.
+        const b = (fine.matches && $('input', balloon)) || $('button', balloon);
+        if (b) b.focus({ preventScroll: true });
+      }
     }
     function hush() {
       balloon.hidden = true;
       me.setAttribute('aria-expanded', 'false');
     }
+    const frag = (...nodes) => { const f = document.createDocumentFragment(); f.append(...nodes.filter(Boolean)); return f; };
+    function list(items) {
+      const ul = document.createElement('ul');
+      ul.className = 'b-list';
+      items.forEach(([label, note, fn]) => {
+        const li = document.createElement('li'), b = button('', fn, 'b-item');
+        b.innerHTML = '<span>' + label + '</span><small>' + note + '</small>';
+        li.append(b);
+        ul.append(li);
+      });
+      return ul;
+    }
+    function chips(items) {
+      const d = document.createElement('div');
+      d.className = 'b-chips';
+      items.forEach((q) => d.append(button(q, () => ask(q), 'b-chip')));
+      return d;
+    }
+    function askBox() {
+      const f = document.createElement('form');
+      f.className = 'b-ask';
+      f.innerHTML = '<input type="text" name="q" autocomplete="off" maxlength="120" placeholder="Ask me something…" aria-label="Ask Bez"><button class="btn btn-sm" type="submit">Ask</button>';
+      const input = $('input', f);
+      f.addEventListener('submit', (e) => { e.preventDefault(); const q = input.value.trim(); if (q) ask(q, true); });
+      input.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.preventDefault(); hush(); me.focus({ preventScroll: true }); } });
+      return f;
+    }
+    const stars = (n) => '★'.repeat(n) + '☆'.repeat(3 - n);
 
     /* Coming and going */
     function appear() {
@@ -4097,7 +3756,7 @@
     }
     function leave() {
       if (!shown) return;
-      endLesson();
+      stopAll();
       mode = null;
       if (Hoops.assist) Hoops.assist = false;
       if (el.contains(document.activeElement)) (activeWin() || $('#menu-adiel')).focus({ preventScroll: true });
@@ -4113,18 +3772,45 @@
     }
     const quiet = () => { saved.quiet = 1; keep(); leave(); };
 
+    // What he knows about how you're doing.
+    function progress() {
+      const done = LESSONS.filter((L) => saved.done.includes(L.id)), next = LESSONS.find((L) => !saved.done.includes(L.id));
+      const rec = Hoops.record, out = [];
+      if (done.length) out.push('You’ve learned ' + done.length + ' of ' + LESSONS.length + ' songs' + (next ? '; next up is <b>' + next.name + '</b>.' : '. All of them!'));
+      const st = Object.values(saved.stars);
+      if (st.length) out.push('Played in time: ' + st.filter((n) => n === 3).length + ' with three stars.');
+      if (saved.ear.best) out.push('Ear training: level ' + saved.ear.level + ', best streak ' + saved.ear.best + '.');
+      if (rec.w + rec.l) out.push('HORSE: you’re ' + rec.w + '–' + rec.l + ' against me.');
+      if (Hoops.clockBest) out.push('60 Seconds best: ' + Hoops.clockBest + ' points.');
+      if (Hoops.best) out.push('Best streak in Hoops: ' + Hoops.best + '.');
+      return out;
+    }
     function home(focus) {
-      endLesson();
+      stopAll();
       mode = null;
-      say('<p>Hi, I’m <b>Bez</b>. I’m an anchor point; these handles are my arms.</p><p>I can teach you a song on the Piano, or help with your jump shot in Hoops.</p>',
-        { actions: [['Piano lessons', () => songs(true)], ['Hoops coaching', coach], ['Bye', leave]], focus });
+      const first = !saved.seen, news = progress();
+      saved.seen = 1;
+      keep();
+      const hi = first || !news.length
+        ? '<p>Hi, I’m <b>Bez</b>. I’m an anchor point; these handles are my arms.</p><p>I can teach you piano, coach your jump shot, play you at HORSE, or answer questions about this desk.</p>'
+        : '<p><b>Welcome back!</b> ' + news.slice(0, 2).join(' ') + '</p><p>What are we doing?</p>';
+      // Don't take the keyboard away from the Piano or Hoops.
+      const toy = activeWin() === W.piano || activeWin() === W.hoops;
+      say(hi, {
+        extra: frag(askBox(), chips(['Teach me a song', 'What chord is C E G?', 'Play HORSE', 'Who’s Adiel?'])),
+        actions: [['Piano', () => pianoMenu(true)], ['Hoops', coach], ['Bye', leave]], focus: focus && !toy,
+      });
     }
     // Opened from the menu, the ? key or by clicking him: help with whatever is in front.
     function summon(focus) {
       appear();
       const top = activeWin();
       if (lesson) showLesson();
-      else if (top === W.piano) songs(focus);
+      else if (rhythm) showRhythm();
+      else if (quiz) showQuiz();
+      else if (top === W.hoops && Hoops.game === 'horse') horseTalk('<p>We’re mid-game. Your move.</p>');
+      else if (top === W.hoops && Hoops.game === 'clock') say('<p>Clock’s running! I’ll keep quiet.</p>', { actions: [['Bye', leave]] });
+      else if (top === W.piano) pianoMenu(focus);
       else if (top === W.hoops) coach();
       else home(focus);
     }
@@ -4133,126 +3819,423 @@
       else summon(true);
     }
 
-    /* Piano lessons: no clock, Bez waits for each key. */
-    function songs(focus) {
-      endLesson();
-      mode = null;
-      const list = document.createElement('ul');
-      list.className = 'b-list';
-      LESSONS.forEach((L, i) => {
-        const li = document.createElement('li'), b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'b-item';
-        b.innerHTML = '<span>' + (i + 1) + '. ' + L.name + '</span><small>' + (saved.done.includes(L.id) ? 'Done ✓' : L.notes.length + ' notes') + '</small>';
-        b.addEventListener('click', () => begin(i));
-        li.append(b);
-        list.append(li);
-      });
-      act('think', 900);
-      say('<p>Pick a song. I’ll light up each key and wait for you to press it. There’s no clock.</p>',
-        { extra: list, actions: [['Back', () => home(true)], ['Bye', leave]], focus });
+    /* Piano. Everything that keeps time or lights keys stops together. */
+    function stopAll() {
+      if (lesson) { (lesson.timers || []).forEach(clearTimeout); lesson = null; }
+      if (rhythm) { cancelAnimationFrame(rhythm.raf); rhythm.timers.forEach(clearTimeout); rhythm = null; }
+      if (quiz) { quiz.timers.forEach(clearTimeout); quiz = null; }
+      if (mode === 'lesson' || mode === 'rhythm' || mode === 'ear') mode = null;
+      Piano.target([]);
     }
-    function begin(i) {
-      endLesson();
+    function pianoMenu(focus) {
+      stopAll();
+      mode = null;
+      const tricky = LESSONS.filter((L) => worst(L.id) !== null);
+      const items = [
+        ['Learn a song', LESSONS.filter((L) => saved.done.includes(L.id)).length + ' of ' + LESSONS.length + ' done', () => songs(true)],
+        ['Chords', CHORD_SETS.length + ' progressions', () => chordSets(true)],
+        ['Play in time', 'with a click', () => songs(true, true)],
+        ['Ear training', 'level ' + saved.ear.level, ear],
+      ];
+      if (tricky.length) items.push(['Tricky spots', tricky.length + (tricky.length === 1 ? ' song' : ' songs'), () => drills(true)]);
+      act('think', 900);
+      say('<p>What shall we work on?</p>', { extra: list(items), actions: [['Back', () => home(true)], ['Bye', leave]], focus });
+    }
+    function songs(focus, timed) {
+      stopAll();
+      mode = null;
+      const items = LESSONS.map((L, i) => [(i + 1) + '. ' + L.name,
+        timed ? (saved.stars[L.id] ? stars(saved.stars[L.id]) : 'not yet') : saved.done.includes(L.id) ? 'Done ✓' + (saved.stars[L.id] ? ' ' + stars(saved.stars[L.id]) : '') : L.notes.length + ' notes',
+        () => (timed ? inTime(i) : begin('song', i))]);
+      act('think', 900);
+      say(timed
+        ? '<p>Pick a song. I’ll count you in and keep a click going; play each key as it lights up. Stars for timing.</p>'
+        : '<p>Pick a song. I’ll light up each key and wait for you to press it. There’s no clock.</p>',
+      { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+    function chordSets(focus) {
+      stopAll();
+      mode = null;
+      const items = CHORD_SETS.map((C, i) => [C.name, C.chords.map((c) => identify(c).short).join(' '), () => begin('chords', i)]);
+      say('<p>Chords are three keys at once. I’ll light them up; press them together, or one after another, quickly.</p>',
+        { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+
+    /* Lessons with no clock: a list of steps, each one note or a chord. */
+    function begin(kind, i, drill) {
+      stopAll();
+      const src = kind === 'chords' ? CHORD_SETS[i] : LESSONS[i];
+      let steps = kind === 'chords' ? src.chords.map((c) => ({ notes: c, dur: 2 })) : src.notes.map(([m, d]) => ({ notes: [m], dur: d }));
+      let map = steps.map((_, k) => k), title = src.name, hint = src.intro;
+      if (drill) {
+        // The trouble spot, two notes either side, three times through.
+        const lo = Math.max(0, drill - 2), hi = Math.min(steps.length - 1, drill + 2), part = map.slice(lo, hi + 1);
+        map = [...part, ...part, ...part];
+        steps = map.map((k) => steps[k]);
+        title = 'Tricky spot in ' + src.name;
+        hint = 'This bit has tripped you up before. Three times through, slowly.';
+      }
       mode = 'lesson';
-      lesson = { i, at: 0, slips: 0, hint: LESSONS[i].intro, timers: null };
+      lesson = { kind, i, src, steps, map, title, drill, at: 0, slips: 0, clean: true, hint, got: new Map(), timers: null };
       openWin(W.piano);
       Piano.home();
       showLesson();
     }
+    const label = (m) => Piano.label(m) || '';
     function showLesson() {
-      const L = LESSONS[lesson.i], at = lesson.at, n = L.notes.length, want = L.notes[at][0];
-      Piano.target([want]);
+      const L = lesson, at = L.at, n = L.steps.length, want = L.steps[at].notes;
+      Piano.target(want);
       const strip = document.createElement('div');
       strip.className = 'notes';
       strip.setAttribute('aria-hidden', 'true');
-      const from = clamp(at - 3, 0, Math.max(0, n - 10));
-      L.notes.slice(from, from + 10).forEach(([m], k) => {
+      const from = clamp(at - 3, 0, Math.max(0, n - (want.length > 1 ? 6 : 10)));
+      L.steps.slice(from, from + (want.length > 1 ? 6 : 10)).forEach((s, k) => {
         const cell = document.createElement('span');
         cell.className = 'note' + (from + k < at ? ' is-done' : from + k === at ? ' is-now' : '');
-        cell.innerHTML = name(m) + '<small>' + (Piano.label(m) || '·') + '</small>';
+        cell.innerHTML = (s.notes.length > 1 ? identify(s.notes).short : name(s.notes[0])) + '<small>' + (s.notes.map(label).join('') || '·') + '</small>';
         strip.append(cell);
       });
-      const key = Piano.label(want), off = want - Piano.base;
-      const where = off < 0 || off > 24 ? 'It’s off this keyboard: press Z or X to shift octaves.'
-        : key ? 'Press <b>' + key + '</b> or click the blinking key.' : 'Click the blinking key.';
-      say('<p><b>' + L.name + '</b> · ' + (at + 1) + ' of ' + n + '</p>' + (lesson.hint ? '<p class="b-hint">' + lesson.hint + '</p>' : '') +
-        '<p>Next: <b>' + name(want) + '</b>. ' + where + '</p>',
-        { extra: strip, quiet: at > 0, actions: [['Hear it', hear], ['Restart', () => begin(lesson.i)], ['Songs', () => songs(true)]] });
+      const off = want.map((m) => m - Piano.base), keys = want.map(label);
+      let where;
+      if (off.some((o) => o < 0 || o > 24)) where = 'It’s off this keyboard: press Z or X to shift octaves.';
+      else if (want.length > 1) where = 'Press <b>' + keys.slice(0, -1).join('</b>, <b>') + '</b> and <b>' + keys[keys.length - 1] + '</b> together, or click the blinking keys.';
+      else where = keys[0] ? 'Press <b>' + keys[0] + '</b> or click the blinking key.' : 'Click the blinking key.';
+      const what = want.length > 1 ? '<b>' + identify(want).name + '</b> (' + want.map(name).join('–') + ')' : '<b>' + name(want[0]) + '</b>';
+      const actions = [['Hear it', hear], ['Restart', () => begin(L.kind, L.i, L.drill)]];
+      if (L.kind === 'song' && !L.drill) actions.push(['In time', () => inTime(L.i)]);
+      actions.push([L.kind === 'chords' ? 'Chords' : 'Songs', () => (L.kind === 'chords' ? chordSets(true) : songs(true))]);
+      say('<p><b>' + L.title + '</b> · ' + (at + 1) + ' of ' + n + '</p>' + (L.hint ? '<p class="b-hint">' + L.hint + '</p>' : '') +
+        '<p>Next: ' + what + '. ' + where + '</p>', { extra: strip, quiet: at > 0, actions });
+    }
+    // Tricky spots: where you slip, per song, fading as you get it right.
+    function trouble(id, k, d) {
+      const t = saved.trouble[id] = saved.trouble[id] || {};
+      t[k] = Math.max(0, (t[k] || 0) + d);
+      if (!t[k]) delete t[k];
+      if (!Object.keys(t).length) delete saved.trouble[id];
+      keep();
+    }
+    function worst(id) {
+      const t = saved.trouble[id];
+      if (!t) return null;
+      const [k, n] = Object.entries(t).sort((a, b) => b[1] - a[1])[0];
+      return n >= 2 ? +k : null;
+    }
+    function drills(focus) {
+      stopAll();
+      const items = LESSONS.map((L, i) => [L, i]).filter(([L]) => worst(L.id) !== null)
+        .map(([L, i]) => [L.name, 'around note ' + (worst(L.id) + 1), () => begin('song', i, worst(L.id))]);
+      say('<p>These are the spots where your fingers keep slipping. Short drills, three times through.</p>',
+        { extra: list(items), actions: [['More', () => pianoMenu(true)], ['Bye', leave]], focus });
+    }
+    function stepNote(m) {
+      const L = lesson, want = L.steps[L.at].notes, k = L.map[L.at], id = L.src.id;
+      if (!want.includes(m)) {
+        L.slips++;
+        L.clean = false;
+        L.got.clear();
+        trouble(id, k, 1);
+        L.hint = want.length > 1 ? 'That’s ' + name(m) + ', which isn’t in this chord. Try ' + want.map(name).join('–') + '.'
+          : m % 12 === want[0] % 12 ? 'Right note, wrong octave. Look for the blinking one.' : 'That was ' + name(m) + '. We want ' + name(want[0]) + '.';
+        act('oops', 700);
+        showLesson();
+        return;
+      }
+      const t = performance.now();
+      L.got.set(m, t);
+      // A chord counts when all its keys are down, or were pressed in quick succession.
+      const left = want.filter((w) => !(held.has(w) || t - (L.got.get(w) || -1e9) < 1500));
+      if (left.length) { L.hint = (want.length - left.length) + ' of ' + want.length + ' keys. Now ' + left.map(name).join(' and ') + '.'; showLesson(); return; }
+      if (L.clean) trouble(id, k, -1);
+      L.at++;
+      L.clean = true;
+      L.got.clear();
+      L.hint = '';
+      if (L.at >= L.steps.length) { finish(); return; }
+      hop();
+      showLesson();
     }
     function finish() {
-      const { i, slips } = lesson, L = LESSONS[i];
-      if (!saved.done.includes(L.id)) { saved.done.push(L.id); keep(); }
-      endLesson();
+      const L = lesson, { kind, i, slips, src } = L;
+      if (!L.drill && !saved.done.includes(src.id)) saved.done.push(src.id);
+      if (L.drill && !slips) trouble(src.id, L.drill, -2);
+      keep();
+      stopAll();
       act('cheer', 1800);
       hop();
       Sound.play('bezYay');
-      const actions = [['Again', () => begin(i)]];
-      if (i + 1 < LESSONS.length) actions.push(['Next song', () => begin(i + 1)]);
-      actions.push(['Songs', () => songs(true)]);
-      say('<p><b>' + (slips ? 'Done!' : 'Clean run!') + '</b> ' + L.name + (slips ? ', with ' + slips + (slips === 1 ? ' slip.' : ' slips.') : ', not one slip.') + '</p>' +
-        '<p>' + (slips > 3 ? 'Once more and it’ll be in your fingers.' : 'Nice hands.') + '</p>', { actions });
+      const actions = [['Again', () => begin(kind, i, L.drill)]];
+      if (kind === 'song' && !L.drill) actions.push(['In time', () => inTime(i)]);
+      const list = kind === 'chords' ? CHORD_SETS : LESSONS;
+      if (!L.drill && i + 1 < list.length) actions.push([kind === 'chords' ? 'Next set' : 'Next song', () => begin(kind, i + 1)]);
+      actions.push([kind === 'chords' ? 'Chords' : 'Songs', () => (kind === 'chords' ? chordSets(true) : songs(true))]);
+      const what = L.drill ? 'that tricky spot' : src.name;
+      let tip = slips > 3 ? 'Once more and it’ll be in your fingers.' : 'Nice hands.';
+      if (kind === 'song' && !L.drill) tip += ' Ready to try it <b>in time</b>, with a click?';
+      if (!L.drill && worst(src.id) !== null) tip = 'One spot keeps tripping you up. Try <b>Tricky spots</b> from the Piano menu.';
+      say('<p><b>' + (slips ? 'Done!' : 'Clean run!') + '</b> ' + what + (slips ? ', with ' + slips + (slips === 1 ? ' slip.' : ' slips.') : ', not one slip.') + '</p>' +
+        '<p>' + tip + '</p>', { actions });
     }
     // Bez plays it through first, conducting.
     function hear() {
       if (!lesson) return;
-      stopDemo();
-      const L = LESSONS[lesson.i];
+      (lesson.timers || []).forEach(clearTimeout);
+      const L = lesson, beat = L.src.beat;
       openWin(W.piano);
       Piano.home();
       let t = 250;
-      lesson.timers = L.notes.map(([m, d]) => {
-        const ms = d * L.beat * 1000, at = t;
+      L.timers = [];
+      L.steps.forEach((s) => {
+        const ms = s.dur * beat * 1000, at = t;
         t += ms;
-        return setTimeout(() => Piano.play(m, ms * 0.9), at);
+        L.timers.push(setTimeout(() => s.notes.forEach((m) => Piano.play(m, ms * 0.9)), at));
       });
-      lesson.timers.push(setTimeout(() => { if (lesson) { lesson.timers = null; lesson.hint = 'Your turn.'; showLesson(); } }, t + 300));
+      L.timers.push(setTimeout(() => { if (lesson === L) { L.timers = null; L.hint = 'Your turn.'; showLesson(); } }, t + 300));
       act('conduct', t + 300);
-      say('<p>Listen first: <b>' + L.name + '</b>.</p>', { actions: [['Stop', () => { stopDemo(); showLesson(); }]] });
+      say('<p>Listen first: <b>' + L.title + '</b>.</p>', { actions: [['Stop', () => { L.timers.forEach(clearTimeout); L.timers = null; showLesson(); }]] });
     }
-    function stopDemo() {
-      if (!lesson || !lesson.timers) return;
-      lesson.timers.forEach(clearTimeout);
-      lesson.timers = null;
+
+    /* Play in time: a count-in, a click, and a window around every note. */
+    function inTime(i, slow) {
+      stopAll();
+      const L = LESSONS[i], beat = L.beat * (slow ? 2.1 : 1.5);
+      let t = 0;
+      const notes = L.notes.map(([m, d]) => { const n = { m, t, w: clamp(0.5 * d * beat, 0.1, 0.25), e: null, miss: false }; t += d * beat; return n; });
+      mode = 'rhythm';
+      rhythm = { i, L, slow, beat, notes, end: t, start: performance.now() + 500 + 4 * beat * 1000, lastBeat: null, extra: 0, cur: null, last: '', raf: 0, timers: [] };
+      openWin(W.piano);
+      Piano.home();
+      act('conduct', 600 + 4 * beat * 1000);
+      showRhythm();
+      rhythm.raf = requestAnimationFrame(tickRhythm);
     }
-    function endLesson() {
-      if (!lesson) return;
-      stopDemo();
-      lesson = null;
-      if (mode === 'lesson') mode = null;
-      Piano.target([]);
+    function tickRhythm() {
+      const r = rhythm;
+      if (!r) return;
+      const now = (performance.now() - r.start) / 1000, b = Math.floor(now / r.beat);
+      let changed = false;
+      if (b !== r.lastBeat && now > -4 * r.beat) {
+        r.lastBeat = b;
+        if (b < 0) { Sound.play('tick'); changed = true; } else if (now < r.end) Sound.play('tock');
+      }
+      r.notes.forEach((n) => { if (n.e === null && !n.miss && now > n.t + n.w) { n.miss = true; changed = true; } });
+      const cur = r.notes.find((n) => n.e === null && !n.miss) || null;
+      if (cur !== r.cur) { r.cur = cur; Piano.target(cur ? [cur.m] : []); changed = true; }
+      if (changed) showRhythm();
+      if (now > r.end + 0.5) { grade(); return; }
+      r.raf = requestAnimationFrame(tickRhythm);
+    }
+    function rhythmNote(m) {
+      const r = rhythm, now = (performance.now() - r.start) / 1000;
+      let best = null;
+      r.notes.forEach((n) => {
+        if (n.e !== null || n.miss || n.m !== m) return;
+        const e = now - n.t;
+        if (Math.abs(e) <= n.w && (!best || Math.abs(e) < Math.abs(best.e))) best = { n, e };
+      });
+      if (!best) { r.extra++; return; }
+      best.n.e = best.e;
+      r.last = Math.abs(best.e) < 0.05 ? 'On it.' : best.e < 0 ? 'Early.' : 'Late.';
+      showRhythm();
+    }
+    function showRhythm() {
+      const r = rhythm, now = (performance.now() - r.start) / 1000, at = r.notes.indexOf(r.cur);
+      const strip = document.createElement('div');
+      strip.className = 'notes';
+      strip.setAttribute('aria-hidden', 'true');
+      const i0 = at < 0 ? r.notes.length : at, from = clamp(i0 - 3, 0, Math.max(0, r.notes.length - 10));
+      r.notes.slice(from, from + 10).forEach((n, k) => {
+        const cell = document.createElement('span');
+        cell.className = 'note' + (n.miss ? ' is-miss' : n.e !== null ? ' is-done' : from + k === at ? ' is-now' : '');
+        cell.innerHTML = name(n.m) + '<small>' + (label(n.m) || '·') + '</small>';
+        strip.append(cell);
+      });
+      const count = now < 0 ? Math.min(4, Math.ceil(-now / r.beat)) : 0;
+      say('<p><b>' + r.L.name + '</b> in time' + (r.slow ? ', slower' : '') + '</p>' +
+        '<p>' + (count ? 'Get ready… <b>' + count + '</b>' : r.last || 'Play each key as it lights up.') + '</p>',
+      { extra: strip, quiet: true, actions: [['Stop', () => songs(true, true)]] });
+    }
+    function grade() {
+      const r = rhythm, n = r.notes.length, errs = r.notes.filter((x) => x.e !== null).map((x) => x.e), hits = errs.length;
+      const mean = hits ? errs.reduce((a, e) => a + Math.abs(e), 0) / hits : 1;
+      const bias = hits ? errs.reduce((a, e) => a + e, 0) / hits : 0, rate = hits / n;
+      const got = rate >= 0.9 && mean < 0.07 ? 3 : rate >= 0.75 ? 2 : rate >= 0.4 ? 1 : 0;
+      const { i, L, slow } = r;
+      if (got > (saved.stars[L.id] || 0)) saved.stars[L.id] = got;
+      keep();
+      stopAll();
+      let note;
+      if (hits < 3) note = 'Let’s get the notes first. Learn it with no clock, then come back.';
+      else if (Math.abs(bias) > 0.03) note = bias < 0 ? 'You were rushing, a little ahead of the click. Let the notes breathe.' : 'You were dragging, a little behind the click. Lean into it.';
+      else note = got === 3 ? 'Right in the pocket.' : 'Your timing is even. Now catch every note.';
+      if (r.extra > n / 3) note += ' Lots of extra keys: just follow the blinking one.';
+      act(got >= 2 ? 'cheer' : 'think', 1500);
+      if (got >= 2) { hop(); Sound.play('bezYay'); }
+      const actions = [['Again', () => inTime(i, slow)]];
+      if (!slow && got < 3) actions.push(['Slower', () => inTime(i, true)]);
+      if (slow && got >= 2) actions.push(['Full speed', () => inTime(i)]);
+      if (hits < n / 2) actions.push(['Learn it', () => begin('song', i)]);
+      actions.push(['Songs', () => songs(true, true)]);
+      say('<p><span class="b-stars" aria-label="' + got + ' of 3 stars">' + stars(got) + '</span> <b>' + L.name + '</b></p>' +
+        '<p>' + hits + ' of ' + n + ' notes on time' + (hits ? ', ' + Math.round(mean * 1000) + ' ms off on average.' : '.') + '</p><p class="b-hint">' + note + '</p>', { actions });
+    }
+
+    /* Ear training: Bez plays, you find it on the keys. */
+    function ear() {
+      stopAll();
+      mode = 'ear';
+      quiz = { level: saved.ear.level || 1, streak: 0, tries: 0, root: 60, target: 60, timers: [], msg: '' };
+      openWin(W.piano);
+      Piano.home();
+      ask1();
+    }
+    function ask1() {
+      const q = quiz;
+      q.tries = 0;
+      if (q.level >= 3) {
+        q.root = 60 + Math.floor(Math.random() * 8);
+        q.target = q.root + 1 + Math.floor(Math.random() * 12);
+      } else {
+        const pool = q.level === 1 ? [62, 64, 65, 67, 69, 71, 72] : [61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72];
+        q.root = 60;
+        q.target = pick(pool.filter((m) => m !== q.target));
+      }
+      Piano.target(q.level >= 3 ? [q.root] : []);
+      play1();
+    }
+    function play1() {
+      const q = quiz;
+      q.timers.forEach(clearTimeout);
+      q.timers = [setTimeout(() => Piano.play(q.root, 550), 150), setTimeout(() => Piano.play(q.target, 800), 850)];
+      act('conduct', 1500);
+      showQuiz();
+    }
+    function showQuiz() {
+      const q = quiz;
+      const how = q.level === 1 ? 'I’ll play C, then a mystery white key between C and the next C. Find it.'
+        : q.level === 2 ? 'C, then any key up to the next C, black keys too. Find the second one.'
+          : 'I play the lit key, then a second one above it. Find the second.';
+      say('<p><b>Ear training</b> · level ' + q.level + (q.streak ? ' · streak ' + q.streak : '') + '</p>' +
+        (q.msg ? '<p>' + q.msg + '</p>' : '<p class="b-hint">' + how + '</p>'),
+      { quiet: !q.msg, actions: [['Play again', play1], ['Skip', () => { q.streak = 0; q.msg = 'Skipped. New one.'; ask1(); }], ['More', () => pianoMenu(true)]] });
+    }
+    function quizNote(m) {
+      const q = quiz;
+      if (q.level >= 3 && m === q.root) return; // finding your footing
+      const right = q.level >= 3 ? m === q.target : m % 12 === q.target % 12;
+      if (right) {
+        q.streak++;
+        if (q.streak > (saved.ear.best || 0)) saved.ear.best = q.streak;
+        const iv = q.target - q.root;
+        q.msg = q.level >= 3 ? 'Yes! A <b>' + INTERVALS[iv] + '</b>: ' + name(q.root) + ' up to ' + name(q.target) + '.' : 'Yes! That was <b>' + name(q.target) + '</b>.';
+        if (q.streak % 5 === 0 && q.level < 3) { q.level++; saved.ear.level = q.level; q.msg += ' Five in a row: up to level ' + q.level + '.'; Sound.play('bezYay'); }
+        keep();
+        act('cheer', 1000);
+        hop();
+        Piano.target([]);
+        showQuiz();
+        q.timers.push(setTimeout(() => { if (quiz === q) { q.msg = ''; ask1(); } }, 1400));
+        return;
+      }
+      q.tries++;
+      q.streak = 0;
+      act('oops', 600);
+      if (q.tries >= 3) {
+        q.msg = 'It was <b>' + name(q.target) + '</b>' + (q.level >= 3 ? ', a ' + INTERVALS[q.target - q.root] : '') + '. Listen once more.';
+        Piano.target([q.target]);
+        play1();
+        q.timers.push(setTimeout(() => { if (quiz === q) { q.msg = ''; ask1(); } }, 2600));
+        return;
+      }
+      const t = q.level >= 3 ? q.target : q.target + 12 * Math.round((m - q.target) / 12);
+      q.msg = (t > m ? 'Higher.' : 'Lower.') + ' That was ' + name(m) + '.';
+      showQuiz();
+    }
+
+    /* Free play: Bez listens, names chords and spots songs he knows. */
+    function identify(ms) {
+      const sorted = [...ms].sort((a, b) => a - b), pcs = [...new Set(sorted.map((m) => m % 12))], bass = sorted[0] % 12;
+      const roots = [bass, ...pcs.filter((p) => p !== bass)];
+      for (const r of roots) {
+        const iv = pcs.map((p) => (p - r + 12) % 12).sort((a, b) => a - b).join();
+        const s = SHAPES.find(([shape]) => shape.join() === iv);
+        if (!s) continue;
+        const third = s[0][1], fifth = s[0][2];
+        let inv = '';
+        if (bass !== r) inv = (bass === (r + third) % 12 ? 'first inversion' : bass === (r + fifth) % 12 ? 'second inversion' : 'inverted') + ', ' + NOTE[bass] + ' on the bottom';
+        return { name: NOTE[r] + s[1], short: NOTE[r] + s[2], inv, root: r };
+      }
+      return null;
+    }
+    function listen(m) {
+      recent.push(m);
+      if (recent.length > 16) recent.shift();
+      if (!shown || mode || busy() || W.piano.hidden) return;
+      clearTimeout(chordTimer);
+      chordTimer = setTimeout(nameChord, 160);
+      spot();
+    }
+    function nameChord() {
+      const t = performance.now(), down = [...held].filter(([, at]) => t - at < 8000).map(([m]) => m);
+      if (new Set(down.map((m) => m % 12)).size < 3) return;
+      const c = identify(down);
+      if (!c) return;
+      const key = c.name + c.inv;
+      if (key === lastChord) return;
+      lastChord = key;
+      act('think', 600);
+      say('<p>That’s <b>' + c.name + '</b>' + (c.inv ? ', ' + c.inv : '') + '.</p><p class="b-hint">' + down.sort((a, b) => a - b).map(name).join(' · ') + '</p>',
+        { quiet: true, actions: [['Chord lessons', () => chordSets(true)], ['Bye', leave]] });
+    }
+    // A song from its first notes, in any key.
+    function spot() {
+      if (performance.now() - lastSongAt < 30000 || recent.length < 6) return;
+      let found = null, tie = false;
+      LESSONS.forEach((L, i) => {
+        const s = L.notes.map(([m]) => m);
+        for (let k = Math.min(recent.length, s.length, 10); k >= 6; k--) {
+          const tail = recent.slice(-k);
+          if (tail.every((m, j) => !j || m - tail[j - 1] === s[j] - s[j - 1])) {
+            if (found && found.k === k) tie = true;
+            else if (!found || k > found.k) { found = { i, k }; tie = false; }
+            break;
+          }
+        }
+      });
+      if (!found || tie) return;
+      lastSongAt = performance.now();
+      recent.length = 0;
+      const L = LESSONS[found.i];
+      act('cheer', 1200);
+      hop();
+      say('<p>Hey, I know that one: <b>' + L.name + '</b>!</p><p>Want to learn the rest?</p>',
+        { actions: [['Teach me', () => begin('song', found.i)], ['In time', () => inTime(found.i)], ['Not now', hush]] });
     }
     Piano.onNote((m) => {
-      if (!lesson || lesson.timers) return;
-      const L = LESSONS[lesson.i], want = L.notes[lesson.at][0];
-      if (m === want) {
-        lesson.at++;
-        lesson.hint = '';
-        if (lesson.at >= L.notes.length) { finish(); return; }
-        hop();
-      } else {
-        lesson.slips++;
-        lesson.hint = m % 12 === want % 12 ? 'Right note, wrong octave. Look for the blinking one.' : 'That was ' + name(m) + '. We want ' + name(want) + '.';
-        act('oops', 700);
-      }
-      showLesson();
+      held.set(m, performance.now());
+      if (rhythm) rhythmNote(m);
+      else if (quiz) quizNote(m);
+      else if (lesson && !lesson.timers) stepNote(m);
+      else if (!lesson) listen(m);
     });
+    Piano.onRelease((m) => held.delete(m));
 
-    /* Hoops coaching */
-    // Focus stays on the court, so arrows and Space keep shooting.
+    /* Hoops: coaching, with what he's noticed over your last few shots. */
     function coach() {
-      endLesson();
+      stopAll();
       mode = 'coach';
       openWin(W.hoops);
+      if (Hoops.game !== 'free') Hoops.setGame('free');
       coachSay('<p>Take a shot and I’ll tell you what I saw. Or I can show you one from where the ball is.</p>');
     }
+    // Focus stays on the court, so arrows and Space keep shooting.
     function coachSay(html, focus) {
-      say(html, { actions: [['Show me', showMe], [Hoops.assist ? 'Hide full arc' : 'Show full arc', wheels], ['Bye', leave]], focus });
+      say(html, { actions: [['Show me', showMe], [Hoops.assist ? 'Hide full arc' : 'Show full arc', wheels], ['My shots', report], ['Bye', leave]], focus });
     }
     function showMe() {
       if (W.hoops.hidden) { openWin(W.hoops); setTimeout(showMe, 500); return; }
       const r = Hoops.demo();
-      if (!r) { coachSay('<p>Hang on, the ball’s still moving.</p>'); return; }
+      if (!r) { coachSay(Hoops.game === 'free' ? '<p>Hang on, the ball’s still moving.</p>' : '<p>Not in the middle of a game!</p>'); return; }
       act('point', 2600);
       coachSay('<p>Watch the arc. From here I’d go about <b>' + r.deg + '°</b> at <b>' + r.pct + '%</b> power.</p>');
     }
@@ -4262,7 +4245,54 @@
         ? '<p>Full arc on: you’ll see the whole flight while you aim. Drop it into the net.</p>'
         : '<p>Full arc off. Back to feel.</p>');
     }
+    const zone = (x) => ZONES.find(([, lo, hi]) => x >= lo && x < hi)[0];
+    // Your habit, if there is one: compared with what Bez would have shot from the same spots.
+    function tendency() {
+      const last = shots.slice(-6).filter((s) => s.rec);
+      if (last.length < 4) return '';
+      const dp = last.reduce((a, s) => a + (s.p * 100 - s.rec.pct), 0) / last.length;
+      const da = last.reduce((a, s) => a + (deg(s.a) - s.rec.deg), 0) / last.length;
+      const out = [];
+      if (Math.abs(dp) > 4) out.push(dp > 0 ? 'about ' + Math.round(dp) + '% too strong' : 'about ' + Math.round(-dp) + '% too soft');
+      if (Math.abs(da) > 4) out.push(da > 0 ? Math.round(da) + '° too steep' : Math.round(-da) + '° too flat');
+      return out.length ? 'Your last ' + last.length + ' shots ran ' + out.join(' and ') + '.' : '';
+    }
+    function chart() {
+      const c = document.createElement('canvas');
+      c.className = 'b-chart';
+      c.width = 100; c.height = 30;
+      c.setAttribute('role', 'img');
+      const made = shots.filter((s) => s.scored).length;
+      c.setAttribute('aria-label', 'Shot chart: ' + made + ' made of ' + shots.length);
+      const cg = c.getContext('2d'), cimg = cg.createImageData(100, 30), bits = new Uint8Array(3000);
+      const dot = (x, y) => { if (x >= 0 && y >= 0 && x < 100 && y < 30) bits[y * 100 + x] = 1; };
+      for (let x = 0; x < 100; x++) dot(x, 27);
+      for (let y = 24; y < 30; y++) dot(36, y);                 // the three-point line
+      for (let y = 6; y < 27; y++) dot(94, y);                  // the stanchion…
+      for (let x = 76; x <= 86; x++) dot(x, 12);                // …and the rim
+      shots.forEach((s, n) => {
+        const x = Math.round(s.from / 2), y = 20 - (n % 4) * 4;
+        if (s.scored) { for (let j = -1; j <= 1; j++) for (let i = -1; i <= 1; i++) dot(x + i, y + j); }
+        else { dot(x - 1, y - 1); dot(x + 1, y - 1); dot(x, y); dot(x - 1, y + 1); dot(x + 1, y + 1); }
+      });
+      const { ink, paper } = Colors.get();
+      blit(cg, cimg, bits, ink, paper);
+      return c;
+    }
+    function report() {
+      if (!shots.length) { coachSay('<p>No shots yet. Take a few and I’ll keep score.</p>'); return; }
+      const rows = ZONES.map(([z]) => {
+        const zs = shots.filter((s) => zone(s.from) === z);
+        return zs.length ? z + ': ' + zs.filter((s) => s.scored).length + ' of ' + zs.length : '';
+      }).filter(Boolean);
+      const t = tendency();
+      act('think', 900);
+      coachSay('<p><b>Your last ' + shots.length + ' shots.</b> ' + rows.join(' · ') + '.</p>' + (t ? '<p class="b-hint">' + t + '</p>' : ''));
+      extraEl.replaceChildren(chart());
+      place();
+    }
     Hoops.onShot((s) => {
+      if (s.game !== 'free') return;
       if (s.bez) {
         if (mode === 'coach' && shown) coachSay(s.scored ? '<p>See? Your turn. Match that angle and pull.</p>' : '<p>Ha, even I miss. The idea stands: that arc, that pull.</p>');
         return;
@@ -4277,19 +4307,192 @@
         }
         return;
       }
+      const rec = Hoops.recommend(s.from);
+      shots.push({ ...s, rec });
+      if (shots.length > 20) shots.shift();
       const you = 'You: ' + deg(s.a) + '° at ' + Math.round(s.p * 100) + '%.';
       if (s.scored) {
         act('cheer', 1400);
         hop();
-        coachSay('<p><b>' + pick(['That’s the one.', 'Money.', 'Pure.']) + '</b> ' + you + ' Remember that pull.</p>');
+        const streak = shots.slice().reverse().findIndex((x) => !x.scored);
+        coachSay('<p><b>' + pick(['That’s the one.', 'Money.', 'Pure.']) + '</b> ' + you + (streak === -1 || streak >= 3 ? ' That’s ' + (streak === -1 ? shots.length : streak) + ' straight.' : ' Remember that pull.') + '</p>');
         return;
       }
       let tip = pick(TIPS[s.kind] || TIPS.short);
-      if (deg(s.a) < 42 && s.kind !== 'long') tip += ' It was flat, too: aim higher, 55–65°. A steeper ball sees a bigger hoop.';
-      const rec = Hoops.recommend(s.from);
+      if (deg(s.a) < 42 && s.kind !== 'long' && s.kind !== 'back') tip += ' It was flat, too: aim higher, 55–65°. A steeper ball sees a bigger hoop.';
+      const habit = tendency();
       act('think', 1100);
-      coachSay('<p>' + tip + '</p><p class="b-hint">' + you + (rec ? ' From that spot, try about ' + rec.deg + '° at ' + rec.pct + '%.' : '') + '</p>');
+      coachSay('<p>' + tip + '</p><p class="b-hint">' + you + (rec ? ' From that spot, try about ' + rec.deg + '° at ' + rec.pct + '%.' : '') + (habit ? ' ' + habit : '') + '</p>');
     });
+
+    /* HORSE and 60 Seconds: Bez plays along and talks a little trash. */
+    function horseTalk(html, end) {
+      const actions = end
+        ? [['Rematch', () => play('horse')], ['Coach me', coach], ['Bye', leave]]
+        : [['Quit game', () => Hoops.setGame('free')]];
+      say(html, { actions });
+    }
+    const spelled = (n) => 'HORSE'.slice(0, n).split('').join('-');
+    // Bring Hoops to the front first, so the keyboard shoots.
+    function play(game) { openWin(W.hoops); Hoops.setGame(game); }
+    Hoops.onGame((e) => {
+      if (e.type === 'start') {
+        if (e.game === 'horse') {
+          stopAll();
+          mode = 'horse';
+          appear();
+          act('wave', 1200);
+          const rec = Hoops.record;
+          horseTalk('<p><b>HORSE</b>, you and me. Make a shot and I have to match it from the same spot. Miss a match, take a letter.</p>' +
+            (rec.w + rec.l ? '<p class="b-hint">You’re ' + rec.w + '–' + rec.l + ' against me.</p>' : '<p class="b-hint">You set first.</p>'));
+        } else if (e.game === 'clock') {
+          if (mode === 'horse') mode = null;
+          if (shown && !busy()) { mode = 'coach'; say('<p>Sixty seconds. Three in a row doubles your points. Go go go!</p>'); }
+        } else if (mode === 'horse' && e.was === 'horse') {
+          // A finished game leaves the rematch offer up; quitting goes home.
+          mode = null;
+          if (!e.auto && shown) home();
+        }
+        return;
+      }
+      if (e.type === 'clock-end') {
+        if (!shown) return;
+        act(e.record ? 'cheer' : 'think', 1500);
+        if (e.record) hop();
+        const pct = e.shots ? Math.round((e.made / e.shots) * 100) : 0;
+        say('<p><b>' + e.pts + ' points</b>' + (e.record ? ', a new best!' : '. Best is ' + e.best + '.') + '</p>' +
+          '<p class="b-hint">' + e.made + ' of ' + e.shots + ' (' + pct + '%)' + (e.threes ? ', ' + e.threes + (e.threes === 1 ? ' three.' : ' threes.') : '.') +
+          (pct < 50 && e.shots > 6 ? ' Fewer, better shots: a make is worth more than a quick miss.' : '') + '</p>',
+        { actions: [['Again', () => play('clock')], ['Coach me', coach], ['Bye', leave]] });
+        return;
+      }
+      if (e.type === 'clock-move') { if (shown) say('<p>Hoop’s moving! Shoot when it comes back to you.</p>', { quiet: true }); return; }
+      if (mode !== 'horse' || !shown) return;
+      const me1 = e.by === 'bez';
+      if (e.type === 'set') {
+        act(me1 ? 'cheer' : 'think', 1200);
+        horseTalk(me1 ? pick(['<p>Your turn. Match that.</p>', '<p>Off the top of my head. Match it!</p>']) : pick(['<p>Ooh, from there? Okay…</p>', '<p>Fine. I’ll match that.</p>']));
+      } else if (e.type === 'pass') {
+        act(me1 ? 'oops' : 'wave', 1000);
+        horseTalk(me1 ? '<p>Rimmed out. Your set.</p>' : pick(['<p>My ball.</p>', '<p>Missed it. I’ll set one.</p>']));
+      } else if (e.type === 'matched') {
+        act(me1 ? 'cheer' : 'think', 1000);
+        horseTalk(me1 ? '<p>Matched! Still clean.</p>' : '<p>Fine, fine. My set again.</p>');
+      } else if (e.type === 'letter') {
+        act(me1 ? 'oops' : 'cheer', 1200);
+        horseTalk(me1 ? '<p>Ugh. That’s ' + spelled(e.bez) + ' for me.</p>' : '<p>That’s ' + spelled(e.you) + ' for you.' + (e.you === 4 ? ' One more and I win.' : '') + '</p>');
+      } else if (e.type === 'end') {
+        const won = e.winner === 'you';
+        act(won ? 'oops' : 'cheer', 2000);
+        hop();
+        if (!won) Sound.play('bezYay');
+        horseTalk((won ? '<p><b>You beat me!</b> H-O-R-S-E for Bez.</p>' : '<p><b>Good game!</b> That’s HORSE for you.</p>') +
+          '<p class="b-hint">Record: ' + e.record.w + '–' + e.record.l + '.</p>', true);
+      }
+    });
+
+    /* Ask Bez: a handful of things he understands, matched by keywords. */
+    const has = (q, re) => re.test(q);
+    function notesIn(q) {
+      const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
+      let m;
+      while ((m = re.exec(q))) out.push(60 + PITCH[m[1].toUpperCase()] + (/#|♯|sharp/i.test(m[2] || '') ? 1 : /b|♭|flat/i.test(m[2] || '') ? -1 : 0));
+      return out;
+    }
+    function chordNamed(q) {
+      const m = q.match(/\b([a-g])(#|♯|b|♭| ?sharp| ?flat)?\s*(major 7|maj7|minor 7|min7|m7|major|maj|minor|min|m|dim7|dim|diminished|aug|augmented|sus2|sus4|7)?\s*(?:chord)?\s*\??$/i);
+      if (!m || (!m[3] && !/chord|play|show/i.test(q))) return null;
+      const root = 60 + PITCH[m[1].toUpperCase()] + (/#|♯|sharp/i.test(m[2] || '') ? 1 : /^(b|♭| ?flat)$/i.test(m[2] || '') ? -1 : 0);
+      const q3 = (m[3] || '').toLowerCase();
+      const shape = /major 7|maj7/.test(q3) ? [0, 4, 7, 11] : /minor 7|min7|m7/.test(q3) ? [0, 3, 7, 10] : /dim7/.test(q3) ? [0, 3, 6, 9]
+        : /dim/.test(q3) ? [0, 3, 6] : /aug/.test(q3) ? [0, 4, 8] : /sus2/.test(q3) ? [0, 2, 7] : /sus4/.test(q3) ? [0, 5, 7]
+          : q3 === '7' ? [0, 4, 7, 10] : /^(minor|min|m)$/.test(q3) ? [0, 3, 7] : [0, 4, 7];
+      return shape.map((s) => root + s);
+    }
+    // Notes in the order given, each one above the last.
+    function stack(ns) {
+      const out = [];
+      ns.forEach((m) => { while (out.length && m <= out[out.length - 1]) m += 12; out.push(m); });
+      while (out[out.length - 1] > 84) out.forEach((m, k) => { out[k] = m - 12; });
+      return out;
+    }
+    function showChord(ms) {
+      const c = identify(ms);
+      stopAll();
+      openWin(W.piano);
+      Piano.home();
+      Piano.target(ms);
+      ms.forEach((m, k) => setTimeout(() => Piano.play(m, 900), 120 + k * 90));
+      const keys = ms.map(label).filter(Boolean);
+      say('<p>Here’s <b>' + c.name + '</b>: ' + ms.map(name).join(', ') + '.</p>' +
+        (keys.length === ms.length ? '<p>Press <b>' + keys.join('</b>, <b>') + '</b> together.</p>' : '<p>Click the blinking keys together.</p>'),
+      { actions: [['Chord lessons', () => chordSets(true)], ['Clear', () => { Piano.target([]); home(); }]] });
+    }
+    function ask(raw, typed) {
+      const q = raw.toLowerCase().replace(/[’']/g, '\'').trim();
+      appear();
+      const answer = (html, actions = [], extra = null) => say(html, { extra: frag(extra, askBox()), actions: actions.length ? actions : [['Back', () => home(true)], ['Bye', leave]], focus: typed });
+      const songAt = LESSONS.findIndex((L) => has(q, { five: /five finger/, scale: /\bscale\b/, mary: /mary|little lamb/, twinkle: /twinkle|little star/, ode: /ode to joy|\bode\b|ninth/, elise: /elise|f(ü|u)r elise/ }[L.id]));
+      const notes = notesIn(q), spelledOut = notes.length >= 3, named = spelledOut ? null : chordNamed(q);
+      if (has(q, /\b(thanks|thank you|thx|ty|cheers)\b/)) { act('wave', 1000); answer('<p>Any time.</p>'); }
+      else if (spelledOut) {
+        const ms = stack(notes);
+        if (identify(ms)) showChord(ms);
+        else answer('<p>' + notes.map(name).join(', ') + ' isn’t a chord I know. Try three notes, like C E G.</p>');
+      } else if (named) showChord(named);
+      else if (songAt > -1) {
+        const L = LESSONS[songAt];
+        answer('<p><b>' + L.name + '</b>. ' + L.intro + '</p>', [['Teach me', () => begin('song', songAt)], ['In time', () => inTime(songAt)], ['Back', () => home(true)]]);
+      } else if (has(q, /\b(horse)\b/)) play('horse');
+      else if (has(q, /\b(60|sixty|clock|timed|minute)\b/)) play('clock');
+      else if (has(q, /\bear\b|by ear|interval|pitch/)) ear();
+      else if (has(q, /rhythm|tempo|in time|timing|metronome|\bbeat\b/)) songs(true, true);
+      else if (has(q, /\bchords?\b/)) chordSets(true);
+      else if (has(q, /\bsongs?\b/)) songs(true);
+      else if (has(q, /piano|lesson|teach|learn|music|keys/)) pianoMenu(true);
+      else if (has(q, /my (stats|record|progress|score)|how am i doing|how'?s my|progress/)) {
+        const p = progress();
+        answer(p.length ? '<p>' + p.join('</p><p>') + '</p>' : '<p>Nothing on the board yet. Learn a song or take a few shots and I’ll keep track.</p>');
+      } else if (has(q, /hoop|shoot|shot|basket|jump ?shot|\bball\b|\barc\b|\baim\b|three|swish/)) coach();
+      else if (has(q, /contact|e-?mail|reach|hire|work with|get in touch|\bmail\b/)) {
+        answer('<p>The best way to reach Adiel is email: <a href="mailto:hello@adiel.design">hello@adiel.design</a>.</p>', [['Copy email', copyEmail], ['Back', () => home(true)]]);
+      } else if (has(q, /\b(x|twitter|social|cosmos|savee|instagram|linkedin|follow)\b/)) {
+        answer('<p>Adiel is on <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a> and <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a>.</p>');
+      } else if (has(q, /\b(work|projects?|case stud|clients?|portfolio)\b/)) {
+        answer('<p>Selected work is coming back to this desk soon. For now, About Me has the short version, and Adiel is happy to share work by email.</p>', [['About Me', () => openWin(W.about, { scroll: true })], ['Copy email', copyEmail]]);
+      } else if (has(q, /hex/)) {
+        answer('<p>Adiel is a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a>.</p>');
+      } else if (has(q, /adiel|who (made|built|designed|is)|about (you|this|the)|designer|\bowner\b/)) {
+        answer('<p><b>Adiel Vásquez</b> is a designer focused on brand identity, currently a brand designer at HEX.</p><p>Adiel works concept-first on identities, websites, art direction and naming, and builds generative tools along the way. Offline: reading, climbing volcanoes, basketball.</p>',
+          [['About Me', () => openWin(W.about, { scroll: true })], ['Contact', () => ask('contact')], ['Back', () => home(true)]]);
+      } else if (has(q, /^open |^show /) && Object.keys(W).some((k) => q.includes(k === 'readme' ? 'read me' : k))) {
+        const k = Object.keys(W).find((w) => q.includes(w === 'readme' ? 'read me' : w));
+        openWin(W[k], { scroll: true });
+        answer('<p>Opened.</p>');
+      } else if (has(q, /paint|draw|doodle|sketch/)) {
+        openWin(W.paint, { scroll: true });
+        answer('<p>Paint’s open. Double-click the eraser to start over, and Ctrl+Z (⌘Z on a Mac) undoes. Your drawing stays in this browser.</p>');
+      } else if (has(q, /screen ?saver|idle|sleep/)) {
+        answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
+      } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
+        answer('<p>Press <b>T</b> to flip through six displays, from Paper to Text Mode.</p>', [['Next display', cycleTheme], ['Back', () => home(true)]]);
+      } else if (has(q, /joke|funny|laugh/)) {
+        act('cheer', 1200);
+        answer(pick(['<p>Why did the Bézier curve go to therapy? Too many handles on its feelings.</p>', '<p>I asked the pen tool for directions. It gave me two handles and said “you figure it out.”</p>', '<p>What’s a pianist’s favourite drink? Anything on the rocks, as long as it’s in C.</p>']));
+      } else if (has(q, /^(hi|hey|hello|yo|sup|hola|howdy)\b/)) { act('wave', 1200); home(typed); }
+      else if (has(q, /who are you|what are you|your name|\bbez\b/)) {
+        answer('<p>I’m Bez, an anchor point from a vector drawing who wandered off. These handles are my arms. I teach piano, coach hoops, and know my way around this desk.</p>');
+      } else if (has(q, /help|what can you|commands|^\?$/)) {
+        answer('<p>Try me on:</p>', [], chips(['Teach me a song', 'Ear training', 'What chord is A C E?', 'Show me G7', 'Play HORSE', '60 seconds', 'How am I doing?', 'Contact']));
+      } else {
+        act('think', 1000);
+        answer('<p>Hmm, not sure about that one. I’m good with piano, hoops, and finding things on this desk.</p>', [], chips(['Teach me a song', 'Play HORSE', 'Who’s Adiel?', 'Help']));
+      }
+    }
+    async function copyEmail() {
+      try { await navigator.clipboard.writeText('hello@adiel.design'); say('<p>Copied <b>hello@adiel.design</b>.</p>', { actions: [['Back', () => home(true)], ['Bye', leave]] }); }
+      catch (e) { location.href = 'mailto:hello@adiel.design'; }
+    }
 
     /* Dropping in, once per toy */
     function pianoOpened() {
@@ -4304,12 +4507,12 @@
       }, 1200);
     }
     function pianoClosed() {
-      if (!lesson) return;
-      endLesson();
-      say('<p>Piano’s closed, so I stopped the lesson.</p>', { actions: [['Songs', () => songs(true)], ['Bye', leave]] });
+      if (!busy()) return;
+      stopAll();
+      say('<p>Piano’s closed, so I stopped the lesson.</p>', { actions: [['Piano', () => pianoMenu(true)], ['Bye', leave]] });
     }
     function hoopsClosed() {
-      if (mode !== 'coach') return;
+      if (mode !== 'coach' && mode !== 'horse') return;
       if (Hoops.assist) Hoops.assist = false;
       home();
     }
@@ -4354,17 +4557,8 @@
       return true;
     }
 
-    // A word about wherever he's just been taken.
-    function travelled(e) {
-      if (!shown) return;
-      if (lesson || mode === 'coach' || balloon.hidden) { act('cheer', 900); hop(); return; }
-      const quip = { 1984: 'Ahh, 1984. Every pixel placed by hand.', 2005: 'Whoa, I’m glossy! Everything’s a gel now.', 2026: 'So clean. Where did all my pixels go?' }[e];
-      act('wave', 1200);
-      say('<p>' + quip + '</p>', { actions: [['Back', () => summon(false)], ['Bye', leave]] });
-    }
-
     return {
-      summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed, travelled,
+      summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed,
       render: () => { if (shown) draw(); },
     };
   })();
@@ -4405,7 +4599,6 @@
     if (Hoops.active && Hoops.keydown(e)) return;
     if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
     if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
-    if (e.code === 'KeyE' && !e.repeat) { cycleEra(); return; }
     if (e.key === 'Escape') {
       if (openRec) { closeMenu(true); return; }
       const top = activeWin();
