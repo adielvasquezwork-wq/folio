@@ -3638,7 +3638,7 @@
       else if (e.key === 'ArrowRight') keyA = Math.max(0.15, keyA - 0.03);
       else if (e.key === 'ArrowUp') keyP = Math.min(1, keyP + 0.02);
       else if (e.key === 'ArrowDown') keyP = Math.max(0.2, keyP - 0.02);
-      else if ((e.key === ' ' || e.key === 'Enter') && !e.target.closest('button, a')) {
+      else if ((e.key === ' ' || e.key === 'Enter') && !(e.target.closest && e.target.closest('button, a'))) {
         e.preventDefault();
         if (!e.repeat) launch(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
         return true;
@@ -3698,9 +3698,9 @@
     const show = () => { lcd.textContent = cur; };
     function fmt(n) {
       if (!isFinite(n)) return 'Error';
-      let s = String(Number(n.toPrecision(12)));
-      if (s.replace(/[-.]/g, '').length > 12) s = n.toExponential(6);
-      return s;
+      const abs = Math.abs(n);
+      if (abs >= 1e12 || (abs && abs < 1e-9)) return n.toExponential(5);
+      return String(Number(n.toPrecision(10)));
     }
     const calc = (a, b, o) => (o === '+' ? a + b : o === '-' ? a - b : o === '*' ? a * b : b === 0 ? NaN : a / b);
     const light = (o) => btns.forEach((b, k) => b.classList.toggle('is-lit', k === o));
@@ -5541,7 +5541,7 @@
   document.addEventListener('keydown', (e) => {
     Sound.unlock();
     if (Power.isOff) { e.preventDefault(); Power.restart(); return; }
-    const typing = e.target.closest('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable]');
+    const typing = e.target.closest && e.target.closest('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable]');
     if ((e.metaKey || e.ctrlKey) && e.code === 'KeyZ' && !e.shiftKey && !typing && Paint.active) {
       e.preventDefault();
       Paint.undo();
