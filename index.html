@@ -27,12 +27,37 @@
   /* Pick the theme before first paint so there's no flash. */
   (function () {
     var d = document.documentElement, t;
-    var ok = ['paper', 'negative', 'amber', 'pocket', 'ega', 'textmode'];
+    var ok = ['paper', 'negative', 'amber', 'green', 'pocket', 'ega', 'textmode'];
     d.classList.add('js');
     try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
     if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'negative' : 'paper';
     d.dataset.theme = t;
+    /* The desktop pattern too: 8 rows of 8 bits, drawn as an SVG mask so it takes the display's ink. */
+    window.deskMask = function (rows) {
+      var d = '';
+      for (var y = 0; y < 8; y++) for (var x = 0; x < 8; x++) if ((rows[y] >> (7 - x)) & 1) d += 'M' + x + ' ' + y + 'h1v1H' + x + 'z';
+      // An empty tile still has to be a mask, or the whole desk would paint solid.
+      return 'url("data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" shape-rendering="crispEdges"><path d="' + d + '"/></svg>') + '")';
+    };
+    try {
+      var p = JSON.parse(localStorage.getItem('adiel-prefs') || '{}');
+      if (p.pattern && p.pattern.length === 8) d.style.setProperty('--desk-mask', deskMask(p.pattern));
+      if (p.blink) d.style.setProperty('--blink', p.blink + 'ms');
+    } catch (e) {}
   })();
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Person",
+  "name": "Adiel Vásquez",
+  "jobTitle": "Brand Designer",
+  "url": "https://adiel.design/",
+  "email": "mailto:hello@adiel.design",
+  "worksFor": { "@type": "Organization", "name": "HEX", "url": "https://hex.inc" },
+  "knowsAbout": ["Brand identity", "Web design", "Art direction", "Naming"],
+  "sameAs": ["https://x.com/adieldesign", "https://www.cosmos.so/adiell", "https://savee.com/theadielv_/"]
+}
 </script>
 
 <style>
@@ -64,6 +89,8 @@
     --pop-shadow: 2px 2px 0 var(--shadow);
     --glow: none;
     --desk: none;
+    --desk-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3C/svg%3E"); /* the desktop pattern, from the Control Panel; empty until set */
+    --blink: 1100ms;         /* insertion point blinking, from the Control Panel */
     --fx: none;
     --bar: 24px;
     --sans: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
@@ -83,6 +110,16 @@
     --glow: 0 0 .4em rgb(255 176 0 / .38);
     --fx:
       repeating-linear-gradient(to bottom, rgb(0 0 0 / .26) 0 1px, transparent 1px 3px),
+      radial-gradient(120% 90% at 50% 50%, transparent 58%, rgb(0 0 0 / .5) 100%);
+    color-scheme: dark;
+  }
+  /* Green phosphor terminal */
+  :root[data-theme="green"] {
+    --paper: #021a06; --ink: #33ff66; --graphite: #1f9a44;
+    --accent: #d8ffe0; --on-accent: #021a06;
+    --glow: 0 0 .4em rgb(51 255 102 / .4);
+    --fx:
+      repeating-linear-gradient(to bottom, rgb(0 0 0 / .24) 0 1px, transparent 1px 3px),
       radial-gradient(120% 90% at 50% 50%, transparent 58%, rgb(0 0 0 / .5) 100%);
     color-scheme: dark;
   }
@@ -146,6 +183,14 @@
   }
   ::selection { background: var(--accent); color: var(--on-accent); }
   :focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+
+  /* The desktop pattern: an 8×8 tile, 2px to the pixel, in the desk's ink */
+  .deskpat {
+    position: fixed; inset: 0; z-index: -1; pointer-events: none;
+    background: var(--desk-ink);
+    -webkit-mask-image: var(--desk-mask); mask-image: var(--desk-mask);
+    -webkit-mask-size: 16px 16px; mask-size: 16px 16px;
+  }
 
   /* Rounded screen corners + per-theme screen effect */
   .bezel {
@@ -231,7 +276,26 @@
   .mi:hover, .mi:focus-visible, .mi.is-lit { background: var(--hl); color: var(--on-hl); }
   .menu.is-blinking .mi:not(.is-lit) { background: transparent; color: var(--menu-ink); }
   .mi[aria-disabled="true"] { color: var(--bar-dim) !important; background: transparent !important; pointer-events: none; }
+  .mi .check { position: absolute; left: 8px; top: 0; line-height: 22px; font-size: 11px; }
+  .mi .shortcut { font-size: 11px; font-weight: 500; opacity: .75; }
   .sep { height: 1px; margin: 4px 0; background: repeating-linear-gradient(90deg, var(--bar-dim) 0 1px, transparent 1px 2px); }
+  .mb-menu.is-right .menu { left: auto; right: 0; min-width: 0; }
+  .mi.only-narrow, .sep.only-narrow { display: none; }
+
+  /* The calendar under the clock */
+  .mb-clock { align-self: stretch; display: flex; align-items: center; padding: 0 6px; cursor: default; font-weight: 500; }
+  .mb-clock[aria-expanded="true"] { background: var(--hl); color: var(--on-hl); }
+  .cal { padding: 8px 10px 10px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-weight: 700; }
+  .cal-btn { display: grid; place-items: center; width: 20px; height: 18px; border: 1px solid var(--menu-ink); border-radius: 4px; cursor: default; }
+  .cal-btn svg { width: 4px; height: 7px; fill: currentColor; }
+  .cal-btn:hover, .cal-btn:focus-visible { background: var(--hl); color: var(--on-hl); outline: none; }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 26px); gap: 1px; text-align: center; font-size: 12px; }
+  .cal-grid span { height: 22px; line-height: 22px; }
+  .cal-grid .dow { font-size: 10px; font-weight: 600; color: var(--bar-dim); }
+  .cal-grid .dim { color: var(--bar-dim); }
+  .cal-grid .today { background: var(--hl); color: var(--on-hl); font-weight: 700; }
+  .cal-foot { margin-top: 8px; font-size: 11px; color: var(--bar-dim); }
 
   /* ------------------------------------------------------------
      Desk + statement
@@ -288,24 +352,24 @@
     width: 0.07em; min-width: 2px; height: 0.84em;
     margin-left: 0.07em; vertical-align: -0.1em;
     background: var(--accent);
-    animation: blink 1.1s steps(1, end) infinite;
+    animation: blink var(--blink) steps(1, end) infinite;
   }
   @keyframes blink { 50% { visibility: hidden; } }
 
   /* ------------------------------------------------------------
      Desktop icons
   ------------------------------------------------------------ */
-  .icons {
-    position: fixed; z-index: 10;
-    top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 16px);
-    right: max(14px, env(safe-area-inset-right, 0px));
-    display: grid; gap: 10px;
-  }
+  .icons { position: fixed; inset: 0; z-index: 10; pointer-events: none; }
   .icon {
+    position: absolute; left: 0; top: 0;
     display: flex; flex-direction: column; align-items: center; gap: 4px;
     width: 76px; padding: 2px 0;
-    cursor: default; outline: none;
+    cursor: default; outline: none; pointer-events: auto;
+    touch-action: none;
   }
+  .icon.is-dragging { z-index: 1; opacity: .85; }
+  .icon.is-drop .i-fill { fill: var(--ink); }
+  .icon.is-drop .i-ink { fill: var(--paper); }
   .icon svg { display: block; width: 32px; height: 32px; }
   .icon-label {
     padding: 0 4px;
@@ -331,7 +395,9 @@
     box-shadow: var(--win-shadow);
   }
   .js .window[data-boot] { display: none; }
-  #readme { right: clamp(24px, 9vw, 160px); bottom: clamp(28px, 13vh, 150px); width: 304px; }
+  .window.is-shaded > :not(.titlebar) { display: none; }
+  .window.is-shaded .titlebar { border-bottom: 0; }
+  #readme { right: clamp(112px, 9vw, 160px); bottom: clamp(28px, 13vh, 150px); width: 304px; }
   #about {
     top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 36px);
     right: clamp(108px, 11vw, 220px);
@@ -561,16 +627,17 @@
     content: ""; position: absolute; left: 50%; bottom: 22px;
     width: 8px; height: 8px; margin-left: -4px;
     background: var(--accent);
-    animation: blink 1.1s steps(1, end) infinite;
+    animation: blink var(--blink) steps(1, end) infinite;
   }
   .bk.is-target::after { bottom: 16px; width: 6px; height: 6px; margin-left: -3px; }
 
   /* Bez, an anchor point whose Bézier handles are his arms */
   .bez {
     position: fixed; z-index: 48;
-    right: max(18px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px));
+    right: max(104px, env(safe-area-inset-right, 0px)); bottom: max(16px, env(safe-area-inset-bottom, 0px));
     width: 88px; height: 72px;
   }
+  @media (max-width: 720px) { .bez { right: max(18px, env(safe-area-inset-right, 0px)); } }
   .bez-me { display: block; width: 88px; height: 72px; cursor: default; touch-action: none; }
   .bez-me canvas { display: block; width: 88px; height: 72px; image-rendering: pixelated; }
   .bez-me:focus-visible { outline-offset: -6px; }
@@ -638,6 +705,141 @@
   .b-stars { letter-spacing: 1px; }
   .b-text a { color: inherit; }
 
+  /* Calculator desk accessory */
+  #calc { left: clamp(60px, 18vw, 320px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 120px); }
+  .calc-body { padding: 10px; }
+  .lcd {
+    display: block; height: 34px; padding: 0 10px; margin-bottom: 8px;
+    border: 1px solid var(--ink);
+    font: 500 20px/32px var(--mono); text-align: right; letter-spacing: 0;
+    overflow: hidden; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .calc-keys { display: grid; grid-template-columns: repeat(4, 42px); gap: 4px; width: max-content; margin: 0 auto; }
+  .ckey {
+    height: 30px;
+    border: 1px solid var(--ink); border-radius: 6px;
+    background: var(--paper); color: var(--ink);
+    font-size: 14px; font-weight: 600; cursor: default;
+  }
+  .ckey.is-op { background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px; }
+  .ckey.is-op span { padding: 0 3px; background: var(--paper); }
+  .ckey.is-wide { grid-column: span 2; }
+  .ckey:active, .ckey.is-lit { background: var(--ink); color: var(--paper); }
+  .ckey.is-lit span, .ckey:active span { background: var(--ink); }
+  .ckey:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+
+  /* Note Pad desk accessory */
+  #notes { left: clamp(40px, 14vw, 260px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 80px); width: 300px; }
+  .notes-body { padding: 0; }
+  .notes-body textarea {
+    display: block; width: 100%; height: 176px; margin: 0; padding: 12px 14px;
+    border: 0; border-radius: 0; resize: none;
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 21px, var(--graphite) 21px 22px) 0 11px / 100% 22px,
+      var(--paper);
+    color: var(--ink);
+    font: 500 13px/22px var(--font);
+    outline: none;
+  }
+  .notes-body textarea::placeholder { color: var(--graphite); opacity: 1; }
+  .notes-foot {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 26px; padding: 0 8px 0 10px;
+    border-top: 1px solid var(--ink);
+    font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums;
+  }
+  .notes-foot .pages { display: flex; align-items: center; gap: 6px; }
+  .dogear { display: grid; place-items: center; width: 22px; height: 18px; border: 1px solid var(--ink); border-radius: 4px; cursor: default; }
+  .dogear svg { width: 4px; height: 7px; fill: currentColor; }
+  .dogear:active { background: var(--ink); color: var(--paper); }
+
+  /* Puzzle desk accessory */
+  #puzzle { right: clamp(60px, 10vw, 200px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 140px); }
+  .puzzle-body { padding: 10px; }
+  .board {
+    display: grid; grid-template-columns: repeat(4, 40px); grid-template-rows: repeat(4, 40px); gap: 2px;
+    width: max-content; margin: 0 auto;
+    padding: 2px; border: 1px solid var(--ink);
+    background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px;
+  }
+  .tile {
+    border: 1px solid var(--ink); background: var(--paper); color: var(--ink);
+    font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; cursor: default;
+    transition: transform .08s steps(2, end);
+  }
+  .tile:active { background: var(--ink); color: var(--paper); }
+  .tile:focus-visible { outline: 1px dotted var(--ink); outline-offset: -4px; }
+  .puzzle-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .puzzle-bar b { font-weight: 700; }
+
+  /* Control Panel */
+  #panel { left: clamp(24px, 8vw, 180px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 40px); width: 420px; max-height: calc(100dvh - var(--bar) - 60px); }
+  .panel { padding: 14px 16px 16px; }
+  .cp-row { display: grid; grid-template-columns: 96px 1fr; column-gap: 14px; align-items: start; }
+  .cp-row + .cp-row { margin-top: 12px; padding-top: 12px; border-top: 1px solid transparent; background: repeating-linear-gradient(90deg, var(--graphite) 0 1px, transparent 1px 2px) 0 0 / 100% 1px no-repeat; }
+  .cp-row > dt, .cp-label { padding-top: 2px; text-align: right; color: var(--graphite); font-weight: 500; }
+  .cp-pattern { display: flex; align-items: flex-start; gap: 12px; }
+  .pat-edit { display: grid; grid-template-columns: repeat(8, 9px); grid-template-rows: repeat(8, 9px); border: 1px solid var(--ink); background: var(--paper); }
+  .pat-edit button { width: 9px; height: 9px; background: var(--paper); border-right: 1px solid var(--graphite); border-bottom: 1px solid var(--graphite); }
+  .pat-edit button:nth-child(8n) { border-right: 0; }
+  .pat-edit button:nth-child(n+57) { border-bottom: 0; }
+  .pat-edit button[aria-pressed="true"] { background: var(--ink); }
+  .pat-preview {
+    width: 72px; height: 72px; border: 1px solid var(--ink);
+    background-color: var(--paper); position: relative;
+  }
+  .pat-preview::after { content: ""; position: absolute; inset: 0; background: var(--ink); -webkit-mask-image: var(--pv); mask-image: var(--pv); -webkit-mask-size: 16px 16px; mask-size: 16px 16px; }
+  .pat-nav { display: flex; gap: 6px; margin-top: 6px; }
+  .cp-hint { margin-top: 6px; font-size: 11px; color: var(--graphite); }
+  .radios { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+  .radio { position: relative; display: flex; align-items: center; gap: 6px; cursor: default; user-select: none; -webkit-user-select: none; }
+  .radio input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+  .radio .dot { display: grid; place-items: center; width: 12px; height: 12px; border: 1px solid var(--ink); border-radius: 50%; background: var(--paper); }
+  .radio .dot::after { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--ink); visibility: hidden; }
+  .radio input:checked + .dot::after { visibility: visible; }
+  .radio input:focus-visible + .dot { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .vol { display: flex; align-items: center; gap: 8px; }
+  .vol input[type="range"] { -webkit-appearance: none; appearance: none; width: 140px; height: 12px; margin: 0; padding: 1px; border: 1px solid var(--ink); background: var(--paper); }
+  .vol input[type="range"]::-webkit-slider-runnable-track { height: 8px; background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px; }
+  .vol input[type="range"]::-moz-range-track { height: 8px; background: conic-gradient(var(--ink) 25%, var(--paper) 0 50%, var(--ink) 0 75%, var(--paper) 0) 0 0 / 2px 2px; }
+  .vol input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; margin-top: -3px; border: 1px solid var(--ink); border-radius: 0; background: var(--paper); }
+  .vol input[type="range"]::-moz-range-thumb { width: 12px; height: 12px; border: 1px solid var(--ink); border-radius: 0; background: var(--paper); }
+  .vol input[type="range"]:focus-visible { outline: 1px solid var(--accent); outline-offset: 2px; }
+  .vol b { min-width: 1ch; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .displays { display: flex; flex-wrap: wrap; gap: 4px; }
+  .disp { height: 20px; padding: 0 8px; border: 1px solid var(--ink); border-radius: 5px; background: var(--paper); color: var(--ink); font-size: 11px; font-weight: 600; cursor: default; }
+  .disp[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
+  .cp-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; }
+
+  /* Power: shutting down and starting up */
+  .power { position: fixed; inset: 0; z-index: 95; background: #000; color: #ffb000; }
+  .power::before, .power::after { content: ""; position: absolute; left: 0; right: 0; height: 50%; background: #000; }
+  .power::before { top: 0; transform-origin: top; }
+  .power::after { bottom: 0; transform-origin: bottom; }
+  .power.is-off::before, .power.is-off::after { animation: crt-bar .32s steps(8, end) both; }
+  .power.is-off .beam { position: absolute; left: 0; right: 0; top: 50%; height: 2px; margin-top: -1px; background: #fff; animation: crt-beam .5s steps(10, end) .3s both; }
+  .power.is-off .off-text { animation: appear 0s linear .9s both; }
+  @keyframes crt-bar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+  @keyframes crt-beam { 0% { transform: scaleX(1); opacity: 1; } 70% { transform: scaleX(0); opacity: 1; } 100% { transform: scaleX(0); opacity: 0; } }
+  @keyframes appear { from { visibility: hidden; } to { visibility: visible; } }
+  .power.is-off { background: transparent; }
+  .power.is-off::before, .power.is-off::after { background: #000; }
+  .off-text { position: absolute; z-index: 1; left: 0; right: 0; top: 50%; padding: 0 24px; transform: translateY(-50%); text-align: center; font: 500 clamp(14px, 2.4vw, 20px)/1.5 var(--mono); }
+  .power .beam { z-index: 1; }
+  .off-text small { display: block; margin-top: 10px; font-size: .7em; opacity: .6; }
+  .power.is-on { background: var(--paper); color: var(--ink); }
+  .power.is-on::before, .power.is-on::after { display: none; }
+  .welcome {
+    position: absolute; z-index: 1; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    display: flex; align-items: center; gap: 18px;
+    padding: 18px 26px;
+    background: var(--paper); border: 1px solid var(--ink);
+    box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--ink), var(--pop-shadow);
+    font-size: 19px; font-weight: 500; letter-spacing: -0.02em; white-space: nowrap;
+  }
+  .welcome svg { width: 32px; height: 32px; flex: none; }
+  .power.is-on .welcome { animation: appear 0s linear .25s both; }
+
   /* Screen saver */
   .saver { position: fixed; inset: 0; z-index: 90; display: block; width: 100%; height: 100%; background: var(--desk-color); cursor: none; }
 
@@ -691,10 +893,18 @@
     .paint-actions { width: 64px; }
     .sheet { align-self: center; }
   }
+  @media (max-width: 720px) {
+    .mb-window { display: none; }
+    #panel .cp-row { grid-template-columns: 1fr; row-gap: 4px; }
+    #panel .cp-row > dt, #panel .cp-label { text-align: left; }
+  }
   @media (max-width: 520px) {
     .theme-name { display: none; }
     .theme-btn { padding: 0 5px; }
     .mb-title { padding: 0 8px; }
+    .mb-special { display: none; }
+    .mi.only-narrow, .sep.only-narrow { display: flex; }
+    .sep.only-narrow { display: block; }
   }
   @media (max-width: 400px) {
     .mb-work { display: none; }
@@ -708,6 +918,10 @@
     .caret, .key.is-target::after { animation: none; }
     .chip, .chip::after { transition: none; }
     .bez .bez-me { animation: none !important; }
+    .tile { transition: none; }
+    .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
+    .power.is-off .beam { display: none; }
+    .power.is-off .off-text, .power.is-on .welcome { animation: none; }
   }
 </style>
 </head>
@@ -734,8 +948,16 @@
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="piano">Piano</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="paint">Paint</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="hoops">Hoops</button></li>
-        <li role="none"><button class="mi" role="menuitem" type="button" data-saver>Screen Saver</button></li>
-        <li role="none"><button class="mi" role="menuitem" type="button" data-bez>Ask Bez <span aria-hidden="true">?</span></button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="puzzle">Puzzle</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="calc">Calculator</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="notes">Note Pad</button></li>
+        <li role="separator" class="sep"></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="panel">Control Panel</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-bez>Ask Bez <span class="shortcut" aria-hidden="true">?</span></button></li>
+        <li role="separator" class="sep only-narrow"></li>
+        <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-saver>Screen Saver</button></li>
+        <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-power="restart">Restart</button></li>
+        <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-power="off">Shut Down</button></li>
         <li role="separator" class="sep"></li>
         <li role="none"><a class="mi" role="menuitem" href="https://hex.inc" target="_blank" rel="noopener">Visit hex.inc</a></li>
         <li role="separator" class="sep"></li>
@@ -744,6 +966,23 @@
     </div>
     <span class="mb-title is-disabled mb-work" aria-disabled="true" title="Coming soon">Work</span>
     <a class="mb-title" href="mailto:hello@adiel.design">Contact</a>
+    <div class="mb-menu mb-special">
+      <button class="mb-title" id="menu-special" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-special">Special</button>
+      <ul class="menu" id="m-special" role="menu" aria-labelledby="menu-special" hidden>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-cleanup>Clean Up Desktop</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-trash>Empty Trash…</button></li>
+        <li role="separator" class="sep"></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-saver>Screen Saver</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-theme-next>Next Display <span class="shortcut" aria-hidden="true">T</span></button></li>
+        <li role="separator" class="sep"></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-power="restart">Restart</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-power="off">Shut Down</button></li>
+      </ul>
+    </div>
+    <div class="mb-menu mb-window">
+      <button class="mb-title" id="menu-window" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-window">Window</button>
+      <ul class="menu" id="m-window" role="menu" aria-labelledby="menu-window" hidden></ul>
+    </div>
   </nav>
   <div class="mb-right">
     <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
@@ -762,7 +1001,10 @@
         <path class="off" d="M9 4h1v1H9zM12 4h1v1h-1zM10 5h2v2h-2zM9 7h1v1H9zM12 7h1v1h-1z"/>
       </svg>
     </button>
-    <time id="clock"></time>
+    <div class="mb-menu is-right">
+      <button class="mb-clock" id="menu-clock" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-clock" title="Calendar"><time id="clock"></time></button>
+      <div class="menu cal" id="m-clock" role="menu" aria-labelledby="menu-clock" hidden></div>
+    </div>
   </div>
 </header>
 
@@ -780,7 +1022,7 @@
     </header>
     <div class="wbody">
       <p class="w-lead">A new portfolio is in progress.</p>
-      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button>, play the <button class="inline-link" type="button" data-win="piano">Piano</button>, draw in <button class="inline-link" type="button" data-win="paint">Paint</button> or shoot some <button class="inline-link" type="button" data-win="hoops">Hoops</button>.</p>
+      <p class="w-sub">Selected work will be back here soon. Until then, open <button class="inline-link" type="button" data-win="about">About Me</button>, play the <button class="inline-link" type="button" data-win="piano">Piano</button>, draw in <button class="inline-link" type="button" data-win="paint">Paint</button>, shoot some <button class="inline-link" type="button" data-win="hoops">Hoops</button> or slide the <button class="inline-link" type="button" data-win="puzzle">Puzzle</button>.</p>
       <div class="progress">
         <div class="track" role="progressbar" aria-label="Portfolio progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="61"><div class="fill" id="fill"></div></div>
         <span class="pct" id="pct" aria-hidden="true">61%</span>
@@ -888,6 +1130,8 @@
         </div>
         <div class="paint-actions">
           <button class="btn btn-sm" type="button" id="paint-undo" title="Undo (⌘Z)">Undo</button>
+          <button class="btn btn-sm" type="button" id="paint-invert" title="Invert (I)">Invert</button>
+          <button class="btn btn-sm" type="button" id="paint-flip" title="Flip horizontal (F)">Flip</button>
           <button class="btn btn-sm" type="button" id="paint-clear">Clear</button>
           <button class="btn btn-sm" type="button" id="paint-save" title="Save as PNG">Save</button>
         </div>
@@ -921,6 +1165,128 @@
     <canvas class="court" id="court" width="200" height="140" role="img" aria-label="Basketball court"></canvas>
     <p class="hoops-status" id="hoops-status" aria-live="polite">Pull back anywhere and let go.</p>
     <p class="hoops-hint" id="hoops-hint">Or aim with the arrow keys and shoot with Space. Threes from behind the line.</p>
+  </div>
+</section>
+
+<!-- Calculator -->
+<section class="window is-float" id="calc" tabindex="-1" aria-labelledby="calc-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Calculator"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="calc-title">Calculator</h2>
+  </header>
+  <div class="wbody calc-body">
+    <output class="lcd" id="lcd" aria-live="polite" aria-label="Display">0</output>
+    <div class="calc-keys" id="calc-keys" role="group" aria-label="Keys"></div>
+  </div>
+</section>
+
+<!-- Note Pad -->
+<section class="window is-float" id="notes" tabindex="-1" aria-labelledby="notes-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Note Pad"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="notes-title">Note Pad</h2>
+  </header>
+  <div class="wbody notes-body">
+    <textarea id="note-text" aria-label="Note" spellcheck="false" placeholder="Type anything. It stays in this browser."></textarea>
+    <div class="notes-foot">
+      <span id="note-count">0 words</span>
+      <span class="pages">
+        <button class="dogear" type="button" id="note-prev" aria-label="Previous page"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
+        <span id="note-page">1 of 8</span>
+        <button class="dogear" type="button" id="note-next" aria-label="Next page"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+      </span>
+    </div>
+  </div>
+</section>
+
+<!-- Puzzle -->
+<section class="window is-float" id="puzzle" data-icon="icon-puzzle" tabindex="-1" aria-labelledby="puzzle-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Puzzle"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="puzzle-title">Puzzle</h2>
+  </header>
+  <div class="wbody puzzle-body">
+    <div class="board" id="board" role="group" aria-label="Sliding tiles"></div>
+    <div class="puzzle-bar">
+      <span id="puzzle-status" aria-live="polite">Moves <b id="puzzle-moves">0</b></span>
+      <span id="puzzle-best"></span>
+      <button class="btn btn-sm" type="button" id="puzzle-shuffle">Shuffle</button>
+    </div>
+  </div>
+</section>
+
+<!-- Control Panel -->
+<section class="window is-float" id="panel" tabindex="-1" aria-labelledby="panel-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Control Panel"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="panel-title">Control Panel</h2>
+  </header>
+  <div class="wbody panel scroll">
+    <dl>
+      <div class="cp-row">
+        <dt>Desktop</dt>
+        <dd>
+          <div class="cp-pattern">
+            <div>
+              <div class="pat-edit" id="pat-edit" role="group" aria-label="Pattern editor, 8 by 8"></div>
+              <div class="pat-nav">
+                <button class="mini" type="button" id="pat-prev" aria-label="Previous pattern"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
+                <button class="mini" type="button" id="pat-next" aria-label="Next pattern"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+              </div>
+            </div>
+            <div>
+              <div class="pat-preview" id="pat-preview" aria-hidden="true"></div>
+              <p class="cp-hint" id="pat-name">Plain</p>
+            </div>
+          </div>
+          <p class="cp-hint">Click the little squares to draw your own pattern, or flip through the presets.</p>
+        </dd>
+      </div>
+      <div class="cp-row">
+        <dt>Display</dt>
+        <dd><div class="displays" id="cp-displays" role="group" aria-label="Display"></div></dd>
+      </div>
+      <div class="cp-row">
+        <dt>Sound</dt>
+        <dd>
+          <div class="vol">
+            <label class="checkbox"><input type="checkbox" id="cp-sfx"><span class="box" aria-hidden="true"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 4h1v1H4zM5 5h1v1H5zM6 6h1v1H6zM7 7h1v1H7zM7 0h1v1H7zM6 1h1v1H6zM5 2h1v1H5zM4 3h1v1H4zM3 4h1v1H3zM2 5h1v1H2zM1 6h1v1H1zM0 7h1v1H0z"/></svg></span>Effects</label>
+            <input type="range" id="cp-vol" min="0" max="7" step="1" value="5" aria-label="Volume">
+            <b id="cp-vol-n">5</b>
+          </div>
+        </dd>
+      </div>
+      <div class="cp-row">
+        <dt>Blinking</dt>
+        <dd>
+          <div class="radios" id="cp-blink" role="radiogroup" aria-label="Insertion point blinking">
+            <label class="radio"><input type="radio" name="blink" value="1600"><span class="dot" aria-hidden="true"></span>Slow</label>
+            <label class="radio"><input type="radio" name="blink" value="1100"><span class="dot" aria-hidden="true"></span>Medium</label>
+            <label class="radio"><input type="radio" name="blink" value="650"><span class="dot" aria-hidden="true"></span>Fast</label>
+          </div>
+          <p class="cp-hint">Insertion point. The menu item you pick blinks too:</p>
+          <div class="radios" id="cp-menu" role="radiogroup" aria-label="Menu blinking">
+            <label class="radio"><input type="radio" name="mblink" value="0"><span class="dot" aria-hidden="true"></span>Off</label>
+            <label class="radio"><input type="radio" name="mblink" value="1"><span class="dot" aria-hidden="true"></span>1</label>
+            <label class="radio"><input type="radio" name="mblink" value="2"><span class="dot" aria-hidden="true"></span>2</label>
+            <label class="radio"><input type="radio" name="mblink" value="3"><span class="dot" aria-hidden="true"></span>3</label>
+          </div>
+        </dd>
+      </div>
+      <div class="cp-row">
+        <dt>Clock</dt>
+        <dd>
+          <div class="radios" id="cp-clock" role="radiogroup" aria-label="Clock">
+            <label class="radio"><input type="radio" name="clock" value="12"><span class="dot" aria-hidden="true"></span>12-hour</label>
+            <label class="radio"><input type="radio" name="clock" value="24"><span class="dot" aria-hidden="true"></span>24-hour</label>
+          </div>
+        </dd>
+      </div>
+    </dl>
+    <div class="cp-actions">
+      <span class="cp-hint">Everything here is kept in this browser.</span>
+      <button class="btn btn-sm" type="button" id="cp-reset">Reset desk…</button>
+    </div>
   </div>
 </section>
 
@@ -967,6 +1333,20 @@
     </svg>
     <span class="icon-label" aria-hidden="true">Work</span>
   </button>
+  <button class="icon" id="icon-puzzle" type="button" data-open="puzzle" aria-label="Puzzle">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M4 4h5v1h-5zM10 4h5v1h-5zM16 4h5v1h-5zM23 4h1v1h-1zM25 4h1v1h-1zM4 5h5v1h-5zM10 5h5v1h-5zM16 5h5v1h-5zM22 5h1v1h-1zM24 5h1v1h-1zM26 5h1v1h-1zM4 6h5v1h-5zM10 6h5v1h-5zM16 6h5v1h-5zM23 6h1v1h-1zM25 6h1v1h-1zM4 7h5v1h-5zM10 7h5v1h-5zM16 7h5v1h-5zM22 7h1v1h-1zM24 7h1v1h-1zM26 7h1v1h-1zM4 8h5v1h-5zM10 8h5v1h-5zM16 8h5v1h-5zM23 8h1v1h-1zM25 8h1v1h-1zM4 10h5v1h-5zM10 10h5v1h-5zM16 10h5v1h-5zM22 10h5v1h-5zM4 11h5v1h-5zM10 11h5v1h-5zM16 11h5v1h-5zM22 11h5v1h-5zM4 12h5v1h-5zM10 12h5v1h-5zM16 12h5v1h-5zM22 12h5v1h-5zM4 13h5v1h-5zM10 13h5v1h-5zM16 13h5v1h-5zM22 13h5v1h-5zM4 14h5v1h-5zM10 14h5v1h-5zM16 14h5v1h-5zM22 14h5v1h-5zM4 16h5v1h-5zM10 16h5v1h-5zM16 16h5v1h-5zM22 16h5v1h-5zM4 17h5v1h-5zM10 17h5v1h-5zM16 17h5v1h-5zM22 17h5v1h-5zM4 18h5v1h-5zM10 18h5v1h-5zM16 18h5v1h-5zM22 18h5v1h-5zM4 19h5v1h-5zM10 19h5v1h-5zM16 19h5v1h-5zM22 19h5v1h-5zM4 20h5v1h-5zM10 20h5v1h-5zM16 20h5v1h-5zM22 20h5v1h-5zM4 22h5v1h-5zM10 22h5v1h-5zM16 22h5v1h-5zM22 22h5v1h-5zM4 23h5v1h-5zM10 23h5v1h-5zM16 23h5v1h-5zM22 23h5v1h-5zM4 24h5v1h-5zM10 24h5v1h-5zM16 24h5v1h-5zM22 24h5v1h-5zM4 25h5v1h-5zM10 25h5v1h-5zM16 25h5v1h-5zM22 25h5v1h-5zM4 26h5v1h-5zM10 26h5v1h-5zM16 26h5v1h-5zM22 26h5v1h-5z"/>
+      <path class="i-ink" d="M3 3h25v1h-25zM3 4h1v1h-1zM9 4h1v1h-1zM15 4h1v1h-1zM21 4h2v1h-2zM24 4h1v1h-1zM26 4h2v1h-2zM3 5h1v1h-1zM9 5h1v1h-1zM15 5h1v1h-1zM21 5h1v1h-1zM23 5h1v1h-1zM25 5h1v1h-1zM27 5h1v1h-1zM3 6h1v1h-1zM9 6h1v1h-1zM15 6h1v1h-1zM21 6h2v1h-2zM24 6h1v1h-1zM26 6h2v1h-2zM3 7h1v1h-1zM9 7h1v1h-1zM15 7h1v1h-1zM21 7h1v1h-1zM23 7h1v1h-1zM25 7h1v1h-1zM27 7h1v1h-1zM3 8h1v1h-1zM9 8h1v1h-1zM15 8h1v1h-1zM21 8h2v1h-2zM24 8h1v1h-1zM26 8h2v1h-2zM3 9h25v1h-25zM3 10h1v1h-1zM9 10h1v1h-1zM15 10h1v1h-1zM21 10h1v1h-1zM27 10h1v1h-1zM3 11h1v1h-1zM9 11h1v1h-1zM15 11h1v1h-1zM21 11h1v1h-1zM27 11h1v1h-1zM3 12h1v1h-1zM9 12h1v1h-1zM15 12h1v1h-1zM21 12h1v1h-1zM27 12h1v1h-1zM3 13h1v1h-1zM9 13h1v1h-1zM15 13h1v1h-1zM21 13h1v1h-1zM27 13h1v1h-1zM3 14h1v1h-1zM9 14h1v1h-1zM15 14h1v1h-1zM21 14h1v1h-1zM27 14h1v1h-1zM3 15h25v1h-25zM3 16h1v1h-1zM9 16h1v1h-1zM15 16h1v1h-1zM21 16h1v1h-1zM27 16h1v1h-1zM3 17h1v1h-1zM9 17h1v1h-1zM15 17h1v1h-1zM21 17h1v1h-1zM27 17h1v1h-1zM3 18h1v1h-1zM9 18h1v1h-1zM15 18h1v1h-1zM21 18h1v1h-1zM27 18h1v1h-1zM3 19h1v1h-1zM9 19h1v1h-1zM15 19h1v1h-1zM21 19h1v1h-1zM27 19h1v1h-1zM3 20h1v1h-1zM9 20h1v1h-1zM15 20h1v1h-1zM21 20h1v1h-1zM27 20h1v1h-1zM3 21h25v1h-25zM3 22h1v1h-1zM9 22h1v1h-1zM15 22h1v1h-1zM21 22h1v1h-1zM27 22h1v1h-1zM3 23h1v1h-1zM9 23h1v1h-1zM15 23h1v1h-1zM21 23h1v1h-1zM27 23h1v1h-1zM3 24h1v1h-1zM9 24h1v1h-1zM15 24h1v1h-1zM21 24h1v1h-1zM27 24h1v1h-1zM3 25h1v1h-1zM9 25h1v1h-1zM15 25h1v1h-1zM21 25h1v1h-1zM27 25h1v1h-1zM3 26h1v1h-1zM9 26h1v1h-1zM15 26h1v1h-1zM21 26h1v1h-1zM27 26h1v1h-1zM3 27h25v1h-25z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Puzzle</span>
+  </button>
+  <button class="icon" id="icon-trash" type="button" data-open="trash" aria-label="Trash">
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M15 1h6v1h-6zM15 2h6v1h-6zM6 4h20v1h-20zM8 6h16v1h-16zM8 7h2v1h-2zM11 7h3v1h-3zM15 7h2v1h-2zM18 7h3v1h-3zM22 7h2v1h-2zM8 8h2v1h-2zM11 8h3v1h-3zM15 8h2v1h-2zM18 8h3v1h-3zM22 8h2v1h-2zM8 9h2v1h-2zM11 9h3v1h-3zM15 9h2v1h-2zM18 9h3v1h-3zM22 9h2v1h-2zM8 10h2v1h-2zM11 10h3v1h-3zM15 10h2v1h-2zM18 10h3v1h-3zM22 10h2v1h-2zM8 11h2v1h-2zM11 11h3v1h-3zM15 11h2v1h-2zM18 11h3v1h-3zM22 11h2v1h-2zM8 12h2v1h-2zM11 12h3v1h-3zM15 12h2v1h-2zM18 12h3v1h-3zM22 12h2v1h-2zM8 13h2v1h-2zM11 13h3v1h-3zM15 13h2v1h-2zM18 13h3v1h-3zM22 13h2v1h-2zM8 14h2v1h-2zM11 14h3v1h-3zM15 14h2v1h-2zM18 14h3v1h-3zM22 14h2v1h-2zM8 15h2v1h-2zM11 15h3v1h-3zM15 15h2v1h-2zM18 15h3v1h-3zM22 15h2v1h-2zM8 16h2v1h-2zM11 16h3v1h-3zM15 16h2v1h-2zM18 16h3v1h-3zM22 16h2v1h-2zM8 17h2v1h-2zM11 17h3v1h-3zM15 17h2v1h-2zM18 17h3v1h-3zM22 17h2v1h-2zM8 18h2v1h-2zM11 18h3v1h-3zM15 18h2v1h-2zM18 18h3v1h-3zM22 18h2v1h-2zM8 19h2v1h-2zM11 19h3v1h-3zM15 19h2v1h-2zM18 19h3v1h-3zM22 19h2v1h-2zM8 20h2v1h-2zM11 20h3v1h-3zM15 20h2v1h-2zM18 20h3v1h-3zM22 20h2v1h-2zM8 21h2v1h-2zM11 21h3v1h-3zM15 21h2v1h-2zM18 21h3v1h-3zM22 21h2v1h-2zM8 22h2v1h-2zM11 22h3v1h-3zM15 22h2v1h-2zM18 22h3v1h-3zM22 22h2v1h-2zM8 23h2v1h-2zM11 23h3v1h-3zM15 23h2v1h-2zM18 23h3v1h-3zM22 23h2v1h-2zM8 24h2v1h-2zM11 24h3v1h-3zM15 24h2v1h-2zM18 24h3v1h-3zM22 24h2v1h-2zM8 25h2v1h-2zM11 25h3v1h-3zM15 25h2v1h-2zM18 25h3v1h-3zM22 25h2v1h-2zM9 26h14v1h-14z"/>
+      <path class="i-ink" d="M15 0h6v1h-6zM14 1h1v1h-1zM21 1h1v1h-1zM14 2h1v1h-1zM21 2h1v1h-1zM6 3h20v1h-20zM5 4h1v1h-1zM26 4h1v1h-1zM6 5h20v1h-20zM7 6h1v1h-1zM24 6h1v1h-1zM7 7h1v1h-1zM10 7h1v1h-1zM14 7h1v1h-1zM17 7h1v1h-1zM21 7h1v1h-1zM24 7h1v1h-1zM7 8h1v1h-1zM10 8h1v1h-1zM14 8h1v1h-1zM17 8h1v1h-1zM21 8h1v1h-1zM24 8h1v1h-1zM7 9h1v1h-1zM10 9h1v1h-1zM14 9h1v1h-1zM17 9h1v1h-1zM21 9h1v1h-1zM24 9h1v1h-1zM7 10h1v1h-1zM10 10h1v1h-1zM14 10h1v1h-1zM17 10h1v1h-1zM21 10h1v1h-1zM24 10h1v1h-1zM7 11h1v1h-1zM10 11h1v1h-1zM14 11h1v1h-1zM17 11h1v1h-1zM21 11h1v1h-1zM24 11h1v1h-1zM7 12h1v1h-1zM10 12h1v1h-1zM14 12h1v1h-1zM17 12h1v1h-1zM21 12h1v1h-1zM24 12h1v1h-1zM7 13h1v1h-1zM10 13h1v1h-1zM14 13h1v1h-1zM17 13h1v1h-1zM21 13h1v1h-1zM24 13h1v1h-1zM7 14h1v1h-1zM10 14h1v1h-1zM14 14h1v1h-1zM17 14h1v1h-1zM21 14h1v1h-1zM24 14h1v1h-1zM7 15h1v1h-1zM10 15h1v1h-1zM14 15h1v1h-1zM17 15h1v1h-1zM21 15h1v1h-1zM24 15h1v1h-1zM7 16h1v1h-1zM10 16h1v1h-1zM14 16h1v1h-1zM17 16h1v1h-1zM21 16h1v1h-1zM24 16h1v1h-1zM7 17h1v1h-1zM10 17h1v1h-1zM14 17h1v1h-1zM17 17h1v1h-1zM21 17h1v1h-1zM24 17h1v1h-1zM7 18h1v1h-1zM10 18h1v1h-1zM14 18h1v1h-1zM17 18h1v1h-1zM21 18h1v1h-1zM24 18h1v1h-1zM7 19h1v1h-1zM10 19h1v1h-1zM14 19h1v1h-1zM17 19h1v1h-1zM21 19h1v1h-1zM24 19h1v1h-1zM7 20h1v1h-1zM10 20h1v1h-1zM14 20h1v1h-1zM17 20h1v1h-1zM21 20h1v1h-1zM24 20h1v1h-1zM7 21h1v1h-1zM10 21h1v1h-1zM14 21h1v1h-1zM17 21h1v1h-1zM21 21h1v1h-1zM24 21h1v1h-1zM7 22h1v1h-1zM10 22h1v1h-1zM14 22h1v1h-1zM17 22h1v1h-1zM21 22h1v1h-1zM24 22h1v1h-1zM7 23h1v1h-1zM10 23h1v1h-1zM14 23h1v1h-1zM17 23h1v1h-1zM21 23h1v1h-1zM24 23h1v1h-1zM7 24h1v1h-1zM10 24h1v1h-1zM14 24h1v1h-1zM17 24h1v1h-1zM21 24h1v1h-1zM24 24h1v1h-1zM7 25h1v1h-1zM10 25h1v1h-1zM14 25h1v1h-1zM17 25h1v1h-1zM21 25h1v1h-1zM24 25h1v1h-1zM8 26h1v1h-1zM23 26h1v1h-1zM9 27h14v1h-14z"/>
+    </svg>
+    <span class="icon-label" aria-hidden="true">Trash</span>
+  </button>
 </nav>
 
 <div class="scrim" id="scrim" hidden></div>
@@ -985,8 +1365,20 @@
     <h2 id="alert-title">Work isn’t ready yet.</h2>
     <p id="alert-text">Selected projects are being arranged for the new portfolio. Check back soon.</p>
   </div>
-  <div class="wactions"><button class="btn is-default" type="button">OK</button></div>
+  <div class="wactions"><button class="btn" type="button" id="alert-cancel" hidden>Cancel</button><button class="btn is-default" type="button" id="alert-ok">OK</button></div>
 </section>
+
+<div class="power" id="power" hidden>
+  <div class="beam" aria-hidden="true"></div>
+  <p class="off-text" id="off-text" hidden>It’s now safe to turn off your desk.<small>Click anywhere, or press any key, to start it up again.</small></p>
+  <div class="welcome" id="welcome" hidden>
+    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
+      <path class="i-fill" d="M4 4h24v24H4z"/>
+      <path class="i-ink" d="M3 3h26v1H3zM3 28h26v1H3zM3 4h1v24H3zM28 4h1v24h-1zM9 10h3v1H9zM20 10h3v1h-3zM9 11h3v2H9zM20 11h3v2h-3zM15 12h1v5h-1zM15 17h2v1h-2zM9 20h1v1H9zM22 20h1v1h-1zM10 21h1v1h-1zM21 21h1v1h-1zM11 22h10v1H11z"/>
+    </svg>
+    <span>Welcome to Adiel’s desk.</span>
+  </div>
+</div>
 
 <!-- Bez -->
 <div class="bez" id="bez" hidden>
@@ -1001,6 +1393,7 @@
   </button>
 </div>
 
+<div class="deskpat" aria-hidden="true"></div>
 <canvas class="saver" id="saver" aria-hidden="true" hidden></canvas>
 <div class="fx" aria-hidden="true"></div>
 <div class="bezel" aria-hidden="true"></div>
@@ -1019,8 +1412,20 @@
     set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
   };
   const menubar = $('.menubar');
+  const finePointer = matchMedia('(pointer: fine)');
+  const parse = (s, fallback) => { try { return JSON.parse(s) ?? fallback; } catch (e) { return fallback; } };
 
   $('#year').textContent = new Date().getFullYear();
+
+  /* Control Panel settings, kept together in one place. */
+  const Prefs = (() => {
+    const DEF = { pattern: null, vol: 5, blink: 1100, menuBlink: 3, clock24: false };
+    const data = { ...DEF, ...parse(store.get('adiel-prefs'), {}) };
+    return {
+      get: (k) => data[k],
+      set(k, v) { data[k] = v; store.set('adiel-prefs', JSON.stringify(data)); },
+    };
+  })();
 
   /* ==========================================================
      Sound — everything is synthesised with Web Audio except the
@@ -1028,8 +1433,9 @@
      to a synth if they can't load.
   ========================================================== */
   const Sound = (() => {
-    let ctx = null, sfxBus = null, pianoBus = null, noise = null;
-    let sfxOn = store.get('adiel-sfx') !== 'off';
+    let ctx = null, sfxBus = null, pianoBus = null, noise = null, master = null;
+    let sfxOn = store.get('adiel-sfx') !== 'off', volume = 1;
+    const gainFor = (v) => Math.pow(clamp(v, 0, 7) / 7, 0.6);
     const SAMPLE_URL = 'https://tonejs.github.io/audio/salamander/';
     const NAMES = ['C', 'Cs', 'D', 'Ds', 'E', 'F', 'Fs', 'G', 'Gs', 'A', 'As', 'B'];
     const SAMPLED = [];
@@ -1045,7 +1451,8 @@
         ctx = new AC();
         const limiter = ctx.createDynamicsCompressor();
         limiter.threshold.value = -8; limiter.knee.value = 6; limiter.ratio.value = 6;
-        limiter.connect(ctx.destination);
+        master = ctx.createGain(); master.gain.value = volume; master.connect(ctx.destination);
+        limiter.connect(master);
         sfxBus = ctx.createGain(); sfxBus.gain.value = 0.8; sfxBus.connect(limiter);
         pianoBus = ctx.createGain(); pianoBus.gain.value = 0.85; pianoBus.connect(limiter);
         const verb = ctx.createConvolver(); verb.buffer = impulse(1.8, 2.6);
@@ -1110,6 +1517,12 @@
       pocket() { tone({ f: 1047, type: 'square', gain: 0.022, dur: 0.06 }); tone({ f: 2093, type: 'square', gain: 0.02, dur: 0.22, at: 0.07 }); },
       ega() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1175, type: 'square', gain: 0.02, dur: 0.1, at: 0.1 }); },
       textmode() { tone({ f: 1000, type: 'square', gain: 0.028, dur: 0.15 }); }, // PC speaker POST beep
+      green() { tone({ f: 440, type: 'triangle', gain: 0.04, dur: 0.12 }); tone({ f: 660, type: 'triangle', gain: 0.035, dur: 0.2, at: 0.08 }); hit({ f: 5200, q: 2, gain: 0.03, dur: 0.05, at: 0.02 }); },
+      // The desk itself
+      chime() { [262, 330, 392, 523].forEach((f, i) => tone({ f, type: 'triangle', gain: 0.045, dur: 1.3 - i * 0.12, at: i * 0.09 })); }, // start-up: a C major chord
+      powerOff() { tone({ f: 220, f2: 40, gain: 0.1, dur: 0.35 }); hit({ f: 600, type: 'lowpass', q: 0.7, gain: 0.08, dur: 0.2 }); },
+      shade() { hit({ f: 3000, q: 1, gain: 0.08, dur: 0.03 }); tone({ f: 900, f2: 1400, type: 'triangle', gain: 0.02, dur: 0.06 }); },
+      trash() { hit({ f: 900, type: 'lowpass', q: 0.9, gain: 0.18, dur: 0.12 }); hit({ f: 2400, q: 1.5, gain: 0.1, dur: 0.08, at: 0.06 }); tone({ f: 180, f2: 60, gain: 0.08, dur: 0.14 }); },
       // Hoops. k scales with how hard the ball hit something.
       shoot() { hit({ f: 1400, q: 0.6, gain: 0.05, dur: 0.07 }); },
       bounce(k = 1) { tone({ f: 140, f2: 62, gain: 0.12 * k, dur: 0.1 }); hit({ f: 420, type: 'lowpass', q: 0.7, gain: 0.1 * k, dur: 0.05 }); },
@@ -1211,12 +1624,14 @@
       unlock, play, preload, note,
       get sfxOn() { return sfxOn; },
       setSfx(on) { sfxOn = on; store.set('adiel-sfx', on ? 'on' : 'off'); },
+      // 0–7, like the old speaker volume slider. It scales everything, the piano too.
+      setVolume(v) { volume = gainFor(v); if (master) master.gain.setTargetAtTime(volume, ctx.currentTime, 0.02); },
     };
   })();
 
   /* ==========================================================
-     1-bit pictures. The portrait, Paint, Hoops and the screen
-     saver keep plain 0/1 pixels; the current display decides
+     1-bit pictures. The portrait, Paint and Hoops keep
+     plain 0/1 pixels; the current display decides
      what ink and paper look like, so they recolour with it.
   ========================================================== */
   const Colors = (() => {
@@ -1362,6 +1777,7 @@
     ['paper', 'Paper'],
     ['negative', 'Negative'],
     ['amber', 'Amber'],
+    ['green', 'Green'],
     ['pocket', 'Pocket'],
     ['ega', 'EGA'],
     ['textmode', 'Text Mode'],
@@ -1386,6 +1802,7 @@
     Paint.render();
     Hoops.render();
     Bez.render();
+    Panel.sync();
     updateDock();
   }
   function setTheme(id) {
@@ -1405,29 +1822,76 @@
      Clock
   ========================================================== */
   const clock = $('#clock');
-  const shortFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit' });
-  const longFmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'short' });
+  let shortFmt, longFmt;
+  function setClockFormat() {
+    const hour12 = !Prefs.get('clock24');
+    shortFmt = new Intl.DateTimeFormat('en-US', { weekday: 'short', hour: 'numeric', minute: '2-digit', hour12 });
+    longFmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full', timeStyle: 'short', hour12 });
+    tick();
+  }
   function tick() {
     const now = new Date();
     clock.textContent = shortFmt.format(now).replace(',', '');
     clock.dateTime = now.toISOString();
-    clock.title = longFmt.format(now);
+    $('#menu-clock').title = longFmt.format(now);
   }
-  tick();
+  setClockFormat();
   setInterval(tick, 15000);
+
+  /* The calendar under the clock: a month at a time, Sunday first. */
+  const Calendar = (() => {
+    const list = $('#m-clock');
+    const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
+    const dayFmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' });
+    const arrow = (d) => '<svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="' + (d < 0 ? 'M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z' : 'M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z') + '"/></svg>';
+    let view = null;
+    function build() {
+      const today = new Date();
+      const first = new Date(view.y, view.m, 1), days = new Date(view.y, view.m + 1, 0).getDate(), before = new Date(view.y, view.m, 0).getDate();
+      const start = first.getDay();
+      let cells = '';
+      for (let i = 0; i < 42; i++) {
+        const d = i - start + 1;
+        if (i === 35 && d > days) break; // a sixth row only when the month needs it
+        if (d < 1) cells += '<span class="dim">' + (before + d) + '</span>';
+        else if (d > days) cells += '<span class="dim">' + (d - days) + '</span>';
+        else {
+          const isToday = d === today.getDate() && view.m === today.getMonth() && view.y === today.getFullYear();
+          cells += '<span' + (isToday ? ' class="today" aria-current="date"' : '') + '>' + d + '</span>';
+        }
+      }
+      list.innerHTML = '<div class="cal-head"><button class="cal-btn" type="button" data-cal="-1" aria-label="Previous month">' + arrow(-1) + '</button><span>' + monthFmt.format(first) +
+        '</span><button class="cal-btn" type="button" data-cal="1" aria-label="Next month">' + arrow(1) + '</button></div>' +
+        '<div class="cal-grid"><span class="dow">S</span><span class="dow">M</span><span class="dow">T</span><span class="dow">W</span><span class="dow">T</span><span class="dow">F</span><span class="dow">S</span>' + cells + '</div>' +
+        '<p class="cal-foot">' + dayFmt.format(today) + '</p>';
+    }
+    list.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-cal]');
+      if (!b) return;
+      const d = +b.dataset.cal;
+      view.m += d;
+      if (view.m < 0) { view.m = 11; view.y--; } else if (view.m > 11) { view.m = 0; view.y++; }
+      build();
+      $('[data-cal="' + d + '"]', list).focus();
+    });
+    return { open() { const t = new Date(); view = { y: t.getFullYear(), m: t.getMonth() }; build(); } };
+  })();
 
   /* ==========================================================
      Menus
   ========================================================== */
-  const menus = $$('.mb-menu').map((el) => ({ el, btn: $('.mb-title', el), list: $('.menu', el) }));
+  const menus = $$('.mb-menu').map((el) => ({ el, btn: $('.mb-title, .mb-clock', el), list: $('.menu', el), onOpen: null }));
+  const menuById = (id) => menus.find((m) => m.list.id === id);
   let openRec = null;
-  const itemsOf = (rec) => $$('.mi:not([aria-disabled="true"])', rec.list);
+  const itemsOf = (rec) => $$('.mi:not([aria-disabled="true"]), .cal-btn', rec.list).filter((el) => el.getClientRects().length);
   function openMenu(rec, focusFirst) {
     if (openRec && openRec !== rec) closeMenu();
+    if (rec.onOpen) rec.onOpen();
     rec.list.hidden = false;
     rec.btn.setAttribute('aria-expanded', 'true');
     openRec = rec;
-    if (focusFirst) itemsOf(rec)[0].focus();
+    const items = itemsOf(rec);
+    if (focusFirst && items[0]) items[0].focus();
   }
   function closeMenu(refocus) {
     if (!openRec) return;
@@ -1438,14 +1902,16 @@
     openRec = null;
     if (refocus) rec.btn.focus();
   }
+  // The chosen item blinks as many times as the Control Panel says, like the old Mac.
   function blinkThen(rec, item, done) {
-    if (reduced.matches) { done(); return; }
+    const times = Prefs.get('menuBlink');
+    if (reduced.matches || !times) { done(); return; }
     rec.list.classList.add('is-blinking');
     item.classList.add('is-lit');
     let n = 0;
     const iv = setInterval(() => {
       item.classList.toggle('is-lit');
-      if (++n === 3) { clearInterval(iv); item.classList.remove('is-lit'); done(); }
+      if (++n === times * 2 - 1) { clearInterval(iv); item.classList.remove('is-lit'); done(); }
     }, 55);
   }
   menus.forEach((rec, idx) => {
@@ -1471,17 +1937,24 @@
     rec.list.addEventListener('click', (e) => {
       const item = e.target.closest('.mi');
       if (!item) return;
-      const { win } = item.dataset;
-      const saver = item.hasAttribute('data-saver'), bez = item.hasAttribute('data-bez');
-      if (!win && !saver && !bez) { closeMenu(); return; } // links navigate normally
+      const { win, power } = item.dataset;
+      const flags = ['saver', 'bez', 'cleanup', 'trash', 'themeNext', 'closeAll'].filter((f) => f in item.dataset);
+      if (!win && !power && !flags.length) { closeMenu(); return; } // links navigate normally
       blinkThen(rec, item, () => {
         closeMenu();
-        if (saver) Saver.start();
-        else if (bez) Bez.summon(true);
+        if (flags.includes('saver')) Saver.start();
+        else if (flags.includes('bez')) Bez.summon(true);
+        else if (flags.includes('cleanup')) Icons.cleanUp();
+        else if (flags.includes('trash')) Icons.emptyTrash();
+        else if (flags.includes('themeNext')) cycleTheme();
+        else if (flags.includes('closeAll')) closeAllWins();
+        else if (power === 'restart') Power.restart();
+        else if (power === 'off') Power.off();
         else openWin(W[win], { scroll: true });
       });
     });
   });
+  menuById('m-clock').onOpen = Calendar.open;
 
   const sfxBtn = $('#sfx');
   function syncSfx() {
@@ -1491,6 +1964,7 @@
   sfxBtn.addEventListener('click', () => {
     Sound.setSfx(!Sound.sfxOn);
     syncSfx();
+    Panel.sync();
     Sound.play('open');
   });
   syncSfx();
@@ -1498,11 +1972,23 @@
   /* ==========================================================
      Windows
   ========================================================== */
-  const W = { readme: $('#readme'), about: $('#about'), piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops') };
+  const W = {
+    readme: $('#readme'), about: $('#about'), piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
+    puzzle: $('#puzzle'), calc: $('#calc'), notes: $('#notes'), panel: $('#panel'),
+  };
   const stack = [];
   const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
   const visibleBox = (el) => (el && el.getClientRects().length ? box(el) : null);
-  const iconSvg = (win) => $('#' + win.dataset.icon + ' svg');
+  const iconSvg = (win) => (win.dataset.icon ? $('#' + win.dataset.icon + ' svg') : null);
+  // Windows zoom from their desktop icon, or from the menu they came from.
+  const zoomFrom = (win) => visibleBox(iconSvg(win)) || box($('#menu-adiel'));
+  // Where you last left each window, in this browser.
+  const POS_KEY = 'adiel-win-pos';
+  const positions = parse(store.get(POS_KEY), {});
+  function savePos(win) {
+    positions[win.id] = [parseFloat(win.style.left), parseFloat(win.style.top)];
+    store.set(POS_KEY, JSON.stringify(positions));
+  }
   const isDocked = (win) => win === W.readme && root.classList.contains('is-docked');
   const activeWin = () => $('.window.is-active:not([hidden]):not([data-boot])');
 
@@ -1566,6 +2052,10 @@
     piano: { before: () => Piano.layout(), after: () => { Piano.warm(); Bez.pianoOpened(); }, close: () => { Piano.releaseAll(); Bez.pianoClosed(); } },
     paint: { before: () => Paint.build(), close: () => Paint.commit() },
     hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => { Hoops.stop(); Bez.hoopsClosed(); } },
+    puzzle: { before: () => Puzzle.build() },
+    calc: { before: () => Calc.build() },
+    notes: { before: () => Notes.build(), after: () => Notes.focus(), close: () => Notes.save() },
+    panel: { before: () => Panel.build() },
   };
 
   function openWin(win, opts = {}) {
@@ -1578,35 +2068,69 @@
     win.removeAttribute('data-boot');
     win.hidden = false;
     win.style.visibility = 'hidden';
+    const p = positions[win.id];
+    if (p && !narrow.matches && !win.style.left) {
+      win.style.right = 'auto';
+      win.style.bottom = 'auto';
+      placeWin(win, p[0], p[1]);
+    }
     if (win === W.readme) updateDock();
     const h = hooks[win.id] || {};
     if (h.before) h.before();
     raise(win);
     const to = box(win);
     Sound.play('open');
-    zoom(visibleBox(iconSvg(win)), to, () => {
+    zoom(zoomFrom(win), to, () => {
       win.style.visibility = '';
       if (h.after) h.after();
-      if (opts.focus !== false) win.focus({ preventScroll: true });
+      if (opts.focus !== false && !win.contains(document.activeElement)) win.focus({ preventScroll: true });
       if (opts.scroll && isDocked(win)) win.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'nearest' });
     });
   }
-  function closeWin(win) {
+  function closeWin(win, quiet) {
     if (win.hidden) return;
     if (win.contains(document.activeElement)) {
-      const icon = $('#' + win.dataset.icon);
+      const icon = win.dataset.icon && $('#' + win.dataset.icon);
       (visibleBox(icon) ? icon : $('#menu-adiel')).focus({ preventScroll: true });
     }
     const from = box(win);
     win.hidden = true;
+    win.classList.remove('is-shaded');
     const h = hooks[win.id] || {};
     if (h.close) h.close();
     const i = stack.indexOf(win);
     if (i > -1) stack.splice(i, 1);
     setActive(stack[stack.length - 1] || null);
+    if (quiet) return;
     Sound.play('close');
-    zoom(from, visibleBox(iconSvg(win)), () => {});
+    zoom(from, zoomFrom(win), () => {});
   }
+  function closeAllWins(quiet) {
+    stack.slice().forEach((w) => closeWin(w, true));
+    if (!quiet) Sound.play('close');
+  }
+  // Double-click a title bar and the window rolls up into it.
+  function shade(win) {
+    if (narrow.matches || isDocked(win)) return;
+    win.classList.toggle('is-shaded');
+    Sound.play('shade');
+  }
+
+  /* The Window menu: everything open, the front one ticked. */
+  function buildWindowMenu() {
+    const list = $('#m-window');
+    const open = stack.filter((w) => !w.hidden);
+    const top = open[open.length - 1];
+    const li = (html) => '<li role="none">' + html + '</li>';
+    let html = open.length
+      ? open.slice().reverse().map((w) => li('<button class="mi" role="menuitem" type="button" data-win="' + w.id + '">' +
+        (w === top && w.classList.contains('is-active') ? '<span class="check" aria-hidden="true">✓</span>' : '') +
+        '<span>' + $('.wtitle', w).textContent + '</span>' + (w.classList.contains('is-shaded') ? '<span class="shortcut">shaded</span>' : '') + '</button>')).join('')
+      : li('<span class="mi" role="menuitem" aria-disabled="true">No windows open</span>');
+    html += '<li role="separator" class="sep"></li>' + li('<button class="mi" role="menuitem" type="button" data-close-all' + (open.length ? '' : ' aria-disabled="true"') + '>Close All</button>');
+    list.innerHTML = html;
+  }
+  menuById('m-window').onOpen = buildWindowMenu;
 
   function placeWin(win, x, y) {
     const w = win.offsetWidth;
@@ -1618,6 +2142,7 @@
     $('.closebox', win).addEventListener('click', () => closeWin(win));
     win.addEventListener('pointerdown', () => { if (stack[stack.length - 1] !== win || !win.classList.contains('is-active')) raise(win); });
     const bar = $('.titlebar', win);
+    bar.addEventListener('dblclick', (e) => { if (!e.target.closest('.closebox')) shade(win); });
     bar.addEventListener('pointerdown', (e) => {
       if (narrow.matches || isDocked(win) || e.button !== 0 || e.target.closest('.closebox')) return;
       e.preventDefault();
@@ -1633,6 +2158,7 @@
         bar.removeEventListener('pointermove', move);
         bar.removeEventListener('pointerup', end);
         bar.removeEventListener('pointercancel', end);
+        savePos(win);
       };
       bar.addEventListener('pointermove', move);
       bar.addEventListener('pointerup', end);
@@ -1658,6 +2184,7 @@
       if (!W.readme.hidden) renderProgress();
       Paint.commit();
       Bez.keepOnScreen();
+      Icons.layout();
     });
   });
 
@@ -2035,6 +2562,22 @@
       bits.fill(0);
       render(); saveSoon();
     }
+    // Two MacPaint menu items: Invert and Flip Horizontal.
+    function invert() {
+      commit();
+      checkpoint();
+      for (let i = 0; i < bits.length; i++) bits[i] ^= 1;
+      render(); saveSoon();
+    }
+    function flip() {
+      commit();
+      checkpoint();
+      for (let y = 0; y < SH; y++) {
+        const row = bits.subarray(y * SW, (y + 1) * SW);
+        row.reverse();
+      }
+      render(); saveSoon();
+    }
 
     /* Tools */
     function line(x0, y0, x1, y1, plot) {
@@ -2254,7 +2797,24 @@
     // MacPaint cleared the page when you double-clicked the eraser.
     $('[data-tool="eraser"]', win).addEventListener('dblclick', clear);
     $('#paint-undo').addEventListener('click', undo);
+    $('#paint-invert').addEventListener('click', invert);
+    $('#paint-flip').addEventListener('click', flip);
     $('#paint-clear').addEventListener('click', clear);
+    // One key per tool while Paint is in front. Shift makes the filled shapes.
+    const TOOL_KEYS = { p: 'pencil', b: 'brush', s: 'spray', e: 'eraser', k: 'bucket', x: 'text', l: 'line', m: 'stamp', r: 'rect', R: 'rectf', o: 'oval', O: 'ovalf', i: 'invert', f: 'flip' };
+    toolBtns.forEach((b) => {
+      const k = Object.keys(TOOL_KEYS).find((key) => TOOL_KEYS[key] === b.dataset.tool);
+      if (k) b.title += ' (' + (k === k.toUpperCase() ? 'Shift+' + k : k.toUpperCase()) + ')';
+    });
+    function keydown(e) {
+      const t = TOOL_KEYS[e.key];
+      if (!t || e.repeat || typing) return false;
+      e.preventDefault();
+      if (t === 'invert') invert();
+      else if (t === 'flip') flip();
+      else setTool(t);
+      return true;
+    }
     $('#paint-save').addEventListener('click', () => {
       commit();
       const k = 3, c = document.createElement('canvas');
@@ -2294,17 +2854,8 @@
       syncStamp();
       render();
     }
-    // The screen saver borrows your drawing, if there is one.
-    function picture() {
-      const b = built ? bits : unpack(store.get(KEY) || '');
-      if (!b) return null;
-      let n = 0;
-      for (let i = 0; i < b.length; i++) n += b[i];
-      return n >= 24 ? { bits: b, w: SW, h: SH } : null;
-    }
-
     return {
-      build, render, undo, commit, picture,
+      build, render, undo, commit, keydown,
       get active() { return !win.hidden && win.classList.contains('is-active'); },
     };
   })();
@@ -3129,45 +3680,468 @@
   })();
 
   /* ==========================================================
-     Desktop icons
+     Calculator — the four functions, like the desk accessory.
+     Type on your keyboard too.
   ========================================================== */
-  let lastPointer = 'mouse';
-  function selectIcon(icon) { $$('.icon').forEach((i) => i.classList.toggle('is-selected', i === icon)); }
-  $$('.icon').forEach((icon) => {
-    icon.addEventListener('pointerdown', (e) => { lastPointer = e.pointerType; });
-    icon.addEventListener('click', (e) => {
-      selectIcon(icon);
-      // Double-click with a mouse, single tap on touch, Enter/Space on keyboard.
-      if (e.detail === 0 || e.detail >= 2 || lastPointer !== 'mouse') {
-        const target = icon.dataset.open;
-        if (target === 'work') openAlert(); else openWin(W[target]);
-      }
-    });
-  });
+  const Calc = (() => {
+    const win = W.calc, lcd = $('#lcd'), keysEl = $('#calc-keys');
+    const KEYS = [
+      ['C', 'c', 'Clear'], ['±', '±', 'Change sign'], ['%', '%', 'Percent'], ['÷', '/', 'Divide'],
+      ['7', '7'], ['8', '8'], ['9', '9'], ['×', '*', 'Multiply'],
+      ['4', '4'], ['5', '5'], ['6', '6'], ['−', '-', 'Subtract'],
+      ['1', '1'], ['2', '2'], ['3', '3'], ['+', '+', 'Add'],
+      ['0', '0'], ['.', '.', 'Decimal point'], ['=', '=', 'Equals'],
+    ];
+    const OPS = '+-*/';
+    const btns = new Map();
+    let acc = null, op = null, cur = '0', fresh = true, built = false;
+    const show = () => { lcd.textContent = cur; };
+    function fmt(n) {
+      if (!isFinite(n)) return 'Error';
+      let s = String(Number(n.toPrecision(12)));
+      if (s.replace(/[-.]/g, '').length > 12) s = n.toExponential(6);
+      return s;
+    }
+    const calc = (a, b, o) => (o === '+' ? a + b : o === '-' ? a - b : o === '*' ? a * b : b === 0 ? NaN : a / b);
+    const light = (o) => btns.forEach((b, k) => b.classList.toggle('is-lit', k === o));
+    function digit(d) {
+      if (cur === 'Error') cur = '0';
+      if (fresh) { cur = d === '.' ? '0.' : d; fresh = false; show(); return; }
+      if (d === '.' && cur.includes('.')) return;
+      if (cur.replace(/[-.]/g, '').length >= 12) return;
+      cur = cur === '0' && d !== '.' ? d : cur + d;
+      show();
+    }
+    function operate(o) {
+      const v = parseFloat(cur);
+      if (op && !fresh) { acc = calc(acc, v, op); cur = fmt(acc); }
+      else if (acc === null || !op) acc = v;
+      op = o; fresh = true;
+      show(); light(o);
+    }
+    function equals() {
+      if (op) { acc = calc(acc, parseFloat(cur), op); cur = fmt(acc); }
+      op = null; acc = null; fresh = true;
+      show(); light(null);
+    }
+    function clear() { acc = null; op = null; cur = '0'; fresh = true; show(); light(null); }
+    function press(k) {
+      if (/^[0-9.]$/.test(k)) digit(k);
+      else if (OPS.includes(k)) operate(k);
+      else if (k === '=') equals();
+      else if (k === 'c') clear();
+      else if (k === '±') { if (cur !== '0' && cur !== 'Error') { cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur; show(); } }
+      else if (k === '%') { cur = fmt(parseFloat(cur) / 100); fresh = true; show(); }
+      else if (k === 'back') { cur = !fresh && cur.length > 1 && cur !== 'Error' ? cur.slice(0, -1) : '0'; if (cur === '-') cur = '0'; show(); }
+    }
+    function build() {
+      if (built) return;
+      built = true;
+      KEYS.forEach(([label, k, name]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ckey' + (OPS.includes(k) || k === '=' ? ' is-op' : '') + (k === '0' ? ' is-wide' : '');
+        b.innerHTML = '<span>' + label + '</span>';
+        if (name) b.setAttribute('aria-label', name);
+        b.addEventListener('click', () => press(k));
+        keysEl.append(b);
+        btns.set(k, b);
+      });
+      show();
+    }
+    function keydown(e) {
+      const k = e.key;
+      let map = null;
+      if (/^[0-9.]$/.test(k) || (OPS.includes(k) && k.length === 1) || k === '%') map = k;
+      else if (k === 'Enter' || k === '=') map = '=';
+      else if (k === 'Backspace') map = 'back';
+      else if (k === 'Delete' || k === 'c' || k === 'C') map = 'c';
+      else return false;
+      e.preventDefault();
+      press(map);
+      const b = btns.get(map === 'back' ? null : map);
+      if (b && !OPS.includes(map)) { b.classList.add('is-lit'); setTimeout(() => b.classList.remove('is-lit'), 90); }
+      return true;
+    }
+    return { build, keydown, get active() { return !win.hidden && win.classList.contains('is-active'); } };
+  })();
 
   /* ==========================================================
-     Alert
+     Note Pad — eight pages, kept in this browser.
+  ========================================================== */
+  const Notes = (() => {
+    const win = W.notes, ta = $('#note-text'), pageEl = $('#note-page'), countEl = $('#note-count');
+    const KEY = 'adiel-notes', N = 8;
+    let pages = null, at = 0, timer = 0, built = false;
+    function load() {
+      const p = parse(store.get(KEY), null);
+      pages = Array.isArray(p) && p.length === N ? p.map(String) : Array(N).fill('');
+    }
+    function save() {
+      if (!built) return;
+      clearTimeout(timer);
+      pages[at] = ta.value;
+      store.set(KEY, JSON.stringify(pages));
+    }
+    function count() {
+      const n = ta.value.trim() ? ta.value.trim().split(/\s+/).length : 0;
+      countEl.textContent = n + (n === 1 ? ' word' : ' words');
+    }
+    function show() {
+      ta.value = pages[at];
+      pageEl.textContent = (at + 1) + ' of ' + N;
+      count();
+    }
+    function flip(d) {
+      save();
+      at = (at + d + N) % N;
+      show();
+      if (finePointer.matches) ta.focus({ preventScroll: true });
+    }
+    ta.addEventListener('input', () => { clearTimeout(timer); timer = setTimeout(save, 250); count(); });
+    ta.addEventListener('blur', save);
+    $('#note-prev').addEventListener('click', () => flip(-1));
+    $('#note-next').addEventListener('click', () => flip(1));
+    function build() {
+      if (built) return;
+      built = true;
+      load();
+      show();
+    }
+    // With a mouse, straight into the page; on touch, no surprise keyboard.
+    const focus = () => { if (finePointer.matches) ta.focus({ preventScroll: true }); };
+    return { build, save, focus };
+  })();
+
+  /* ==========================================================
+     Puzzle — the sliding tiles from the first Mac. Click a tile
+     next to the gap, or use the arrow keys.
+  ========================================================== */
+  const Puzzle = (() => {
+    const win = W.puzzle, board = $('#board'), statusEl = $('#puzzle-status'), bestEl = $('#puzzle-best');
+    const KEY = 'adiel-puzzle-best';
+    const cells = [];
+    let tiles = [], moves = 0, solved = false, built = false, best = parseInt(store.get(KEY), 10) || 0;
+    const gap = () => tiles.indexOf(0);
+    function canMove(i) {
+      const b = gap(), r = Math.floor(i / 4), c = i % 4, br = Math.floor(b / 4), bc = b % 4;
+      return (r === br && Math.abs(c - bc) === 1) || (c === bc && Math.abs(r - br) === 1);
+    }
+    function render() {
+      tiles.forEach((v, i) => {
+        const c = cells[i];
+        c.textContent = v || '';
+        c.style.visibility = v ? '' : 'hidden';
+        c.tabIndex = v ? 0 : -1;
+        c.setAttribute('aria-label', v ? 'Tile ' + v + (canMove(i) ? ', can slide' : '') : 'Empty');
+      });
+      statusEl.innerHTML = solved ? 'Solved in <b>' + moves + '</b>' + (moves === best ? ', a new best!' : '.') : 'Moves <b>' + moves + '</b>';
+      bestEl.textContent = best ? 'Best ' + best : '';
+    }
+    function check() {
+      solved = tiles.every((v, i) => v === (i + 1) % 16);
+      if (!solved) return;
+      if (!best || moves < best) { best = moves; store.set(KEY, String(moves)); }
+      Sound.play('bezYay');
+    }
+    function slide(i) {
+      if (solved || !canMove(i)) return false;
+      const b = gap();
+      tiles[b] = tiles[i];
+      tiles[i] = 0;
+      moves++;
+      check();
+      render();
+      return true;
+    }
+    // A long random walk of legal moves, so it is always solvable.
+    function shuffle() {
+      tiles = Array.from({ length: 16 }, (_, i) => (i + 1) % 16);
+      let last = -1;
+      for (let n = 0; n < 240; n++) {
+        const b = gap();
+        const opts = [b - 4, b + 4, b - 1, b + 1].filter((i) => i >= 0 && i < 16 && i !== last && canMove(i));
+        const i = opts[Math.floor(Math.random() * opts.length)];
+        tiles[b] = tiles[i]; tiles[i] = 0;
+        last = b;
+      }
+      moves = 0;
+      solved = false;
+      render();
+    }
+    function keydown(e) {
+      const b = gap(), bc = b % 4, br = Math.floor(b / 4);
+      let i = -1;
+      if (e.key === 'ArrowLeft' && bc < 3) i = b + 1;
+      else if (e.key === 'ArrowRight' && bc > 0) i = b - 1;
+      else if (e.key === 'ArrowUp' && br < 3) i = b + 4;
+      else if (e.key === 'ArrowDown' && br > 0) i = b - 4;
+      else return false;
+      e.preventDefault();
+      if (slide(i)) Sound.play('up');
+      return true;
+    }
+    function build() {
+      if (built) return;
+      built = true;
+      for (let i = 0; i < 16; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'tile';
+        b.addEventListener('click', () => slide(i));
+        board.append(b);
+        cells.push(b);
+      }
+      $('#puzzle-shuffle').addEventListener('click', () => { shuffle(); win.focus({ preventScroll: true }); });
+      shuffle();
+    }
+    return { build, keydown, get active() { return !win.hidden && win.classList.contains('is-active'); } };
+  })();
+
+  /* ==========================================================
+     Control Panel — the desktop pattern (draw your own in the
+     little grid), the display, the speaker, the blinking and
+     the clock. All of it kept in this browser.
+  ========================================================== */
+  const Panel = (() => {
+    const win = W.panel, editEl = $('#pat-edit'), preview = $('#pat-preview'), nameEl = $('#pat-name'), dispEl = $('#cp-displays');
+    const sfxBox = $('#cp-sfx'), vol = $('#cp-vol'), volN = $('#cp-vol-n');
+    const PRESETS = [
+      ['Plain', [0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]],
+      ['Grey', [0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55, 0xaa, 0x55]],
+      ['Light grey', [0x88, 0x22, 0x88, 0x22, 0x88, 0x22, 0x88, 0x22]],
+      ['Dots', [0x80, 0x00, 0x08, 0x00, 0x80, 0x00, 0x08, 0x00]],
+      ['Stripes', [0xff, 0x00, 0x00, 0x00, 0xff, 0x00, 0x00, 0x00]],
+      ['Pinstripe', [0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88, 0x88]],
+      ['Diagonal', [0x81, 0xc0, 0x60, 0x30, 0x18, 0x0c, 0x06, 0x03]],
+      ['Bricks', [0xff, 0x80, 0x80, 0x80, 0xff, 0x08, 0x08, 0x08]],
+      ['Weave', [0x88, 0x54, 0x22, 0x45, 0x88, 0x15, 0x22, 0x51]],
+      ['Diamonds', [0x18, 0x24, 0x42, 0x81, 0x81, 0x42, 0x24, 0x18]],
+      ['Crosses', [0x10, 0x10, 0x7c, 0x10, 0x10, 0x00, 0x00, 0x00]],
+      ['Checks', [0xf0, 0xf0, 0xf0, 0xf0, 0x0f, 0x0f, 0x0f, 0x0f]],
+      ['Grid', [0xff, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80]],
+      ['Waves', [0x00, 0x18, 0x24, 0x42, 0x81, 0x00, 0x00, 0x00]],
+    ];
+    const cells = [];
+    let rows = (Prefs.get('pattern') || PRESETS[0][1]).slice(), built = false;
+    const same = (a, b) => a.every((v, i) => v === b[i]);
+    const presetAt = () => PRESETS.findIndex(([, r]) => same(r, rows));
+    function apply() {
+      const m = deskMask(rows);
+      root.style.setProperty('--desk-mask', m);
+      preview.style.setProperty('--pv', m);
+      const i = presetAt();
+      nameEl.textContent = i > -1 ? PRESETS[i][0] : 'Custom';
+      Prefs.set('pattern', rows.slice());
+    }
+    function syncCells() { cells.forEach((b, i) => b.setAttribute('aria-pressed', String((rows[i >> 3] >> (7 - (i & 7))) & 1))); }
+    function preset(d) {
+      const i = presetAt();
+      const n = i < 0 ? (d > 0 ? 0 : PRESETS.length - 1) : (i + d + PRESETS.length) % PRESETS.length;
+      rows = PRESETS[n][1].slice();
+      apply();
+      syncCells();
+    }
+    const radio = (group, value) => { const r = $('input[value="' + value + '"]', group); if (r) r.checked = true; };
+    // The menu bar's speaker button and the display keycap share these settings.
+    function sync() {
+      if (!built) return;
+      $$('.disp', dispEl).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.theme === root.dataset.theme)));
+      sfxBox.checked = Sound.sfxOn;
+    }
+    function build() {
+      if (built) return;
+      built = true;
+      for (let i = 0; i < 64; i++) {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.setAttribute('aria-label', 'Row ' + ((i >> 3) + 1) + ', column ' + ((i & 7) + 1));
+        b.addEventListener('click', () => { rows[i >> 3] ^= 1 << (7 - (i & 7)); apply(); syncCells(); });
+        editEl.append(b);
+        cells.push(b);
+      }
+      $('#pat-prev').addEventListener('click', () => preset(-1));
+      $('#pat-next').addEventListener('click', () => preset(1));
+      THEMES.forEach(([id, name]) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'disp';
+        b.dataset.theme = id;
+        b.textContent = name;
+        b.addEventListener('click', () => setTheme(id));
+        dispEl.append(b);
+      });
+      sfxBox.addEventListener('change', () => { Sound.setSfx(sfxBox.checked); syncSfx(); if (sfxBox.checked) Sound.play('open'); });
+      vol.value = Prefs.get('vol');
+      volN.textContent = vol.value;
+      vol.addEventListener('input', () => {
+        Prefs.set('vol', +vol.value);
+        Sound.setVolume(+vol.value);
+        volN.textContent = vol.value;
+        Sound.play('up');
+      });
+      radio($('#cp-blink'), Prefs.get('blink'));
+      $('#cp-blink').addEventListener('change', (e) => { Prefs.set('blink', +e.target.value); root.style.setProperty('--blink', e.target.value + 'ms'); });
+      radio($('#cp-menu'), Prefs.get('menuBlink'));
+      $('#cp-menu').addEventListener('change', (e) => Prefs.set('menuBlink', +e.target.value));
+      radio($('#cp-clock'), Prefs.get('clock24') ? 24 : 12);
+      $('#cp-clock').addEventListener('change', (e) => { Prefs.set('clock24', e.target.value === '24'); setClockFormat(); });
+      $('#cp-reset').addEventListener('click', () => openAlert({
+        title: 'Reset the desk?',
+        text: 'This forgets your drawing, notes, scores, settings and where you left things. The desk starts fresh.',
+        ok: 'Reset', cancel: 'Cancel',
+        onOk: () => { try { localStorage.clear(); } catch (e) {} location.reload(); },
+      }));
+      apply();
+      syncCells();
+      sync();
+    }
+    // Settings that matter before the panel is ever opened.
+    function boot() {
+      Sound.setVolume(Prefs.get('vol'));
+      root.style.setProperty('--blink', Prefs.get('blink') + 'ms');
+      root.style.setProperty('--desk-mask', deskMask(rows));
+    }
+    return { build, sync, boot };
+  })();
+
+  /* ==========================================================
+     Desktop icons — a column down the right, the Trash in the
+     corner. Drag them anywhere; the desk remembers. Nothing can
+     actually go in the Trash.
+  ========================================================== */
+  const Icons = (() => {
+    const icons = $$('.icon'), trash = $('#icon-trash');
+    const KEY = 'adiel-icons', IW = 76, IH = 56, GAP = 10;
+    let saved = parse(store.get(KEY), {}), lastPointer = 'mouse', drag = null;
+    const topEdge = () => menubar.offsetHeight + 16;
+    const labelOf = (ic) => $('.icon-label', ic).textContent;
+    function selectIcon(icon) { icons.forEach((i) => i.classList.toggle('is-selected', i === icon)); }
+    // Default spots: one column from the top right, wrapping leftwards when the screen is short.
+    function slots() {
+      const right = innerWidth - 14 - IW, rows = Math.max(1, Math.floor((innerHeight - topEdge() - IH - 40) / (IH + GAP)));
+      const out = {};
+      let n = 0;
+      icons.forEach((ic) => {
+        if (ic === trash) { out[ic.id] = [right, innerHeight - 16 - IH]; return; }
+        out[ic.id] = [right - Math.floor(n / rows) * (IW + 14), topEdge() + (n % rows) * (IH + GAP)];
+        n++;
+      });
+      return out;
+    }
+    function place(ic, x, y) {
+      ic.style.left = Math.round(clamp(x, 0, innerWidth - IW)) + 'px';
+      ic.style.top = Math.round(clamp(y, menubar.offsetHeight, innerHeight - 24)) + 'px';
+    }
+    function layout() {
+      const d = slots();
+      icons.forEach((ic) => { const p = saved[ic.id] || d[ic.id]; place(ic, p[0], p[1]); });
+    }
+    function cleanUp() {
+      saved = {};
+      store.set(KEY, '{}');
+      layout();
+    }
+    function emptyTrash() {
+      Sound.play('trash');
+      openAlert({ title: 'The Trash is empty.', text: 'Nothing on this desk is disposable.' });
+    }
+    function open(ic) {
+      const target = ic.dataset.open;
+      if (target === 'work') openAlert();
+      else if (target === 'trash') emptyTrash();
+      else openWin(W[target]);
+    }
+    icons.forEach((ic) => {
+      ic.addEventListener('pointerdown', (e) => {
+        lastPointer = e.pointerType;
+        if (e.button !== 0 || narrow.matches || drag) return;
+        const r = ic.getBoundingClientRect();
+        drag = { ic, id: e.pointerId, x: e.clientX, y: e.clientY, ox: e.clientX - r.left, oy: e.clientY - r.top, from: [r.left, r.top], moved: false, over: false };
+        ic.setPointerCapture(e.pointerId);
+      });
+      ic.addEventListener('pointermove', (e) => {
+        if (!drag || drag.ic !== ic || e.pointerId !== drag.id) return;
+        if (!drag.moved) {
+          if (Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 5) return;
+          drag.moved = true;
+          ic.classList.add('is-dragging');
+          selectIcon(ic);
+        }
+        place(ic, e.clientX - drag.ox, e.clientY - drag.oy);
+        if (ic !== trash) {
+          const t = trash.getBoundingClientRect();
+          drag.over = e.clientX > t.left && e.clientX < t.right && e.clientY > t.top && e.clientY < t.bottom;
+          trash.classList.toggle('is-drop', drag.over);
+        }
+      });
+      const drop = (e) => {
+        if (!drag || drag.ic !== ic || e.pointerId !== drag.id) return;
+        const d = drag;
+        drag = null;
+        ic.classList.remove('is-dragging');
+        trash.classList.remove('is-drop');
+        if (!d.moved) return;
+        ic.dataset.dragged = '1';
+        if (d.over) {
+          place(ic, d.from[0], d.from[1]);
+          openAlert({ title: '“' + labelOf(ic) + '” can’t be moved to the Trash.', text: 'It’s part of the desk. Nice try, though.' });
+          return;
+        }
+        saved[ic.id] = [parseFloat(ic.style.left), parseFloat(ic.style.top)];
+        store.set(KEY, JSON.stringify(saved));
+      };
+      ic.addEventListener('pointerup', drop);
+      ic.addEventListener('pointercancel', drop);
+      ic.addEventListener('click', (e) => {
+        if (ic.dataset.dragged) { delete ic.dataset.dragged; return; }
+        selectIcon(ic);
+        // Double-click with a mouse, single tap on touch, Enter/Space on keyboard.
+        if (e.detail === 0 || e.detail >= 2 || lastPointer !== 'mouse') open(ic);
+      });
+    });
+    layout();
+    return { layout, cleanUp, emptyTrash, selectIcon };
+  })();
+  const selectIcon = Icons.selectIcon;
+
+  /* ==========================================================
+     Alert — one button, or OK and Cancel with something to do.
   ========================================================== */
   const alertBox = $('#alert');
   const scrim = $('#scrim');
-  const alertOk = $('.btn', alertBox);
-  let returnFocus = null;
-  function openAlert() {
+  const alertOk = $('#alert-ok'), alertCancel = $('#alert-cancel');
+  const alertTitle = $('#alert-title'), alertText = $('#alert-text');
+  let returnFocus = null, alertThen = null;
+  function openAlert({ title = 'Work isn’t ready yet.', text = 'Selected projects are being arranged for the new portfolio. Check back soon.', ok = 'OK', cancel = '', onOk = null } = {}) {
+    alertTitle.textContent = title;
+    alertText.textContent = text;
+    alertOk.textContent = ok;
+    alertCancel.textContent = cancel;
+    alertCancel.hidden = !cancel;
+    alertThen = onOk;
     returnFocus = document.activeElement;
     scrim.hidden = false;
     alertBox.hidden = false;
     alertOk.focus();
     Sound.play('alert');
   }
-  function closeAlert() {
+  function closeAlert(confirmed) {
     scrim.hidden = true;
     alertBox.hidden = true;
+    const then = alertThen;
+    alertThen = null;
     if (returnFocus && returnFocus.focus) returnFocus.focus({ preventScroll: true });
+    if (confirmed && then) then();
   }
-  alertOk.addEventListener('click', closeAlert);
+  alertOk.addEventListener('click', () => closeAlert(true));
+  alertCancel.addEventListener('click', () => closeAlert(false));
   alertBox.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') { e.preventDefault(); closeAlert(); }
-    if (e.key === 'Tab') e.preventDefault();
+    if (e.key === 'Escape') { e.preventDefault(); closeAlert(false); }
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      if (!alertCancel.hidden) (document.activeElement === alertOk ? alertCancel : alertOk).focus();
+    }
   });
   // Clicking outside a modal alert: it beeps, or with sound off the menu bar flashes.
   scrim.addEventListener('pointerdown', (e) => {
@@ -3178,247 +4152,209 @@
   });
 
   /* ==========================================================
+     Power — Shut Down folds the picture into a line, like a
+     CRT, and leaves the old "safe to turn off" screen. Any
+     input starts it up again: a chime, a welcome, the desk.
+  ========================================================== */
+  const Power = (() => {
+    const el = $('#power'), offText = $('#off-text'), welcome = $('#welcome');
+    let state = 'on', timers = [];
+    const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+    function tidy() {
+      closeMenu();
+      Saver.stop();
+      Bez.dismiss();
+      if (!alertBox.hidden) closeAlert(false);
+      closeAllWins(true);
+      Icons.selectIcon(null);
+    }
+    function off() {
+      if (state !== 'on') return;
+      state = 'off';
+      tidy();
+      el.hidden = false;
+      welcome.hidden = true;
+      offText.hidden = false;
+      el.className = 'power is-off';
+      Sound.play('powerOff');
+    }
+    function boot() {
+      el.className = 'power is-on';
+      offText.hidden = true;
+      welcome.hidden = false;
+      Sound.play('chime');
+      later(() => {
+        el.hidden = true;
+        el.className = 'power';
+        welcome.hidden = true;
+        state = 'on';
+        openWin(W.readme, { focus: false });
+      }, reduced.matches ? 1400 : 1900);
+    }
+    function restart() {
+      if (state === 'booting') return;
+      const wasOn = state === 'on';
+      state = 'booting';
+      timers.forEach(clearTimeout);
+      timers = [];
+      if (wasOn) {
+        tidy();
+        el.hidden = false;
+        offText.hidden = true;
+        welcome.hidden = true;
+        el.className = 'power is-off';
+        Sound.play('powerOff');
+      }
+      later(boot, wasOn && !reduced.matches ? 1100 : 250);
+    }
+    el.addEventListener('pointerdown', (e) => { if (state === 'off') { e.preventDefault(); restart(); } });
+    return { off, restart, get isOff() { return state !== 'on'; } };
+  })();
+
+  /* ==========================================================
      Screen saver — after a while with nothing happening, the
-     statement comes apart into pixels, and the pixels keep
-     regrouping: the glyph, words, the time, a volcano, a ball,
-     and whatever you drew in Paint. Any input wakes the desk.
+     wordmark takes off and bounces around the desk like a
+     DVD logo, towing a dithered rainbow slipstream. Everything
+     is drawn on a coarse pixel grid. Any input wakes the desk.
   ========================================================== */
   const Saver = (() => {
     const canvas = $('#saver');
     const ctx = canvas.getContext('2d');
-    const IDLE = 90 * 1000, HOLD = 2.8, FLY = 1.5;
-    const WORDS = [
-      ['Adiel', 700, 'normal'],
-      ['brand', 500, 'condensed'],
-      ['identity', 400, 'normal'],
-      ['type', 700, 'condensed'],
-      ['naming', 600, 'semi-condensed'],
-      ['motion', 400, 'condensed'],
-      ['hello', 500, 'normal'],
-    ];
-    const PLAN = ['Glyph', 0, 1, 2, 'Volcano', 3, 'clock', 4, 'Ball', 'doodle', 5, 'Star', 6];
-    const MODES = ['sweep', 'swirl', 'burst', 'hop'];
-    const clockFmt = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
-    const ease = (u) => (u < 0.5 ? 4 * u * u * u : 1 - Math.pow(-2 * u + 2, 3) / 2);
+    const IDLE = 90 * 1000, STEP = 1 / 60, HIST = 280, SKIP = 2;
+    const BANDS = [[232, 44, 52], [255, 138, 24], [255, 214, 32], [54, 194, 92], [44, 124, 255], [148, 72, 224]];
+    // 4×4 ordered-dither thresholds, 0–15.
+    const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
     let on = false, raf = 0, lastInput = performance.now(), startedAt = 0, anchor = null;
-    let cell = 8, cols = 0, rows = 0, dpr = 1, N = 0, cache = {};
-    let X, Y, SX, SY, CX, CY, TX, TY, D;
-    let at = 0, phase = 'hold', t0 = 0, spread = 0, hold = HOLD, caret = null, shown = -1, fresh = true;
+    let s = 4, cols = 0, rows = 0, lo = null, lg = null, img = null, buf = null, desk = null;
+    let logo = null, w = 0, h = 0;
+    let px = 0, py = 0, vx = 0, vy = 0, lead = 0, hue = 0, acc = 0, last = 0, head = 0;
+    const hx = new Float32Array(HIST), hy = new Float32Array(HIST), hh = new Uint8Array(HIST);
+    // How each row of the ribbon is coloured: a band, and how far it dithers into the next.
+    let rowA, rowB, rowT;
 
     function measure() {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
+      const dpr = Math.min(2, window.devicePixelRatio || 1);
       canvas.width = Math.round(innerWidth * dpr);
       canvas.height = Math.round(innerHeight * dpr);
-      cell = clamp(Math.round(Math.min(innerWidth, innerHeight) / 100), 4, 12);
-      cols = Math.ceil(innerWidth / cell);
-      rows = Math.ceil(innerHeight / cell);
+      s = clamp(Math.round(Math.min(canvas.width, canvas.height) / 150), 3, 10);
+      cols = Math.ceil(canvas.width / s);
+      rows = Math.ceil(canvas.height / s);
+      lo = document.createElement('canvas');
+      lo.width = cols; lo.height = rows;
+      lg = lo.getContext('2d');
+      img = lg.createImageData(cols, rows);
+      buf = new Uint8Array(cols * rows);
     }
 
-    /* Shapes are lists of grid cells: x0, y0, x1, y1, … */
-    function raster(paint) {
+    /* The wordmark and its caret, as a grid of cells:
+       0 clear, 1 outline, 2 ink, 3 caret. */
+    function makeLogo() {
+      const want = clamp(Math.round(cols * 0.2), 30, 84);
       const c = document.createElement('canvas');
-      c.width = cols; c.height = rows;
+      c.width = want + 8; c.height = Math.round(want * 0.6);
       const g = c.getContext('2d', { willReadFrequently: true });
-      const caretBox = paint(g) || null;
-      const d = g.getImageData(0, 0, cols, rows).data;
-      const pts = [];
-      for (let y = 0; y < rows; y++) for (let x = 0; x < cols; x++) if (d[(y * cols + x) * 4 + 3] > 127) pts.push(x, y);
-      return { pts, caret: caretBox };
-    }
-    const family = () => getComputedStyle(document.body).fontFamily;
-    function word(text, weight, stretch) {
-      return raster((g) => {
-        const size = (px) => {
-          g.font = weight + ' ' + px + 'px ' + family();
-          if ('fontStretch' in g) g.fontStretch = stretch;
-          if ('letterSpacing' in g) g.letterSpacing = -0.03 * px + 'px';
-        };
-        size(100);
-        let m = g.measureText(text);
-        const px = 100 * Math.min(
-          (cols * 0.74) / (m.actualBoundingBoxLeft + m.actualBoundingBoxRight),
-          (rows * 0.34) / (m.actualBoundingBoxAscent + m.actualBoundingBoxDescent));
-        size(px);
-        m = g.measureText(text);
-        const x = (cols - m.actualBoundingBoxLeft - m.actualBoundingBoxRight) / 2 + m.actualBoundingBoxLeft;
-        const y = rows / 2 + (m.actualBoundingBoxAscent - m.actualBoundingBoxDescent) / 2;
-        g.fillText(text, x, y);
-        // The statement's caret, at the same proportions.
-        return { x: Math.round(x + m.actualBoundingBoxRight + px * 0.07), y: Math.round(y - px * 0.74), w: Math.max(1, Math.round(px * 0.07)), h: Math.round(px * 0.84) };
-      });
-    }
-    function sprite(art) {
-      const h = art.length, w = art[0].length;
-      const k = Math.max(1, Math.floor(Math.min((rows * 0.5) / h, (cols * 0.5) / w)));
-      const ox = Math.floor((cols - w * k) / 2), oy = Math.floor((rows - h * k) / 2);
-      const pts = [];
-      art.forEach((r, j) => {
-        for (let i = 0; i < w; i++) {
-          if (r[i] !== '#') continue;
-          for (let q = 0; q < k * k; q++) pts.push(ox + i * k + (q % k), oy + j * k + Math.floor(q / k));
+      const fam = getComputedStyle(document.body).fontFamily;
+      const font = (px) => {
+        g.font = '700 ' + px + 'px ' + fam;
+        if ('letterSpacing' in g) g.letterSpacing = -0.03 * px + 'px';
+      };
+      font(100);
+      let m = g.measureText('Adiel');
+      const px0 = 100 * ((want * 0.84) / (m.actualBoundingBoxLeft + m.actualBoundingBoxRight));
+      font(px0);
+      m = g.measureText('Adiel');
+      const asc = Math.ceil(m.actualBoundingBoxAscent), desc = Math.ceil(m.actualBoundingBoxDescent);
+      const tw = Math.ceil(m.actualBoundingBoxLeft + m.actualBoundingBoxRight);
+      const cw = Math.max(2, Math.round(px0 * 0.08)), gap = Math.max(1, Math.round(px0 * 0.07));
+      const lw = tw + gap + cw + 4, lh = asc + desc + 4; // 2 cells of room all round for the outline
+      g.clearRect(0, 0, c.width, c.height);
+      g.fillText('Adiel', 2 + m.actualBoundingBoxLeft, 2 + asc);
+      const d = g.getImageData(0, 0, lw, lh).data;
+      const cells = new Uint8Array(lw * lh);
+      for (let i = 0; i < lw * lh; i++) if (d[i * 4 + 3] > 127) cells[i] = 2;
+      const ch = Math.round(px0 * 0.84), cx = 2 + tw + gap, cy = 2 + asc - Math.round(px0 * 0.74);
+      for (let y = 0; y < ch; y++) for (let x = 0; x < cw; x++) { const j = (cy + y) * lw + cx + x; if (cy + y >= 0 && cy + y < lh) cells[j] = 3; }
+      const out = new Uint8Array(lw * lh);
+      out.set(cells);
+      for (let y = 0; y < lh; y++) {
+        for (let x = 0; x < lw; x++) {
+          if (cells[y * lw + x]) continue;
+          if ((x > 0 && cells[y * lw + x - 1]) || (x < lw - 1 && cells[y * lw + x + 1]) ||
+              (y > 0 && cells[(y - 1) * lw + x]) || (y < lh - 1 && cells[(y + 1) * lw + x])) out[y * lw + x] = 1;
         }
-      });
-      return { pts, caret: null };
+      }
+      w = lw; h = lh;
+      logo = out;
+      rowA = new Uint8Array(h); rowB = new Uint8Array(h); rowT = new Uint8Array(h);
+      for (let r = 0; r < h; r++) {
+        const v = (r / h) * BANDS.length, b = Math.floor(v), f = v - b;
+        rowA[r] = b; rowB[r] = (b + 1) % BANDS.length;
+        rowT[r] = f > 0.6 ? Math.round(((f - 0.6) / 0.4) * 14) : 0; // dither into the next band at its edge
+      }
     }
-    function doodle() {
-      const pic = Paint.picture();
-      if (!pic) return null;
-      const { bits, w, h } = pic;
-      let x0 = w, y0 = h, x1 = -1, y1 = -1;
+
+    function step() {
+      px += vx * STEP; py += vy * STEP;
+      let hit = false;
+      if (px < 0) { px = 0; vx = Math.abs(vx); hit = true; } else if (px > cols - w) { px = cols - w; vx = -Math.abs(vx); hit = true; }
+      if (py < 0) { py = 0; vy = Math.abs(vy); hit = true; } else if (py > rows - h) { py = rows - h; vy = -Math.abs(vy); hit = true; }
+      if (hit) hue = (hue + 1) % BANDS.length; // every bounce shifts the rainbow, like the DVD logo
+      head = (head + 1) % HIST;
+      hx[head] = px; hy[head] = py; hh[head] = hue;
+    }
+
+    // The slipstream is a ribbon of thin vertical slices, one per step the logo has taken,
+    // each as tall as the logo and banded top to bottom.
+    function stamp(k, age) {
+      const i = (head - k + HIST) % HIST;
+      const cut = Math.pow(age / HIST, 1.15) * 16;           // older slices dither away
+      const sway = Math.sin(age * 0.07 + last * 0.0025) * (age / HIST) * h * 0.3; // and drift into a ripple
+      const x0 = Math.round(hx[i] + w / 2) - 1, y0 = Math.round(hy[i] + sway), off = hh[i];
+      for (let r = 0; r < h; r++) {
+        const gy = y0 + r;
+        if (gy < 0 || gy >= rows) continue;
+        const a = (rowA[r] + off) % BANDS.length + 1, b = (rowB[r] + off) % BANDS.length + 1, t = rowT[r];
+        for (let q = 0; q < 3; q++) {
+          const gx = x0 + q;
+          if (gx < 0 || gx >= cols) continue;
+          const bay = BAYER[(gy & 3) * 4 + (gx & 3)];
+          if (bay < cut) continue;
+          buf[gy * cols + gx] = bay < t ? b : a;
+        }
+      }
+    }
+
+    function render() {
+      const { desk: bg, deskInk, accent } = Colors.get();
+      buf.fill(0);
+      for (let k = HIST - 1; k >= lead; k -= SKIP) stamp(k, k); // the ribbon starts at the logo's trailing edge
+      const ox = Math.round(px), oy = Math.round(py);
       for (let y = 0; y < h; y++) {
         for (let x = 0; x < w; x++) {
-          if (!bits[y * w + x]) continue;
-          if (x < x0) x0 = x;
-          if (x > x1) x1 = x;
-          if (y < y0) y0 = y;
-          if (y > y1) y1 = y;
+          const v = logo[y * w + x];
+          if (!v) continue;
+          const gx = ox + x, gy = oy + y;
+          if (gx < 0 || gx >= cols || gy < 0 || gy >= rows) continue;
+          buf[gy * cols + gx] = 7 + v; // 8 outline, 9 ink, 10 caret
         }
       }
-      const bw = x1 - x0 + 1, bh = y1 - y0 + 1;
-      const s = Math.min((cols * 0.8) / bw, (rows * 0.62) / bh, 2); // grid cells per drawing pixel
-      const gw = Math.max(1, Math.round(bw * s)), gh = Math.max(1, Math.round(bh * s));
-      const ox = Math.floor((cols - gw) / 2), oy = Math.floor((rows - gh) / 2);
-      const pts = [];
-      for (let gy = 0; gy < gh; gy++) {
-        for (let gx = 0; gx < gw; gx++) {
-          const sx0 = x0 + Math.floor(gx / s), sx1 = Math.max(sx0 + 1, x0 + Math.floor((gx + 1) / s));
-          const sy0 = y0 + Math.floor(gy / s), sy1 = Math.max(sy0 + 1, y0 + Math.floor((gy + 1) / s));
-          let n = 0, t = 0;
-          for (let y = sy0; y < sy1 && y <= y1; y++) for (let x = sx0; x < sx1 && x <= x1; x++) { t++; n += bits[y * w + x]; }
-          if (t && n / t >= 0.2) pts.push(ox + gx, oy + gy);
-        }
+      const pal = [bg, ...BANDS, bg, bg, deskInk, accent]; // 0 desk, 1–6 rainbow, 8 outline, 9 ink, 10 caret
+      const d = img.data;
+      for (let i = 0, j = 0; i < buf.length; i++, j += 4) {
+        const c = pal[buf[i]];
+        d[j] = c[0]; d[j + 1] = c[1]; d[j + 2] = c[2]; d[j + 3] = 255;
       }
-      return { pts, caret: null };
-    }
-    // The statement as it sits on screen right now, word by word.
-    function statement() {
-      const h1 = $('#statement');
-      const box = h1.getBoundingClientRect();
-      if (box.bottom < 0 || box.top > innerHeight) return null;
-      const cs = getComputedStyle(h1);
-      return raster((g) => {
-        g.font = cs.fontWeight + ' ' + parseFloat(cs.fontSize) / cell + 'px ' + cs.fontFamily;
-        const ls = parseFloat(cs.letterSpacing);
-        if ('letterSpacing' in g && isFinite(ls)) g.letterSpacing = ls / cell + 'px';
-        g.textBaseline = 'middle';
-        const walk = document.createTreeWalker(h1, NodeFilter.SHOW_TEXT);
-        const range = document.createRange();
-        for (let n = walk.nextNode(); n; n = walk.nextNode()) {
-          const re = /\S+/g;
-          let m;
-          while ((m = re.exec(n.nodeValue))) {
-            range.setStart(n, m.index);
-            range.setEnd(n, m.index + m[0].length);
-            const r = range.getClientRects()[0];
-            if (r) g.fillText(m[0], r.left / cell, (r.top + r.height / 2) / cell);
-          }
-        }
-      });
-    }
-    function shapeFor(key) {
-      if (key === 'clock') return word(clockFmt.format(new Date()), 500, 'normal');
-      if (key === 'doodle') return doodle();
-      return cache[key];
+      lg.putImageData(img, 0, 0);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(lo, 0, 0, cols * s, rows * s);
     }
 
-    /* Particles */
-    function alloc(n) {
-      N = n;
-      [X, Y, SX, SY, CX, CY, TX, TY, D] = Array.from({ length: 9 }, () => new Float32Array(n));
-    }
-    function shuffle(a) {
-      for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        const t = a[i]; a[i] = a[j]; a[j] = t;
-      }
-      return a;
-    }
-    // Every particle gets a cell of the shape; extras double up.
-    function targets(M) {
-      if (M >= N) return shuffle(Array.from({ length: M }, (_, i) => i)).slice(0, N);
-      return shuffle(Array.from({ length: N }, (_, i) => (i < M ? i : Math.floor(Math.random() * M))));
-    }
-    function retarget(shape, mode) {
-      const P = shape.pts;
-      let order = targets(P.length / 2);
-      const who = Array.from({ length: N }, (_, i) => i);
-      if (mode === 'sweep') { // left-most particles go to the left-most cells
-        who.sort((a, b) => X[a] - X[b] || Y[a] - Y[b]);
-        order = order.sort((a, b) => P[2 * a] - P[2 * b] || P[2 * a + 1] - P[2 * b + 1]);
-      }
-      spread = mode === 'sweep' ? 0.8 : mode === 'hop' ? 0.6 : 0.3;
-      const mx = cols / 2, my = rows / 2;
-      for (let k = 0; k < N; k++) {
-        const i = who[k], j = order[k];
-        const sx = X[i], sy = Y[i], tx = P[2 * j], ty = P[2 * j + 1];
-        let cx = (sx + tx) / 2, cy = (sy + ty) / 2;
-        if (mode === 'swirl') { // swing round the middle of the screen
-          const dx = cx - mx, dy = cy - my;
-          cx = mx - dy * 0.9 + dx * 0.1;
-          cy = my + dx * 0.9 + dy * 0.1;
-        } else if (mode === 'burst') { // fly out first
-          cx = sx + (sx - mx) * 1.2;
-          cy = sy + (sy - my) * 1.2;
-        } else if (mode === 'hop') { // arc over, like a jump shot
-          cy = Math.min(sy, ty) - rows * (0.2 + Math.random() * 0.25);
-        }
-        SX[i] = sx; SY[i] = sy; TX[i] = tx; TY[i] = ty; CX[i] = cx; CY[i] = cy;
-        D[i] = mode === 'sweep' ? (tx / cols) * spread : mode === 'hop' ? (sx / cols) * spread : Math.random() * spread;
-      }
-    }
-    function next(now) {
-      let shape = null;
-      for (let tries = 0; tries < PLAN.length && !(shape && shape.pts.length); tries++) {
-        shape = shapeFor(PLAN[at]);
-        at = (at + 1) % PLAN.length;
-      }
-      if (!shape || !shape.pts.length) return;
-      caret = shape.caret;
-      // The page's own words always blow apart first; after that, mix it up.
-      retarget(shape, fresh ? 'burst' : MODES[Math.floor(Math.random() * MODES.length)]);
-      fresh = false;
-      t0 = now;
-      shown = -1;
-      if (reduced.matches) { X.set(TX); Y.set(TY); phase = 'hold'; hold = 4; } else phase = 'fly';
-    }
-
-    function draw(withCaret) {
-      const { desk, deskInk, accent } = Colors.get();
-      const s = cell * dpr, size = cell >= 6 ? s - dpr : s;
-      ctx.fillStyle = rgb(desk);
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = rgb(deskInk);
-      ctx.beginPath();
-      for (let i = 0; i < N; i++) ctx.rect(Math.round(X[i]) * s, Math.round(Y[i]) * s, size, size);
-      ctx.fill();
-      if (withCaret) {
-        ctx.fillStyle = rgb(accent);
-        ctx.beginPath();
-        for (let y = 0; y < caret.h; y++) for (let x = 0; x < caret.w; x++) ctx.rect((caret.x + x) * s, (caret.y + y) * s, size, size);
-        ctx.fill();
-      }
-    }
     function frame(now) {
       raf = requestAnimationFrame(frame);
-      const t = (now - t0) / 1000;
-      if (phase === 'fly') {
-        if (t < FLY + spread) {
-          for (let i = 0; i < N; i++) {
-            const u = ease(clamp((t - D[i]) / FLY, 0, 1)), v = 1 - u;
-            X[i] = v * v * SX[i] + 2 * v * u * CX[i] + u * u * TX[i];
-            Y[i] = v * v * SY[i] + 2 * v * u * CY[i] + u * u * TY[i];
-          }
-          draw(false);
-          return;
-        }
-        X.set(TX); Y.set(TY);
-        phase = 'hold'; hold = HOLD; t0 = now; shown = -1;
-        return;
-      }
-      if (t >= hold) { next(now); draw(false); return; }
-      // Only redraw when the caret blinks.
-      const blink = caret && !reduced.matches ? Math.floor(t / 0.55) % 2 : 0;
-      if (blink !== shown) { shown = blink; draw(!!caret && blink === 0); }
+      acc += Math.min(0.05, (now - last) / 1000);
+      last = now;
+      for (; acc >= STEP; acc -= STEP) step();
+      render();
     }
 
     function start() {
@@ -3428,29 +4364,23 @@
       Piano.releaseAll();
       Paint.commit();
       measure();
-      cache = {};
-      let most = 0;
-      PLAN.forEach((key) => {
-        if (key === 'clock' || key === 'doodle') return;
-        const s = typeof key === 'number' ? word(...WORDS[key]) : sprite(STAMPS[key]);
-        cache[key] = s;
-        most = Math.max(most, s.pts.length / 2);
-      });
-      alloc(clamp(most, 400, 6000));
-      // Start from the statement where it sits, or from static if it's off screen.
-      const first = statement();
-      const M = first ? first.pts.length / 2 : 0;
-      const pick = M ? targets(M) : null;
-      for (let i = 0; i < N; i++) {
-        if (pick) { X[i] = first.pts[2 * pick[i]]; Y[i] = first.pts[2 * pick[i] + 1]; }
-        else { X[i] = Math.floor(Math.random() * cols); Y[i] = Math.floor(Math.random() * rows); }
-      }
-      at = 0; caret = null; phase = 'hold'; hold = 0.8; shown = -1; fresh = true;
-      startedAt = t0 = performance.now();
+      makeLogo();
+      // Launch from somewhere off-centre at a slant that never quite repeats.
+      const speed = cols * 0.13;
+      px = Math.random() * Math.max(1, cols - w) * 0.5 + cols * 0.1;
+      py = Math.random() * Math.max(1, rows - h) * 0.5 + rows * 0.1;
+      vx = speed * (Math.random() < 0.5 ? -1 : 1);
+      vy = speed * 0.58 * (Math.random() < 0.5 ? -1 : 1);
+      lead = Math.round((w * 0.5) / (speed * STEP));
+      hue = Math.floor(Math.random() * BANDS.length);
+      for (let i = 0; i < HIST; i++) { hx[i] = px; hy[i] = py; hh[i] = hue; }
+      head = 0; acc = 0;
+      startedAt = last = performance.now();
       anchor = null;
       canvas.hidden = false;
-      draw(false);
-      raf = requestAnimationFrame(frame);
+      for (let i = 0; i < HIST; i++) step(); // so the slipstream is already flowing
+      render();
+      if (!reduced.matches) raf = requestAnimationFrame(frame); // reduced motion gets a still frame
     }
     function stop() {
       if (!on) return;
@@ -3488,7 +4418,7 @@
     addEventListener('resize', stop);
     document.addEventListener('visibilitychange', () => { lastInput = performance.now(); });
     setInterval(() => {
-      if (!on && !document.hidden && alertBox.hidden && performance.now() - lastInput > IDLE) start();
+      if (!on && !document.hidden && alertBox.hidden && !Power.isOff && performance.now() - lastInput > IDLE) start();
     }, 1000);
 
     return { start, stop };
@@ -4393,6 +5323,7 @@
 
     /* Ask Bez: a handful of things he understands, matched by keywords. */
     const has = (q, re) => re.test(q);
+    const WNAMES = { readme: 'read me', about: 'about', piano: 'piano', paint: 'paint', hoops: 'hoops', calc: 'calc', notes: 'note', puzzle: 'puzzle', panel: 'control panel' };
     function notesIn(q) {
       const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
       let m;
@@ -4465,17 +5396,36 @@
       } else if (has(q, /adiel|who (made|built|designed|is)|about (you|this|the)|designer|\bowner\b/)) {
         answer('<p><b>Adiel Vásquez</b> is a designer focused on brand identity, currently a brand designer at HEX.</p><p>Adiel works concept-first on identities, websites, art direction and naming, and builds generative tools along the way. Offline: reading, climbing volcanoes, basketball.</p>',
           [['About Me', () => openWin(W.about, { scroll: true })], ['Contact', () => ask('contact')], ['Back', () => home(true)]]);
-      } else if (has(q, /^open |^show /) && Object.keys(W).some((k) => q.includes(k === 'readme' ? 'read me' : k))) {
-        const k = Object.keys(W).find((w) => q.includes(w === 'readme' ? 'read me' : w));
+      } else if (has(q, /^open |^show /) && Object.keys(WNAMES).some((k) => q.includes(WNAMES[k]))) {
+        const k = Object.keys(WNAMES).find((w) => q.includes(WNAMES[w]));
         openWin(W[k], { scroll: true });
         answer('<p>Opened.</p>');
+      } else if (has(q, /restart|reboot/)) { hush(); Power.restart(); }
+      else if (has(q, /shut ?down|turn (it |the desk )?off|power (off|down)|switch off/)) { hush(); Power.off(); }
+      else if (has(q, /control panel|settings|preferences|pattern|volume|wallpaper|desktop|blink/)) {
+        openWin(W.panel, { scroll: true });
+        answer('<p>The Control Panel: desktop pattern, display, volume, blinking and the clock. Draw your own pattern in the little grid.</p>');
+      } else if (has(q, /calculat|\bcalc\b|\bmaths?\b|arithmetic|\bsum\b|add up/)) {
+        openWin(W.calc, { scroll: true });
+        answer('<p>Calculator’s open. Your keyboard works too: Enter for equals, C to clear.</p>');
+      } else if (has(q, /\bnotes?\b|note ?pad|write|memo|jot/)) {
+        openWin(W.notes, { scroll: true });
+        answer('<p>Note Pad’s open. Eight pages, and they stay in this browser.</p>');
+      } else if (has(q, /puzzle|sliding|\btiles?\b/)) {
+        openWin(W.puzzle, { scroll: true });
+        answer('<p>Slide the tiles into order, 1 to 15. The arrow keys work too.</p>');
+      } else if (has(q, /\btrash\b|\bbin\b|delete|throw away/)) {
+        answer('<p>The Trash is empty. Nothing on this desk is disposable, though you’re welcome to drag something in and see.</p>');
+      } else if (has(q, /clean ?up|tidy|arrange|messy/)) {
+        Icons.cleanUp();
+        answer('<p>Tidied the desktop.</p>');
       } else if (has(q, /paint|draw|doodle|sketch/)) {
         openWin(W.paint, { scroll: true });
         answer('<p>Paint’s open. Double-click the eraser to start over, and Ctrl+Z (⌘Z on a Mac) undoes. Your drawing stays in this browser.</p>');
       } else if (has(q, /screen ?saver|idle|sleep/)) {
         answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
       } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
-        answer('<p>Press <b>T</b> to flip through six displays, from Paper to Text Mode.</p>', [['Next display', cycleTheme], ['Back', () => home(true)]]);
+        answer('<p>Press <b>T</b> to flip through seven displays, from Paper to Text Mode. The Control Panel lists them all.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
       } else if (has(q, /joke|funny|laugh/)) {
         act('cheer', 1200);
         answer(pick(['<p>Why did the Bézier curve go to therapy? Too many handles on its feelings.</p>', '<p>I asked the pen tool for directions. It gave me two handles and said “you figure it out.”</p>', '<p>What’s a pianist’s favourite drink? Anything on the rocks, as long as it’s in C.</p>']));
@@ -4483,7 +5433,7 @@
       else if (has(q, /who are you|what are you|your name|\bbez\b/)) {
         answer('<p>I’m Bez, an anchor point from a vector drawing who wandered off. These handles are my arms. I teach piano, coach hoops, and know my way around this desk.</p>');
       } else if (has(q, /help|what can you|commands|^\?$/)) {
-        answer('<p>Try me on:</p>', [], chips(['Teach me a song', 'Ear training', 'What chord is A C E?', 'Show me G7', 'Play HORSE', '60 seconds', 'How am I doing?', 'Contact']));
+        answer('<p>Try me on:</p>', [], chips(['Teach me a song', 'Ear training', 'What chord is A C E?', 'Show me G7', 'Play HORSE', '60 seconds', 'How am I doing?', 'Open the puzzle', 'Desktop pattern', 'Contact']));
       } else {
         act('think', 1000);
         answer('<p>Hmm, not sure about that one. I’m good with piano, hoops, and finding things on this desk.</p>', [], chips(['Teach me a song', 'Play HORSE', 'Who’s Adiel?', 'Help']));
@@ -4559,6 +5509,7 @@
 
     return {
       summon, toggle, escape, keepOnScreen, pianoOpened, pianoClosed, hoopsClosed,
+      dismiss: leave,
       render: () => { if (shown) draw(); },
     };
   })();
@@ -4580,13 +5531,17 @@
   document.addEventListener('pointerdown', (e) => {
     if (!e.target.closest('.window, .menubar, .scrim, .alert, .bez')) setActive(null);
   });
+  // The path is fixed when the event is dispatched, so this still works when a
+  // click rebuilds what was clicked (the calendar's month buttons do).
+  const within = (e, cls) => e.composedPath().some((n) => n.classList && n.classList.contains(cls));
   document.addEventListener('click', (e) => {
-    if (!e.target.closest('.mb-menu')) closeMenu();
-    if (!e.target.closest('.icon')) selectIcon(null);
+    if (!within(e, 'mb-menu')) closeMenu();
+    if (!within(e, 'icon')) selectIcon(null);
   });
   document.addEventListener('keydown', (e) => {
     Sound.unlock();
-    const typing = e.target.closest('input:not([type="checkbox"]), textarea, [contenteditable]');
+    if (Power.isOff) { e.preventDefault(); Power.restart(); return; }
+    const typing = e.target.closest('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, [contenteditable]');
     if ((e.metaKey || e.ctrlKey) && e.code === 'KeyZ' && !e.shiftKey && !typing && Paint.active) {
       e.preventDefault();
       Paint.undo();
@@ -4597,6 +5552,9 @@
     if (e.key === 'Escape' && Bez.escape(e)) return;
     if (Piano.active && Piano.keydown(e)) return;
     if (Hoops.active && Hoops.keydown(e)) return;
+    if (Calc.active && Calc.keydown(e)) return;
+    if (Puzzle.active && Puzzle.keydown(e)) return;
+    if (Paint.active && Paint.keydown(e)) return;
     if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
     if (e.code === 'KeyT' && !e.repeat) { cycleTheme(); return; }
     if (e.key === 'Escape') {
@@ -4608,6 +5566,7 @@
   document.addEventListener('keyup', (e) => Piano.keyup(e));
 
   /* Boot: wait for the font, then open Read Me from its icon. */
+  Panel.boot();
   const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
   Promise.race([fontsReady, new Promise((r) => setTimeout(r, 1500))]).then(() => {
     setTimeout(() => openWin(W.readme, { focus: false }), narrow.matches ? 0 : 450);
