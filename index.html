@@ -27,7 +27,7 @@
   /* Pick the theme before first paint so there's no flash. */
   (function () {
     var d = document.documentElement, t;
-    var ok = ['paper', 'graphite', 'classic'];
+    var ok = ['paper', 'graphite', 'black', 'classic'];
     d.classList.add('js');
     try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
     if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'graphite' : 'paper';
@@ -62,14 +62,16 @@
 
 <style>
   /* ------------------------------------------------------------
-     Themes. Three displays: Paper and Graphite are quiet, set in
-     Inter with soft edges; Classic is the 1-bit desk, black on
-     white with square corners and striped title bars.
+     Themes. Four displays: Paper, Graphite and Black are quiet,
+     set in Inter with hairline edges and no shadows; Classic is the
+     1-bit desk, black on white with square corners and striped
+     title bars.
   ------------------------------------------------------------ */
   :root {
     --desk-color: #f0f0f0;
     --paper: #ffffff;
-    --paper-2: #f5f5f5;          /* one tone step: wells, hovers, media behind */
+    --paper-2: #f5f5f5;          /* one tone step: wells, hovers */
+    --stage: var(--paper-2);     /* behind the work */
     --ink: #161616;
     --graphite: #8a8a8a;
     --edge: rgb(0 0 0 / .1);
@@ -103,19 +105,39 @@
     color-scheme: light;
   }
   :root[data-theme="graphite"] {
-    --desk-color: #1c1c1c;
-    --paper: #262626;
-    --paper-2: #2f2f2f;
+    --desk-color: #212121;
+    --paper: #2a2a2a;
+    --paper-2: #333333;
     --ink: #ececec;
-    --graphite: #8e8e8e;
-    --edge: rgb(255 255 255 / .08);
+    --graphite: #929292;
+    --edge: rgb(255 255 255 / .09);
     --accent: #4f73ff;
     --on-accent: #ffffff;
     --hl: #e6e6e6;              /* selections invert, like the old desk */
-    --on-hl: #1c1c1c;
+    --on-hl: #212121;
     --desk-ink: #e6e6e6;
-    --desk-dim: #8e8e8e;
+    --desk-dim: #929292;
     --pat-alpha: .1;
+    color-scheme: dark;
+  }
+  /* Black: pure black, white type, hairlines. Windows are the same
+     black as the desk and are drawn only by their edge. */
+  :root[data-theme="black"] {
+    --desk-color: #000000;
+    --paper: #000000;
+    --paper-2: #141414;
+    --stage: #000000;
+    --ink: #ffffff;
+    --graphite: #8c8c8c;
+    --edge: rgb(255 255 255 / .14);
+    --accent: #ffffff;
+    --on-accent: #000000;
+    --hl: #ffffff;
+    --on-hl: #000000;
+    --desk-ink: #ffffff;
+    --desk-dim: #8c8c8c;
+    --menu-bg: #0b0b0b;
+    --pat-alpha: .12;
     color-scheme: dark;
   }
   :root[data-theme="classic"] {
@@ -439,62 +461,126 @@
   :root[data-theme="classic"] .app:hover .i-fill { fill: #000; }
   :root[data-theme="classic"] .app:hover .i-ink { fill: #fff; }
 
-  /* Work: a gallery view. Projects and what they are down the side,
-     the piece large, the project's pieces along the bottom. */
-  .wv {
-    flex: 1 1 auto; min-height: 0;
-    display: grid;
-    grid-template-columns: 216px minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr);
-    grid-template-areas: "proj main" "info main";
+  /* Work: one slider. The piece on a quiet stage, an Info pill for
+     the project, and a single line under it: what it is, where you
+     are, and the way on. */
+  .work-win { --pad: clamp(24px, 3.2vw, 48px); }
+  .wk-stage { position: relative; flex: 1 1 auto; min-height: 0; background: var(--stage); }
+  .wk-track {
+    display: flex; height: 100%; margin: 0; padding: 0; list-style: none;
+    overflow-x: auto; overflow-y: hidden;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    outline: none;
   }
-  .wk-projects, .wk-info { border-right: 1px solid var(--edge); }
-  .wk-projects { grid-area: proj; display: grid; gap: 2px; align-content: start; padding: 10px 8px; }
-  .wk-label { padding: 2px 10px 6px; font-size: 12px; color: var(--graphite); }
-  .wk-proj {
-    display: flex; justify-content: space-between; align-items: center; gap: 12px;
-    height: 30px; padding: 0 10px;
-    border-radius: var(--radius-s);
-    font-size: 13px; text-align: left; cursor: default;
+  .wk-track::-webkit-scrollbar { display: none; }
+  .wk-track.is-dragging { scroll-snap-type: none; cursor: grabbing; }
+  .wk-track.is-dragging * { pointer-events: none; }
+  .wk-slide {
+    position: relative; flex: 0 0 100%; height: 100%;
+    display: grid; place-items: center;
+    scroll-snap-align: start; scroll-snap-stop: always;
+    container-type: size;
   }
-  .wk-proj small { font-size: 12px; color: var(--graphite); font-variant-numeric: tabular-nums; }
-  .wk-proj:hover { background: var(--paper-2); }
-  .wk-proj[aria-current="true"] { background: var(--hl); color: var(--on-hl); }
-  .wk-proj[aria-current="true"] small { color: inherit; opacity: .7; }
-  .wk-proj:focus-visible { outline-offset: -2px; }
-  .wk-info { grid-area: info; padding: 16px 18px 18px; border-top: 1px solid var(--edge); font-size: 13px; line-height: 1.55; overflow-y: auto; }
-  .wk-info h3 { font-size: 15px; font-weight: 600; }
-  .wk-kind { margin-top: 2px; color: var(--graphite); }
-  .wk-text { margin-top: 12px; }
-  .wk-credit { margin-top: 10px; color: var(--graphite); }
-  .wk-info a { display: inline-block; margin-top: 12px; text-underline-offset: 3px; }
-  .wk-main { grid-area: main; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
-  .wk-stage { position: relative; flex: 1 1 auto; min-height: 0; background: var(--paper-2); overflow: hidden; }
-  .wk-stage > img, .wk-stage > video {
-    position: absolute; inset: 28px;
-    display: block; width: calc(100% - 56px); height: calc(100% - 56px);
+  .wk-slide > img, .wk-slide > video {
+    display: block;
+    width: calc(100% - 2 * var(--pad)); height: auto; max-height: calc(100% - 2 * var(--pad));
     object-fit: contain;
-    animation: wk-in .32s cubic-bezier(.2, .7, .2, 1) both;
+    width: min(100cqw - 2 * var(--pad), (100cqh - 2 * var(--pad)) * var(--ar));
+    max-height: none; aspect-ratio: var(--ar);
+    border-radius: var(--radius-s);
+    background: var(--paper-2);
+    user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
   }
-  @keyframes wk-in { from { opacity: 0; transform: scale(.985); } }
+  /* Neighbours fade as they slide off, so a swipe reads as one move. */
+  @supports (animation-timeline: view()) {
+    .wk-slide > img, .wk-slide > video { animation: wk-view linear both; animation-timeline: view(inline); }
+    @keyframes wk-view { 0%, 100% { opacity: .1; transform: scale(.975); } 50% { opacity: 1; transform: none; } }
+  }
+
+  /* Info: a pill on the stage that opens into the project's card */
+  .wk-info { position: absolute; left: 16px; bottom: 16px; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: calc(100% - 32px); }
+  .wk-pill {
+    display: inline-flex; align-items: center; gap: 7px;
+    height: 28px; padding: 0 11px 0 13px;
+    border: 1px solid var(--edge); border-radius: calc(var(--radius-s) * 100);
+    background: var(--paper); background-clip: padding-box;
+    color: var(--ink); font-size: 12px; font-weight: 500; letter-spacing: .005em;
+    cursor: default;
+    transition: background-color .15s ease;
+  }
+  .wk-pill:hover { background-color: var(--paper-2); }
+  .wk-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .wk-pill svg { width: 9px; height: 9px; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; fill: none; transition: transform .3s cubic-bezier(.3, .7, .2, 1); }
+  .wk-pill[aria-expanded="true"] svg { transform: rotate(45deg); }
+  .wk-card {
+    width: 320px; max-width: 100%; max-height: calc(var(--stage-h, 400px) - 76px); overflow-y: auto;
+    padding: 15px 17px 16px;
+    border: 1px solid var(--edge); border-radius: var(--radius);
+    background: var(--paper); background-clip: padding-box;
+    font-size: 13px; line-height: 1.55;
+    transform-origin: 0 100%;
+    animation: wk-card-in .26s cubic-bezier(.2, .8, .2, 1) both;
+  }
+  .wk-card.is-closing { animation: wk-card-out .14s ease-in both; }
+  @keyframes wk-card-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
+  @keyframes wk-card-out { to { opacity: 0; transform: translateY(4px) scale(.98); } }
+  .wk-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+  .wk-card-head b { font-weight: 600; }
+  .wk-card-head span, .wk-card-credit { color: var(--graphite); }
+  .wk-card-head span { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wk-card-text { margin-top: 8px; text-wrap: pretty; }
+  .wk-card-credit { margin-top: 8px; font-size: 12px; }
+  .work-win .wk-card-link { display: inline-block; margin-top: 12px; color: var(--graphite); font-size: 12px; text-decoration: none; transition: color .15s ease; }
+  .work-win .wk-card-link:hover { color: var(--ink); }
+  .wk-card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+
+  /* The line under the stage */
   .wk-bar {
-    flex: none; display: flex; align-items: center; justify-content: space-between; gap: 12px;
-    height: 42px; padding: 0 10px 0 16px;
+    flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px;
+    height: 44px; padding: 0 10px 0 16px;
     border-top: 1px solid var(--edge);
     font-size: 13px;
   }
-  .wk-piece { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wk-piece span, .wk-piece a { color: var(--graphite); }
-  .wk-piece a { text-underline-offset: 3px; }
-  .wk-nav { flex: none; display: flex; align-items: center; gap: 4px; }
-  .wk-count { min-width: 3.6em; text-align: center; color: var(--graphite); font-variant-numeric: tabular-nums; }
-  .wk-strip { flex: none; display: flex; gap: 10px; padding: 12px 16px 14px; border-top: 1px solid var(--edge); overflow-x: auto; scrollbar-width: thin; }
-  .wk-thumb { flex: none; height: 52px; border-radius: 4px; background: var(--paper-2); opacity: .5; cursor: default; transition: opacity .15s ease, box-shadow .15s ease; }
-  .wk-thumb img { display: block; height: 52px; width: auto; border-radius: 4px; }
-  .wk-thumb:hover { opacity: .85; }
-  .wk-thumb[aria-current="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
-  :root[data-theme="classic"] .wk-thumb, :root[data-theme="classic"] .wk-thumb img { border-radius: 0; }
-  :root[data-theme="classic"] .wk-thumb[aria-current="true"] { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000; }
+  .wk-cap { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .wk-cap b { font-weight: 500; }
+  .wk-cap span { margin-left: 8px; color: var(--graphite); }
+  .work-win .wk-cap a { margin-left: 8px; color: var(--graphite); text-decoration: none; transition: color .15s ease; }
+  .work-win .wk-cap a:hover { color: var(--ink); }
+  .wk-cap.is-new { animation: wk-cap-in .3s cubic-bezier(.2, .8, .2, 1) both; }
+  @keyframes wk-cap-in { from { opacity: 0; transform: translateY(3px); } }
+  .wk-dots { display: flex; align-items: center; }
+  .wk-dot { position: relative; width: 16px; height: 24px; cursor: default; transition: width .35s cubic-bezier(.3, .7, .2, 1); }
+  .wk-dot::before {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 2px;
+    background: var(--ink); opacity: .2;
+    transition: width .35s cubic-bezier(.3, .7, .2, 1), margin .35s cubic-bezier(.3, .7, .2, 1), opacity .2s ease;
+  }
+  .wk-dot:hover::before { opacity: .5; }
+  .wk-dot[aria-current="true"] { width: 26px; }
+  .wk-dot[aria-current="true"]::before { width: 14px; margin-left: -7px; opacity: 1; }
+  .wk-dot:focus-visible { outline: none; }
+  .wk-dot:focus-visible::before { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--accent); }
+  .wk-nav { justify-self: end; display: flex; align-items: center; gap: 2px; }
+  .wk-count { margin-right: 8px; font-variant-numeric: tabular-nums; }
+  .wk-count span { color: var(--graphite); }
+  .wk-arrow {
+    display: grid; place-items: center;
+    width: 28px; height: 28px; border-radius: calc(var(--radius-s) * 100);
+    color: var(--ink); cursor: default;
+    transition: background-color .15s ease, opacity .15s ease;
+  }
+  .wk-arrow svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .wk-arrow:hover { background: var(--paper-2); }
+  .wk-arrow:active { background: var(--edge); }
+  .wk-arrow:disabled { opacity: .25; background: none; }
+  .wk-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  :root[data-theme="classic"] .wk-pill, :root[data-theme="classic"] .wk-card { border-color: #000; }
+  :root[data-theme="classic"] .wk-card { box-shadow: 2px 2px 0 #000; }
+  :root[data-theme="classic"] .wk-arrow:hover, :root[data-theme="classic"] .wk-arrow:active { background: #000; color: #fff; }
+  :root[data-theme="classic"] .wk-slide > img, :root[data-theme="classic"] .wk-slide > video { outline: 1px solid #000; }
 
   /* Tune: live design controls, only with ?tune in the URL */
   #tune { right: 16px; top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 16px); width: 340px; max-height: calc(100vh - var(--bar) - 32px); max-height: calc(100dvh - var(--bar) - 32px); }
@@ -907,18 +993,17 @@
     }
     .work-win .closebox { display: none; }
     .work-win .titlebar { touch-action: auto; }
-    .wv { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; grid-template-areas: "proj" "main" "info"; }
-    .wk-projects, .wk-info { border-right: 0; }
-    .wk-projects { display: flex; gap: 4px; padding: 8px; overflow-x: auto; }
-    .wk-label { display: none; }
-    .wk-proj { flex: none; }
-    .wk-stage { flex: none; height: min(64vh, 72vw); border-top: 1px solid var(--edge); }
-    .wk-stage > img, .wk-stage > video { inset: 16px; width: calc(100% - 32px); height: calc(100% - 32px); }
+    .work-win { --pad: clamp(16px, 4vw, 32px); }
+    .wk-stage { flex: none; height: min(66vh, 78vw); }
   }
   @media (max-width: 720px) {
     .icons { display: none; }
     .desk { padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 32px) 16px 40px; }
-    .work-win { margin: 32px -8px 0; }
+    .work-win { margin: 32px -8px 0; --pad: 14px; }
+    .wk-stage { height: min(62vh, 92vw); }
+    .wk-info { left: 10px; bottom: 10px; max-width: calc(100% - 20px); }
+    .wk-dots { display: none; }
+    .wk-bar { grid-template-columns: minmax(0, 1fr) auto; padding-left: 14px; }
     .window.is-float {
       left: 8px !important; right: 8px !important; bottom: auto !important;
       top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 8px) !important;
@@ -951,7 +1036,8 @@
   @media (prefers-reduced-motion: reduce) {
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
-    .wk-stage > img, .wk-stage > video { animation: none; }
+    .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-cap.is-new { animation: none; }
+    .wk-dot::before, .wk-pill svg { transition: none; }
     .bez .bez-me { animation: none !important; }
     .tile { transition: none; }
     .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
@@ -1052,22 +1138,22 @@
       <button class="closebox" type="button" aria-label="Close Work"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
       <h2 class="wtitle" id="work-title">Work</h2>
     </header>
-    <div class="wv">
-      <nav class="wk-projects" id="wk-projects" aria-label="Projects"><p class="wk-label">Projects</p></nav>
-      <div class="wk-main">
-        <div class="wk-stage" id="wk-stage"></div>
-        <div class="wk-bar">
-          <p class="wk-piece" id="wk-piece" aria-live="polite"></p>
-          <div class="wk-nav">
-            <button class="btn btn-sm" type="button" id="wk-prev" aria-label="Previous piece">←</button>
-            <span class="wk-count" id="wk-count"></span>
-            <button class="btn btn-sm" type="button" id="wk-next" aria-label="Next piece">→</button>
-          </div>
-        </div>
-        <div class="wk-strip" id="wk-strip" role="group" aria-label="Pieces"></div>
+    <div class="wk-stage" id="wk-stage" aria-roledescription="carousel" aria-label="Selected work">
+      <ol class="wk-track" id="wk-track" tabindex="-1"></ol>
+      <div class="wk-info" id="wk-info">
+        <div class="wk-card" id="wk-card" role="region" aria-label="About this project" hidden></div>
+        <button class="wk-pill" id="wk-pill" type="button" aria-expanded="false" aria-controls="wk-card">Info<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1v8M1 5h8"/></svg></button>
       </div>
-      <div class="wk-info" id="wk-info"></div>
     </div>
+    <footer class="wk-bar">
+      <p class="wk-cap" id="wk-cap" aria-live="polite"></p>
+      <div class="wk-dots" id="wk-dots" role="group" aria-label="Pieces"></div>
+      <div class="wk-nav">
+        <span class="wk-count" id="wk-count"></span>
+        <button class="wk-arrow" type="button" id="wk-prev" aria-label="Previous piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button>
+        <button class="wk-arrow" type="button" id="wk-next" aria-label="Next piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+      </div>
+    </footer>
   </section>
 </main>
 
@@ -1575,6 +1661,7 @@
       // Each display has its own switch-on sound.
       paper() { tone({ f: 523, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
       graphite() { tone({ f: 784, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 523, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
+      black() { tone({ f: 392, type: 'sine', gain: 0.05, dur: 0.14 }); tone({ f: 587, type: 'sine', gain: 0.04, dur: 0.26, at: 0.09 }); },
       classic() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 1568, type: 'square', gain: 0.02, dur: 0.16, at: 0.08 }); },
       // Hoops. k scales with how hard the ball hit something.
       shoot() { hit({ f: 1400, q: 0.6, gain: 0.05, dur: 0.07 }); },
@@ -1829,6 +1916,7 @@
   const THEMES = [
     ['paper', 'Paper'],
     ['graphite', 'Graphite'],
+    ['black', 'Black'],
     ['classic', 'Classic'],
   ];
   const ids = THEMES.map((t) => t[0]);
@@ -3991,33 +4079,33 @@
 
 
   /* ==========================================================
-     Work — one window, like a gallery view: the projects down the
-     side with what each one is, the piece large, and the project's
-     pieces along the bottom. ← and → step through the pieces and on
-     into the next project; ↑ and ↓ change project.
+     Work — one slider through every piece. Swipe, scroll sideways,
+     drag, or use ← and →. The Info pill opens the project's card,
+     and follows along as you move from one project to the next.
   ========================================================== */
   const Work = (() => {
     const win = W.work;
-    const projEl = $('#wk-projects'), stage = $('#wk-stage'), strip = $('#wk-strip'), info = $('#wk-info');
-    const pieceEl = $('#wk-piece'), countEl = $('#wk-count'), title = $('#work-title');
+    const stage = $('#wk-stage'), track = $('#wk-track'), cap = $('#wk-cap'), dotsEl = $('#wk-dots');
+    const countEl = $('#wk-count'), prev = $('#wk-prev'), next = $('#wk-next');
+    const pill = $('#wk-pill'), card = $('#wk-card');
     const X = 'https://x.com/adieldesign/status/';
     const PROJECTS = [
-      { name: 'Dessn', kind: 'Rebrand · 2026',
+      { name: 'Dessn', kind: 'Rebrand, 2026',
         text: 'Dessn turns a team’s codebase into a collaborative design canvas, so designers, PMs and engineers work on the real product together. The rebrand is an invitation to let your mind wander.',
         credit: 'At HEX with Xchyler, Amin, Maz, Ayush, Farhan, Théo and Riri.',
-        link: 'https://hex.inc/work/dessn', label: 'Case study on hex.inc',
+        link: 'https://hex.inc/work/dessn',
         pieces: [
           { id: 'dessn-film', title: 'Identity film', video: true, w: 1000, h: 1000 },
           { id: 'dessn-ask', title: 'Ask Dessn', video: true, w: 1280, h: 720 },
           { id: 'dessn-ticket', title: 'Event ticket', video: true, w: 1000, h: 1000 },
           { id: 'dessn-bag', title: 'Tote', video: true, w: 900, h: 900 },
           { id: 'dessn-mark', title: 'Stamp', video: true, w: 800, h: 800, post: '2114935728912146825' },
-          { id: 'dessn-explore', title: 'Early exploration, never shipped', w: 1600, h: 900, post: '2114629374012174692' },
+          { id: 'dessn-explore', title: 'Early exploration', w: 1600, h: 900, post: '2114629374012174692' },
         ] },
-      { name: 'Ataraxis', kind: 'Rebrand · 2026',
+      { name: 'Ataraxis', kind: 'Rebrand, 2026',
         text: 'Ataraxis builds AI that reads pathology slides to help guide cancer care. An identity as precise as the models behind it: biology underneath, interpretation on top.',
         credit: 'At HEX with Ayush, Maz, Xchyler, Emmi, Ivan and Shais.',
-        link: 'https://hex.inc/work/ataraxis', label: 'Case study on hex.inc',
+        link: 'https://hex.inc/work/ataraxis',
         pieces: [
           { id: 'ataraxis-a', title: 'Research editorial', w: 1334, h: 1600 },
           { id: 'ataraxis-c', title: 'Understanding disease at scale', w: 1600, h: 900 },
@@ -4032,104 +4120,237 @@
           { id: 'vorflux', title: 'Mark', w: 1600, h: 900 },
         ] },
     ];
-    let p = 0, i = 0, built = false;
-    const projBtns = [];
+    // Every piece in one line, each knowing its project.
+    const SLIDES = PROJECTS.flatMap((pr, k) => pr.pieces.map((pc) => Object.assign({ k }, pc)));
+    const N = SLIDES.length;
+    const pad = (n) => String(n).padStart(2, '0');
+    let cur = -1, built = false, infoOpen = false, cardFor = -1, jumping = false;
+    const slides = [], dots = [];
 
     function build() {
       if (built) return;
       built = true;
-      PROJECTS.forEach((pr, k) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'wk-proj';
-        b.innerHTML = '<span>' + pr.name + '</span><small>' + pr.pieces.length + '</small>';
-        b.addEventListener('click', () => go(k, 0));
-        projEl.append(b);
-        projBtns.push(b);
+      SLIDES.forEach((s, n) => {
+        const pr = PROJECTS[s.k];
+        const li = document.createElement('li');
+        li.className = 'wk-slide';
+        li.setAttribute('aria-roledescription', 'slide');
+        li.setAttribute('aria-label', (n + 1) + ' of ' + N + ': ' + pr.name + ', ' + s.title);
+        const src = 'work/' + s.id;
+        let el;
+        if (s.video) {
+          el = document.createElement('video');
+          el.muted = true; el.loop = true; el.playsInline = true;
+          el.preload = 'none';
+          el.poster = src + '.webp';
+          el.src = src + '.mp4';
+          el.controls = reduced.matches;
+          el.disablePictureInPicture = true;
+          el.setAttribute('disableremoteplayback', '');
+          el.setAttribute('aria-label', pr.name + ', ' + s.title.toLowerCase());
+        } else {
+          el = document.createElement('img');
+          el.src = src + '.webp';
+          el.alt = pr.name + ', ' + s.title.toLowerCase();
+          el.loading = n < 2 ? 'eager' : 'lazy';
+          el.decoding = 'async';
+          el.draggable = false;
+        }
+        el.width = s.w; el.height = s.h;
+        el.style.setProperty('--ar', s.w + ' / ' + s.h);
+        li.append(el);
+        track.append(li);
+        slides.push(li);
+        const d = document.createElement('button');
+        d.type = 'button';
+        d.className = 'wk-dot';
+        d.setAttribute('aria-label', pr.name + ', ' + s.title);
+        d.addEventListener('click', () => go(n));
+        dotsEl.append(d);
+        dots.push(d);
       });
-      $('#wk-prev').addEventListener('click', () => step(-1));
-      $('#wk-next').addEventListener('click', () => step(1));
+      prev.addEventListener('click', () => step(-1));
+      next.addEventListener('click', () => step(1));
+      pill.addEventListener('click', () => toggleInfo());
+      track.addEventListener('scroll', onScroll, { passive: true });
+      track.addEventListener('click', () => { if (infoOpen) toggleInfo(false); });
+      dragging();
+      // Keep the current piece in place when the window changes size.
+      if ('ResizeObserver' in window) new ResizeObserver(() => {
+        stage.style.setProperty('--stage-h', stage.clientHeight + 'px');
+        if (cur > -1 && !jumping) track.scrollLeft = slides[cur].offsetLeft;
+      }).observe(stage);
+      setCurrent(0);
     }
-    function media(pc, thumb) {
-      const src = 'work/' + pc.id;
-      let el;
-      if (pc.video && !thumb) {
-        el = document.createElement('video');
-        el.src = src + '.mp4';
-        el.poster = src + '.webp';
-        el.muted = true; el.loop = true; el.playsInline = true;
-        el.autoplay = !reduced.matches && !win.hidden;
-        el.controls = reduced.matches;
-      } else {
-        el = document.createElement('img');
-        el.src = src + '.webp';
-        el.alt = thumb ? '' : PROJECTS[p].name + ', ' + pc.title.toLowerCase();
-        if (thumb) el.loading = 'lazy';
+
+    // Which piece is on screen, and everything that follows from it.
+    function setCurrent(n) {
+      if (n === cur) return;
+      const was = cur;
+      cur = n;
+      const s = SLIDES[n], pr = PROJECTS[s.k];
+      cap.innerHTML = '<b>' + pr.name + '</b><span>' + s.title + '</span>' +
+        (s.post ? '<a href="' + X + s.post + '" target="_blank" rel="noopener" aria-label="' + s.title + ' on X">X ↗</a>' : '');
+      cap.classList.remove('is-new');
+      void cap.offsetWidth;
+      cap.classList.add('is-new');
+      countEl.innerHTML = pad(n + 1) + ' <span>/ ' + pad(N) + '</span>';
+      dots.forEach((d, k) => d.setAttribute('aria-current', String(k === n)));
+      prev.disabled = n === 0;
+      next.disabled = n === N - 1;
+      if (infoOpen && was > -1 && SLIDES[was].k !== s.k) fillCard();
+      media();
+    }
+    // Only the piece on screen plays; its neighbours get ready.
+    function media() {
+      slides.forEach((li, k) => {
+        const v = $('video', li);
+        if (!v) return;
+        if (k === cur) {
+          v.preload = 'auto';
+          if (!reduced.matches && !win.hidden) v.play().catch(() => {});
+        } else {
+          v.pause();
+          if (Math.abs(k - cur) === 1) v.preload = 'auto';
+        }
+      });
+    }
+    let frame = 0;
+    function onScroll() {
+      if (jumping) return;
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const w = track.clientWidth;
+        if (w) setCurrent(clamp(Math.round(track.scrollLeft / w), 0, N - 1));
+      });
+    }
+    // Next door slides across; further away fades through.
+    function go(n, instant) {
+      n = clamp(n, 0, N - 1);
+      const w = track.clientWidth;
+      if (!w) { setCurrent(n); return; }
+      if (instant || reduced.matches || Math.abs(n - cur) <= 1) {
+        track.scrollTo({ left: slides[n].offsetLeft, behavior: instant || reduced.matches ? 'auto' : 'smooth' });
+        setCurrent(n);
+        return;
       }
-      el.width = pc.w; el.height = pc.h;
-      return el;
+      jumping = true;
+      track.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-in', fill: 'forwards' }).finished.then(() => {
+        track.scrollTo({ left: slides[n].offsetLeft, behavior: 'auto' });
+        setCurrent(n);
+        return track.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }).finished;
+      }).finally(() => { track.getAnimations().forEach((a) => a.cancel()); jumping = false; });
     }
-    function render(newProject) {
-      const pr = PROJECTS[p], pc = pr.pieces[i];
-      title.textContent = 'Work — ' + pr.name;
-      projBtns.forEach((b, k) => b.setAttribute('aria-current', String(k === p)));
-      stage.replaceChildren(media(pc));
-      const where = pc.post
-        ? '<a href="' + X + pc.post + '" target="_blank" rel="noopener">posted on X ↗</a>'
-        : '<span>' + pr.name + '</span>';
-      pieceEl.innerHTML = pc.title + ' · ' + where;
-      countEl.textContent = (i + 1) + ' / ' + pr.pieces.length;
-      if (newProject || !strip.children.length) {
-        strip.replaceChildren(...pr.pieces.map((x, k) => {
-          const b = document.createElement('button');
-          b.type = 'button';
-          b.className = 'wk-thumb';
-          b.setAttribute('aria-label', x.title);
-          b.append(media(x, true));
-          b.addEventListener('click', () => go(p, k));
-          return b;
-        }));
-        info.innerHTML = '<h3>' + pr.name + '</h3><p class="wk-kind">' + pr.kind + '</p><p class="wk-text">' + pr.text + '</p><p class="wk-credit">' + pr.credit + '</p>' +
-          (pr.link ? '<a href="' + pr.link + '" target="_blank" rel="noopener">' + pr.label + ' ↗</a>' : '');
-      }
-      Array.from(strip.children).forEach((b, k) => b.setAttribute('aria-current', String(k === i)));
-      const cur = strip.children[i];
-      if (cur) cur.scrollIntoView({ block: 'nearest', inline: 'nearest' });
-    }
-    function go(k, j) {
-      const changed = k !== p;
-      p = k; i = j;
-      render(changed);
-    }
-    // Past the last piece, on into the next project.
     function step(d) {
-      let k = p, j = i + d;
-      if (j >= PROJECTS[k].pieces.length) { k = (k + 1) % PROJECTS.length; j = 0; }
-      else if (j < 0) { k = (k - 1 + PROJECTS.length) % PROJECTS.length; j = PROJECTS[k].pieces.length - 1; }
-      go(k, j);
+      const n = clamp(cur + d, 0, N - 1);
+      if (n === cur) return;
+      go(n);
       Sound.play('up');
     }
+
+    // A mouse can drag the pieces too; touch and trackpads scroll natively.
+    function dragging() {
+      let st = null;
+      track.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'mouse' || e.button !== 0 || jumping) return;
+        st = { x: e.clientX, left: track.scrollLeft, from: cur, moved: false, id: e.pointerId, vx: 0, lx: e.clientX, lt: e.timeStamp };
+      });
+      track.addEventListener('pointermove', (e) => {
+        if (!st || e.pointerId !== st.id) return;
+        const dx = e.clientX - st.x;
+        if (!st.moved) {
+          if (Math.abs(dx) < 5) return;
+          st.moved = true;
+          track.setPointerCapture(st.id);
+          track.classList.add('is-dragging');
+        }
+        const dt = e.timeStamp - st.lt;
+        if (dt > 0) st.vx = (e.clientX - st.lx) / dt;
+        st.lx = e.clientX; st.lt = e.timeStamp;
+        // Past the ends it gives, a little.
+        const max = (N - 1) * track.clientWidth;
+        let left = st.left - dx;
+        if (left < 0) left /= 3; else if (left > max) left = max + (left - max) / 3;
+        track.scrollLeft = left;
+      });
+      const end = (e) => {
+        if (!st || e.pointerId !== st.id) return;
+        const s = st;
+        st = null;
+        if (!s.moved) return;
+        const dx = e.clientX - s.x, w = track.clientWidth;
+        let n = s.from;
+        if (dx < -w * 0.18 || s.vx < -0.45) n = s.from + 1;
+        else if (dx > w * 0.18 || s.vx > 0.45) n = s.from - 1;
+        n = clamp(n, 0, N - 1);
+        track.scrollTo({ left: slides[n].offsetLeft, behavior: reduced.matches ? 'auto' : 'smooth' });
+        setCurrent(n);
+        // Snapping comes back once the slide has settled.
+        const settle = () => track.classList.remove('is-dragging');
+        if ('onscrollend' in window) track.addEventListener('scrollend', settle, { once: true });
+        setTimeout(settle, 600);
+        if (n !== s.from) Sound.play('up');
+        // The click that ends a drag is not a click on the piece.
+        track.addEventListener('click', (c) => c.stopPropagation(), { capture: true, once: true });
+      };
+      track.addEventListener('pointerup', end);
+      track.addEventListener('pointercancel', end);
+    }
+
+    // The Info card: the project you're looking at.
+    function fillCard() {
+      const pr = PROJECTS[SLIDES[cur].k];
+      cardFor = SLIDES[cur].k;
+      card.innerHTML = '<p class="wk-card-head"><b>' + pr.name + '</b><span>' + pr.kind + '</span></p>' +
+        '<p class="wk-card-text">' + pr.text + '</p>' +
+        '<p class="wk-card-credit">' + pr.credit + '</p>' +
+        (pr.link ? '<a class="wk-card-link" href="' + pr.link + '" target="_blank" rel="noopener">Case study ↗</a>' : '');
+    }
+    function toggleInfo(open = !infoOpen) {
+      if (open === infoOpen) return;
+      infoOpen = open;
+      pill.setAttribute('aria-expanded', String(open));
+      card.getAnimations().forEach((a) => a.cancel());
+      if (open) {
+        if (cardFor !== SLIDES[cur].k) fillCard();
+        card.classList.remove('is-closing');
+        card.hidden = false;
+      } else if (reduced.matches) {
+        card.hidden = true;
+      } else {
+        card.classList.add('is-closing');
+        card.addEventListener('animationend', () => { if (!infoOpen) { card.hidden = true; card.classList.remove('is-closing'); } }, { once: true });
+      }
+      Sound.play(open ? 'down' : 'up');
+    }
+
     function keydown(e) {
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') step(e.key === 'ArrowRight' ? 1 : -1);
-      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') go((p + (e.key === 'ArrowDown' ? 1 : -1) + PROJECTS.length) % PROJECTS.length, 0);
+      else if (e.key === 'Home' || e.key === 'End') go(e.key === 'Home' ? 0 : N - 1);
+      else if (e.key === 'i' || e.key === 'I') toggleInfo();
+      else if (e.key === 'Escape' && infoOpen) { toggleInfo(false); pill.focus({ preventScroll: true }); }
       else return false;
       e.preventDefault();
       return true;
     }
-    function play() { const v = $('video', stage); if (v && !reduced.matches) v.play().catch(() => {}); }
-    function pause() { const v = $('video', stage); if (v) v.pause(); }
+    function play() { media(); }
+    function pause() { $$('video', track).forEach((v) => v.pause()); }
     // Bring it forward, or open it again if it was closed.
     function show(focus = true) {
       if (win.hidden || win.hasAttribute('data-boot')) openWin(win, { focus });
       else { raise(win); if (focus) win.focus({ preventScroll: true }); }
       if (isDocked(win)) win.scrollIntoView({ behavior: reduced.matches ? 'auto' : 'smooth', block: 'start' });
     }
-    function open(k, j = 0) { go(k, j); show(); }
+    // Open on a project's first piece.
+    function open(k) {
+      show();
+      const n = SLIDES.findIndex((s) => s.k === k);
+      requestAnimationFrame(() => go(Math.max(0, n)));
+    }
     function find(q) { return Math.max(0, PROJECTS.findIndex((pr) => q.includes(pr.name.toLowerCase()))); }
     // On a phone it is simply there; on a desk it opens from its icon.
     function boot() {
       build();
-      render(true);
       if (isDocked(win)) { win.removeAttribute('data-boot'); play(); return; }
       const fontsReady = document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve();
       Promise.race([fontsReady, new Promise((r) => setTimeout(r, 1200))]).then(() => setTimeout(() => show(false), 250));
@@ -4159,7 +4380,7 @@
       ['Serif', 'Georgia, "Times New Roman", serif'],
       ['Mono', 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'],
     ];
-    const SHADOW = { paper: ['none', 30], graphite: ['none', 30], classic: ['hard', 33] };
+    const SHADOW = { paper: ['none', 30], graphite: ['none', 30], black: ['none', 30], classic: ['hard', 33] };
     const VARS = COLORS.map((c) => c[1]).concat(['--radius', '--radius-s', '--win-shadow', '--pop-shadow', '--desk-size', '--sans']);
     const state = parse(store.get(KEY), {});
     state.themes = state.themes || {};
@@ -4187,7 +4408,7 @@
       s /= 100;
       if (mode === 'none' || !s) return ['none', 'none'];
       if (mode === 'hard') { const n = Math.max(1, Math.round(s * 6)); return [n + 'px ' + n + 'px 0 var(--ink)', n + 'px ' + n + 'px 0 var(--ink)']; }
-      const a = +(s * (theme() === 'graphite' ? 0.55 : 0.2)).toFixed(3);
+      const a = +(s * (theme() === 'paper' ? 0.2 : 0.6)).toFixed(3);
       return ['0 1px 2px rgb(0 0 0 / ' + +(a * 0.4).toFixed(3) + '), 0 ' + Math.round(6 + 14 * s) + 'px ' + Math.round(20 + 34 * s) + 'px rgb(0 0 0 / ' + a + ')',
         '0 ' + Math.round(4 + 10 * s) + 'px ' + Math.round(16 + 24 * s) + 'px rgb(0 0 0 / ' + a + ')'];
     }
@@ -5785,7 +6006,7 @@
       } else if (has(q, /screen ?saver|idle|sleep/)) {
         answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
       } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
-        answer('<p>Press <b>T</b> to flip between three displays: Paper, Graphite and Classic, the old 1-bit desk.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
+        answer('<p>Press <b>T</b> to flip between four displays: Paper, Graphite, Black and Classic, the old 1-bit desk.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
       } else if (has(q, /joke|funny|laugh/)) {
         act('cheer', 1200);
         answer(pick(['<p>Why did the Bézier curve go to therapy? Too many handles on its feelings.</p>', '<p>I asked the pen tool for directions. It gave me two handles and said “you figure it out.”</p>', '<p>What’s a pianist’s favourite drink? Anything on the rocks, as long as it’s in C.</p>']));
