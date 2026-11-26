@@ -27,10 +27,10 @@
   /* Pick the theme before first paint so there's no flash. */
   (function () {
     var d = document.documentElement, t;
-    var ok = ['paper', 'graphite', 'black', 'classic'];
+    var ok = ['paper', 'graphite', 'black'];
     d.classList.add('js');
     try { t = localStorage.getItem('adiel-theme'); } catch (e) {}
-    if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'graphite' : 'paper';
+    if (ok.indexOf(t) < 0) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'black' : 'paper';
     d.dataset.theme = t;
     /* The desktop pattern too: 8 rows of 8 bits, drawn as an SVG mask so it takes the display's ink. */
     window.deskMask = function (rows) {
@@ -62,16 +62,14 @@
 
 <style>
   /* ------------------------------------------------------------
-     Themes. Four displays: Paper, Graphite and Black are quiet,
-     set in Inter with hairline edges and no shadows; Classic is the
-     1-bit desk, black on white with square corners and striped
-     title bars.
+     Themes. Three displays, Paper, Graphite and Black: one type
+     size, hairline edges, no shadows. The pixel pictures take the
+     display's ink.
   ------------------------------------------------------------ */
   :root {
     --desk-color: #f0f0f0;
     --paper: #ffffff;
     --paper-2: #f5f5f5;          /* one tone step: wells, hovers */
-    --stage: var(--paper-2);     /* behind the work */
     --ink: #161616;
     --graphite: #8a8a8a;
     --edge: rgb(0 0 0 / .1);
@@ -88,6 +86,7 @@
     --on-hl: var(--on-accent);
     --radius: 12px;
     --radius-s: 6px;
+    --ease: cubic-bezier(.16, 1, .3, 1);   /* one curve for every move: fast out, long settle */
     --win-shadow: none;         /* flat: windows sit on the desk with an edge, no shadow */
     --pop-shadow: none;
     --dither: var(--paper-2);
@@ -126,7 +125,6 @@
     --desk-color: #000000;
     --paper: #000000;
     --paper-2: #141414;
-    --stage: #000000;
     --ink: #ffffff;
     --graphite: #8c8c8c;
     --edge: rgb(255 255 255 / .14);
@@ -139,26 +137,6 @@
     --menu-bg: #0b0b0b;
     --pat-alpha: .12;
     color-scheme: dark;
-  }
-  :root[data-theme="classic"] {
-    --desk-color: #ffffff;
-    --paper: #ffffff;
-    --paper-2: #ffffff;
-    --ink: #000000;
-    --graphite: #6f6f6f;
-    --edge: #000000;
-    --accent: #0000ee;          /* the web's original link blue */
-    --desk-ink: #000000;
-    --desk-dim: #6f6f6f;
-    --hl: #000000;
-    --on-hl: #ffffff;
-    --radius: 0px;
-    --radius-s: 0px;
-    --win-shadow: 2px 2px 0 #000;
-    --pop-shadow: 2px 2px 0 #000;
-    --dither: conic-gradient(#000 25%, #fff 0 50%, #000 0 75%, #fff 0) 0 0 / 2px 2px;
-    --pat-alpha: 1;
-    color-scheme: light;
   }
 
   *, *::before, *::after { box-sizing: border-box; }
@@ -261,7 +239,6 @@
     box-shadow: var(--pop-shadow);
     font-weight: 400;
   }
-  :root[data-theme="classic"] .menu { margin-top: 0; padding: 4px 0; }
   .mi {
     position: relative;
     display: flex; align-items: center; justify-content: space-between; gap: 28px;
@@ -276,7 +253,6 @@
   .mi .check { position: absolute; left: 8px; top: 0; line-height: 26px; font-size: 11px; }
   .mi .shortcut { font-size: 12px; opacity: .55; }
   .sep { height: 1px; margin: 5px 8px; background: var(--edge); }
-  :root[data-theme="classic"] .sep { margin: 4px 0; background: repeating-linear-gradient(90deg, var(--bar-dim) 0 1px, transparent 1px 2px); }
   .mb-menu.is-right .menu { left: auto; right: 0; min-width: 0; }
 
   /* The calendar under the clock */
@@ -344,7 +320,6 @@
     white-space: nowrap;
     color: var(--desk-ink);
   }
-  :root[data-theme="classic"] .icon-label { border-radius: 0; background: var(--paper); color: var(--ink); }
   .i-fill { fill: var(--paper); }
   .i-ink { fill: var(--ink); }
   .icon.is-selected .i-fill, .icon.is-drop .i-fill { fill: var(--ink); }
@@ -418,18 +393,6 @@
   .closebox:hover svg, .closebox:active svg { visibility: visible; }
   .window:not(.is-active) .closebox { opacity: .14; }
 
-  /* Classic: striped title bars, a square close box, the 1990 desk */
-  :root[data-theme="classic"] .titlebar { height: 20px; border-bottom-color: #000; }
-  :root[data-theme="classic"] .window.is-active .titlebar::before {
-    content: ""; position: absolute; inset: 4px 2px;
-    background: repeating-linear-gradient(to bottom, #000 0 1px, transparent 1px 2px);
-  }
-  :root[data-theme="classic"] .wtitle { font-weight: 700; line-height: 19px; }
-  :root[data-theme="classic"] .closebox { left: 8px; top: 3px; width: 13px; height: 13px; border-radius: 0; border: 1px solid #000; background: #fff; opacity: 1 !important; box-shadow: 0 0 0 1px #fff; }
-  :root[data-theme="classic"] .closebox svg { width: 11px; height: 11px; fill: #000; }
-  :root[data-theme="classic"] .closebox:hover svg { visibility: hidden; }
-  :root[data-theme="classic"] .closebox:active svg { visibility: visible; }
-  :root[data-theme="classic"] .window:not(.is-active) .closebox { visibility: hidden; }
 
   .wbody { padding: 16px; }
   .wbody a { text-decoration-thickness: 1px; text-underline-offset: 2px; }
@@ -448,8 +411,6 @@
   .btn.is-default { background: var(--ink); color: var(--paper); border-color: var(--ink); }
   .btn.is-default:hover { opacity: .88; }
   .btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  :root[data-theme="classic"] .btn { border-radius: 7px; border-color: #000; }
-  :root[data-theme="classic"] .btn.is-default { background: #fff; color: #000; margin: 5px; box-shadow: 0 0 0 2px #fff, 0 0 0 5px #000; }
   .btn-sm { min-width: 0; height: 22px; padding: 0 9px; font-size: 12px; }
   .wactions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 
@@ -457,15 +418,12 @@
   .apps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 4px; padding: 18px 10px 20px; }
   .app { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 6px 2px; border-radius: var(--radius-s); cursor: default; font-size: 12px; }
   .app:hover, .app:focus-visible { background: var(--paper-2); outline: none; }
-  :root[data-theme="classic"] .app:hover, :root[data-theme="classic"] .app:focus-visible { background: #000; color: #fff; }
-  :root[data-theme="classic"] .app:hover .i-fill { fill: #000; }
-  :root[data-theme="classic"] .app:hover .i-ink { fill: #fff; }
 
-  /* Work: one slider. The piece on a quiet stage, an Info pill for
-     the project, and a single line under it: what it is, where you
-     are, and the way on. */
-  .work-win { --pad: clamp(24px, 3.2vw, 48px); }
-  .wk-stage { position: relative; flex: 1 1 auto; min-height: 0; background: var(--stage); }
+  /* Work: the piece alone on the window, and one line under it:
+     chips for the project, a dock of every piece to skim, the count
+     and the arrows. Nothing sits on top of the work. */
+  .work-win { --pad: clamp(20px, 2.6vw, 40px); container: work / inline-size; }
+  .wk-stage { position: relative; flex: 1 1 auto; min-height: 0; }
   .wk-track {
     display: flex; height: 100%; margin: 0; padding: 0; list-style: none;
     overflow-x: auto; overflow-y: hidden;
@@ -489,98 +447,136 @@
     object-fit: contain;
     width: min(100cqw - 2 * var(--pad), (100cqh - 2 * var(--pad)) * var(--ar));
     max-height: none; aspect-ratio: var(--ar);
-    border-radius: var(--radius-s);
+    border-radius: 4px;
     background: var(--paper-2);
+    outline: 1px solid color-mix(in srgb, var(--edge) 60%, transparent); outline-offset: -1px;
     user-select: none; -webkit-user-select: none; -webkit-user-drag: none;
   }
-  /* Neighbours fade as they slide off, so a swipe reads as one move. */
+  /* Neighbours dim as they slide off, so a swipe reads as one move. */
   @supports (animation-timeline: view()) {
     .wk-slide > img, .wk-slide > video { animation: wk-view linear both; animation-timeline: view(inline); }
-    @keyframes wk-view { 0%, 100% { opacity: .1; transform: scale(.975); } 50% { opacity: 1; transform: none; } }
+    @keyframes wk-view { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
   }
 
-  /* Info: a pill on the stage that opens into the project's card */
-  .wk-info { position: absolute; left: 16px; bottom: 16px; z-index: 2; display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: calc(100% - 32px); }
-  .wk-pill {
-    display: inline-flex; align-items: center; gap: 7px;
-    height: 28px; padding: 0 11px 0 13px;
-    border: 1px solid var(--edge); border-radius: calc(var(--radius-s) * 100);
-    background: var(--paper); background-clip: padding-box;
-    color: var(--ink); font-size: 12px; font-weight: 500; letter-spacing: .005em;
-    cursor: default;
-    transition: background-color .15s ease;
+  /* The line under the stage */
+  .wk-bar {
+    position: relative; flex: none;
+    display: flex; align-items: center; gap: 16px;
+    height: 52px; padding: 0 12px;
+    border-top: 1px solid var(--edge);
+    font-size: 12px;
   }
-  .wk-pill:hover { background-color: var(--paper-2); }
-  .wk-pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-  .wk-pill svg { width: 9px; height: 9px; stroke: currentColor; stroke-width: 1.4; stroke-linecap: round; fill: none; transition: transform .3s cubic-bezier(.3, .7, .2, 1); }
-  .wk-pill[aria-expanded="true"] svg { transform: rotate(45deg); }
+  /* The lead and the nav keep their width; the dock floats between them. */
+  .wk-lead { flex: 1 1 0; display: flex; align-items: center; gap: 4px; min-width: max-content; }
+  .wk-lead::after { content: ""; flex: 1; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    height: 24px; padding: 0 9px;
+    border: 0; border-radius: 4px;
+    background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink);
+    font: 500 12px/1 var(--font); letter-spacing: .01em; white-space: nowrap;
+    cursor: default;
+    transition: background-color .4s var(--ease), color .4s var(--ease);
+  }
+  button.chip:hover { background: color-mix(in srgb, var(--ink) 14%, transparent); }
+  .chip:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .chip.is-on, button.chip.is-on:hover { background: var(--ink); color: var(--paper); }
+  .chip svg { width: 8px; height: 8px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; fill: none; transition: transform .5s var(--ease); }
+  .chip.is-on svg { transform: rotate(45deg); }
+  .wk-title { min-width: 0; margin-left: 6px; color: var(--graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .work-win .wk-title a { margin-left: 8px; color: inherit; text-decoration: none; transition: color .3s var(--ease); }
+  .work-win .wk-title a:hover { color: var(--ink); }
+  .wk-title.is-new { animation: wk-cap-in .6s var(--ease) both; }
+  @keyframes wk-cap-in { from { opacity: 0; transform: translateY(3px); } }
+
+  /* The dock: every piece, small, the current one ringed. The ring
+     slides from piece to piece. */
+  .wk-dock {
+    position: relative; flex: none; display: flex; align-items: center; gap: 4px;
+    max-width: 100%; padding: 3px;
+    overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain;
+  }
+  .wk-dock::-webkit-scrollbar { display: none; }
+  .wk-thumb {
+    flex: none; height: 24px; padding: 0;
+    border: 0; border-radius: 3px;
+    background: var(--paper-2); overflow: hidden;
+    opacity: .4; cursor: default;
+    transition: opacity .4s var(--ease);
+  }
+  .wk-thumb img { display: block; height: 100%; width: auto; }
+  .wk-thumb:hover { opacity: .75; }
+  .wk-thumb[aria-current="true"] { opacity: 1; }
+  .wk-thumb:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .wk-ring {
+    position: absolute; left: 0; top: 0; width: 30px; height: 30px;
+    border: 1px solid var(--ink); border-radius: 5px;
+    pointer-events: none;
+    transition: transform .55s var(--ease), width .55s var(--ease);
+  }
+
+  /* Hovering a piece in the dock shows it larger, above the dock. */
+  .wk-peek {
+    position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 3;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    pointer-events: none; opacity: 0;
+    transform: translate(calc(var(--x, 0px) - 50%), 4px);
+    transition: opacity .25s var(--ease), transform .5s var(--ease);
+  }
+  .wk-peek.is-on { opacity: 1; transform: translate(calc(var(--x, 0px) - 50%), 0); }
+  .wk-peek img { display: block; height: 96px; width: calc(96px * var(--ar, 1)); object-fit: cover; border-radius: 4px; background: var(--paper-2); outline: 1px solid var(--edge); outline-offset: -1px; }
+  .wk-peek span { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid var(--edge); border-radius: 4px; background: var(--paper); color: var(--ink); font-size: 12px; white-space: nowrap; }
+
+  .wk-nav { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; gap: 2px; min-width: max-content; }
+  .wk-count { margin-right: 8px; color: var(--graphite); font-variant-numeric: tabular-nums; }
+  .wk-count b { font-weight: 500; color: var(--ink); }
+  .wk-arrow {
+    display: grid; place-items: center;
+    width: 24px; height: 24px;
+    border: 0; border-radius: 4px;
+    background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink);
+    cursor: default;
+    transition: background-color .4s var(--ease), color .4s var(--ease), opacity .4s var(--ease);
+  }
+  .wk-arrow svg { width: 12px; height: 12px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .wk-arrow:hover { background: color-mix(in srgb, var(--ink) 14%, transparent); }
+  .wk-arrow:active { background: var(--ink); color: var(--paper); transition-duration: .05s; }
+  .wk-arrow:disabled { opacity: .3; background: color-mix(in srgb, var(--ink) 8%, transparent); color: var(--ink); }
+  .wk-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  /* Info: the project's card, above its chips */
   .wk-card {
-    width: 320px; max-width: 100%; max-height: calc(var(--stage-h, 400px) - 76px); overflow-y: auto;
-    padding: 15px 17px 16px;
-    border: 1px solid var(--edge); border-radius: var(--radius);
+    position: absolute; left: 12px; bottom: calc(100% + 8px); z-index: 3;
+    width: 320px; max-width: calc(100% - 24px); max-height: calc(var(--stage-h, 400px) - 24px); overflow-y: auto;
+    padding: 14px 16px 15px;
+    border: 1px solid var(--edge); border-radius: 6px;
     background: var(--paper); background-clip: padding-box;
     font-size: 13px; line-height: 1.55;
     transform-origin: 0 100%;
-    animation: wk-card-in .26s cubic-bezier(.2, .8, .2, 1) both;
+    animation: wk-card-in .5s var(--ease) both;
   }
-  .wk-card.is-closing { animation: wk-card-out .14s ease-in both; }
-  @keyframes wk-card-in { from { opacity: 0; transform: translateY(6px) scale(.97); } }
-  @keyframes wk-card-out { to { opacity: 0; transform: translateY(4px) scale(.98); } }
+  .wk-card.is-closing { animation: wk-card-out .16s ease-in both; }
+  @keyframes wk-card-in { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+  @keyframes wk-card-out { to { opacity: 0; transform: translateY(4px) scale(.99); } }
   .wk-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
-  .wk-card-head b { font-weight: 600; }
+  .wk-card-head b { font-weight: 500; }
   .wk-card-head span, .wk-card-credit { color: var(--graphite); }
   .wk-card-head span { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .wk-card-text { margin-top: 8px; text-wrap: pretty; }
   .wk-card-credit { margin-top: 8px; font-size: 12px; }
-  .work-win .wk-card-link { display: inline-block; margin-top: 12px; color: var(--graphite); font-size: 12px; text-decoration: none; transition: color .15s ease; }
+  .work-win .wk-card-link { display: inline-block; margin-top: 12px; color: var(--graphite); font-size: 12px; text-decoration: none; transition: color .3s var(--ease); }
   .work-win .wk-card-link:hover { color: var(--ink); }
   .wk-card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
 
-  /* The line under the stage */
-  .wk-bar {
-    flex: none; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 16px;
-    height: 44px; padding: 0 10px 0 16px;
-    border-top: 1px solid var(--edge);
-    font-size: 13px;
+  /* In a narrower window the dock takes its own row */
+  @container work (max-width: 840px) {
+    .wk-bar { flex-wrap: wrap; height: auto; padding: 10px 12px 12px; row-gap: 10px; }
+    .wk-lead { flex: 1 1 auto; min-width: 0; }
+    .wk-lead::after { display: none; }
+    .wk-nav { flex: none; }
+    .wk-dock { order: 3; flex: 1 1 100%; max-width: none; }
+    .wk-peek { display: none; }
   }
-  .wk-cap { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .wk-cap b { font-weight: 500; }
-  .wk-cap span { margin-left: 8px; color: var(--graphite); }
-  .work-win .wk-cap a { margin-left: 8px; color: var(--graphite); text-decoration: none; transition: color .15s ease; }
-  .work-win .wk-cap a:hover { color: var(--ink); }
-  .wk-cap.is-new { animation: wk-cap-in .3s cubic-bezier(.2, .8, .2, 1) both; }
-  @keyframes wk-cap-in { from { opacity: 0; transform: translateY(3px); } }
-  .wk-dots { display: flex; align-items: center; }
-  .wk-dot { position: relative; width: 16px; height: 24px; cursor: default; transition: width .35s cubic-bezier(.3, .7, .2, 1); }
-  .wk-dot::before {
-    content: ""; position: absolute; left: 50%; top: 50%;
-    width: 4px; height: 4px; margin: -2px 0 0 -2px; border-radius: 2px;
-    background: var(--ink); opacity: .2;
-    transition: width .35s cubic-bezier(.3, .7, .2, 1), margin .35s cubic-bezier(.3, .7, .2, 1), opacity .2s ease;
-  }
-  .wk-dot:hover::before { opacity: .5; }
-  .wk-dot[aria-current="true"] { width: 26px; }
-  .wk-dot[aria-current="true"]::before { width: 14px; margin-left: -7px; opacity: 1; }
-  .wk-dot:focus-visible { outline: none; }
-  .wk-dot:focus-visible::before { box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--accent); }
-  .wk-nav { justify-self: end; display: flex; align-items: center; gap: 2px; }
-  .wk-count { margin-right: 8px; font-variant-numeric: tabular-nums; }
-  .wk-count span { color: var(--graphite); }
-  .wk-arrow {
-    display: grid; place-items: center;
-    width: 28px; height: 28px; border-radius: calc(var(--radius-s) * 100);
-    color: var(--ink); cursor: default;
-    transition: background-color .15s ease, opacity .15s ease;
-  }
-  .wk-arrow svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-  .wk-arrow:hover { background: var(--paper-2); }
-  .wk-arrow:active { background: var(--edge); }
-  .wk-arrow:disabled { opacity: .25; background: none; }
-  .wk-arrow:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
-  :root[data-theme="classic"] .wk-pill, :root[data-theme="classic"] .wk-card { border-color: #000; }
-  :root[data-theme="classic"] .wk-card { box-shadow: 2px 2px 0 #000; }
-  :root[data-theme="classic"] .wk-arrow:hover, :root[data-theme="classic"] .wk-arrow:active { background: #000; color: #fff; }
-  :root[data-theme="classic"] .wk-slide > img, :root[data-theme="classic"] .wk-slide > video { outline: 1px solid #000; }
 
   /* Tune: live design controls, only with ?tune in the URL */
   #tune { right: 16px; top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 16px); width: 340px; max-height: calc(100vh - var(--bar) - 32px); max-height: calc(100dvh - var(--bar) - 32px); }
@@ -970,7 +966,6 @@
     border: 1px solid var(--edge); border-radius: var(--radius);
     box-shadow: var(--pop-shadow);
   }
-  :root[data-theme="classic"] .alert { box-shadow: inset 0 0 0 2px #fff, inset 0 0 0 4px #000, var(--pop-shadow); }
   .alert svg { display: block; width: 32px; height: 32px; }
   .alert h2 { font-size: 14px; font-weight: 600; }
   .alert p { margin-top: 4px; color: var(--graphite); }
@@ -1001,9 +996,6 @@
     .desk { padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 32px) 16px 40px; }
     .work-win { margin: 32px -8px 0; --pad: 14px; }
     .wk-stage { height: min(62vh, 92vw); }
-    .wk-info { left: 10px; bottom: 10px; max-width: calc(100% - 20px); }
-    .wk-dots { display: none; }
-    .wk-bar { grid-template-columns: minmax(0, 1fr) auto; padding-left: 14px; }
     .window.is-float {
       left: 8px !important; right: 8px !important; bottom: auto !important;
       top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 8px) !important;
@@ -1036,8 +1028,8 @@
   @media (prefers-reduced-motion: reduce) {
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
-    .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-cap.is-new { animation: none; }
-    .wk-dot::before, .wk-pill svg { transition: none; }
+    .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
+    .wk-ring, .wk-peek, .wk-thumb, .chip svg { transition: none; }
     .bez .bez-me { animation: none !important; }
     .tile { transition: none; }
     .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
@@ -1140,19 +1132,21 @@
     </header>
     <div class="wk-stage" id="wk-stage" aria-roledescription="carousel" aria-label="Selected work">
       <ol class="wk-track" id="wk-track" tabindex="-1"></ol>
-      <div class="wk-info" id="wk-info">
-        <div class="wk-card" id="wk-card" role="region" aria-label="About this project" hidden></div>
-        <button class="wk-pill" id="wk-pill" type="button" aria-expanded="false" aria-controls="wk-card">Info<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1v8M1 5h8"/></svg></button>
-      </div>
     </div>
     <footer class="wk-bar">
-      <p class="wk-cap" id="wk-cap" aria-live="polite"></p>
-      <div class="wk-dots" id="wk-dots" role="group" aria-label="Pieces"></div>
+      <div class="wk-lead">
+        <span class="chip" id="wk-proj"></span>
+        <button class="chip" id="wk-info" type="button" aria-expanded="false" aria-controls="wk-card">Info<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1v8M1 5h8"/></svg></button>
+        <p class="wk-title" id="wk-title" aria-live="polite"></p>
+      </div>
+      <div class="wk-dock" id="wk-dock" role="group" aria-label="Pieces"><span class="wk-ring" aria-hidden="true"></span></div>
       <div class="wk-nav">
         <span class="wk-count" id="wk-count"></span>
         <button class="wk-arrow" type="button" id="wk-prev" aria-label="Previous piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button>
         <button class="wk-arrow" type="button" id="wk-next" aria-label="Next piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
       </div>
+      <div class="wk-peek" id="wk-peek" aria-hidden="true"><img alt="" draggable="false"><span></span></div>
+      <div class="wk-card" id="wk-card" role="region" aria-label="About this project" hidden></div>
     </footer>
   </section>
 </main>
@@ -1586,7 +1580,7 @@
      to a synth if they can't load.
   ========================================================== */
   const Sound = (() => {
-    let ctx = null, sfxBus = null, pianoBus = null, noise = null, master = null;
+    let ctx = null, sfxBus = null, airBus = null, pianoBus = null, noise = null, master = null;
     let sfxOn = store.get('adiel-sfx') !== 'off', volume = 1;
     const gainFor = (v) => Math.pow(clamp(v, 0, 7) / 7, 0.6);
     const SAMPLE_URL = 'https://tonejs.github.io/audio/salamander/';
@@ -1606,11 +1600,17 @@
         limiter.threshold.value = -8; limiter.knee.value = 6; limiter.ratio.value = 6;
         master = ctx.createGain(); master.gain.value = volume; master.connect(ctx.destination);
         limiter.connect(master);
-        sfxBus = ctx.createGain(); sfxBus.gain.value = 0.8; sfxBus.connect(limiter);
+        // Every effect passes a gentle low-pass, so nothing is sharp.
+        const soft = ctx.createBiquadFilter(); soft.type = 'lowpass'; soft.frequency.value = 6500; soft.Q.value = 0.4; soft.connect(limiter);
+        sfxBus = ctx.createGain(); sfxBus.gain.value = 0.8; sfxBus.connect(soft);
+        airBus = ctx.createGain(); airBus.gain.value = 0.8; airBus.connect(soft);
         pianoBus = ctx.createGain(); pianoBus.gain.value = 0.85; pianoBus.connect(limiter);
         const verb = ctx.createConvolver(); verb.buffer = impulse(1.8, 2.6);
         const wet = ctx.createGain(); wet.gain.value = 0.18;
         pianoBus.connect(verb); verb.connect(wet); wet.connect(limiter);
+        // The tonal effects get a little of the same room.
+        const air = ctx.createGain(); air.gain.value = 0.7;
+        airBus.connect(air); air.connect(verb);
         noise = ctx.createBuffer(1, Math.floor(ctx.sampleRate * 0.3), ctx.sampleRate);
         const d = noise.getChannelData(0);
         for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
@@ -1639,30 +1639,36 @@
       src.connect(fl); fl.connect(g); g.connect(sfxBus);
       src.start(t); src.stop(t + dur + 0.02);
     }
-    function tone({ f = 800, f2 = 0, type = 'sine', gain = 0.05, dur = 0.08, at = 0 }) {
+    function tone({ f = 800, f2 = 0, type = 'sine', gain = 0.05, dur = 0.08, at = 0, air = false }) {
       const t = ctx.currentTime + at;
       const o = ctx.createOscillator(); o.type = type;
       o.frequency.setValueAtTime(f, t);
       if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
       const g = ctx.createGain();
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(gain, t + 0.004);
+      g.gain.exponentialRampToValueAtTime(gain, t + 0.006);
       g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-      o.connect(g); g.connect(sfxBus);
+      o.connect(g); g.connect(air ? airBus : sfxBus);
       o.start(t); o.stop(t + dur + 0.02);
     }
+    // Two soft notes a breath apart: the switch-on sound of a display.
+    const dyad = (a, b) => { tone({ f: a, gain: 0.03, dur: 0.32, air: true }); tone({ f: b, gain: 0.024, dur: 0.38, at: 0.05, air: true }); };
 
+    // A small, quiet palette: sines and filtered noise, nothing square.
     const FX = {
-      down() { hit({ f: 2600, q: 0.8, gain: 0.22, dur: 0.028 }); tone({ f: 170, f2: 70, gain: 0.07, dur: 0.035 }); },
-      up() { hit({ f: 4200, q: 1.2, gain: 0.09, dur: 0.016 }); },
-      open() { tone({ f: 660, type: 'triangle', gain: 0.035, dur: 0.09 }); tone({ f: 990, type: 'triangle', gain: 0.03, dur: 0.12, at: 0.045 }); },
-      close() { tone({ f: 880, type: 'triangle', gain: 0.03, dur: 0.08 }); tone({ f: 587, type: 'triangle', gain: 0.028, dur: 0.11, at: 0.04 }); },
-      alert() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 784, type: 'square', gain: 0.022, dur: 0.11, at: 0.09 }); },
+      down() { hit({ f: 1100, q: 1.2, gain: 0.05, dur: 0.012 }); tone({ f: 190, f2: 120, gain: 0.02, dur: 0.028 }); },
+      up() { hit({ f: 2000, q: 1.4, gain: 0.02, dur: 0.009 }); },
+      open() { tone({ f: 494, f2: 740, gain: 0.03, dur: 0.11, air: true }); tone({ f: 1480, gain: 0.006, dur: 0.08, at: 0.03, air: true }); },
+      close() { tone({ f: 740, f2: 494, gain: 0.028, dur: 0.1, air: true }); },
+      shade() { hit({ f: 1200, q: 1.2, gain: 0.035, dur: 0.02 }); tone({ f: 660, f2: 880, gain: 0.012, dur: 0.06 }); },
+      alert() { tone({ f: 740, gain: 0.03, dur: 0.12, air: true }); tone({ f: 587, gain: 0.03, dur: 0.16, at: 0.11, air: true }); },
+      trash() { hit({ f: 900, type: 'lowpass', q: 0.6, gain: 0.08, dur: 0.14 }); hit({ f: 2200, q: 0.8, gain: 0.025, dur: 0.05, at: 0.02 }); },
+      chime() { [392, 494, 587, 784].forEach((f, i) => tone({ f, gain: 0.026, dur: 0.55, at: i * 0.05, air: true })); },
+      powerOff() { tone({ f: 330, f2: 55, gain: 0.04, dur: 0.4 }); hit({ f: 600, type: 'lowpass', q: 0.5, gain: 0.04, dur: 0.3 }); },
       // Each display has its own switch-on sound.
-      paper() { tone({ f: 523, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
-      graphite() { tone({ f: 784, type: 'triangle', gain: 0.04, dur: 0.1 }); tone({ f: 523, type: 'triangle', gain: 0.035, dur: 0.18, at: 0.07 }); },
-      black() { tone({ f: 392, type: 'sine', gain: 0.05, dur: 0.14 }); tone({ f: 587, type: 'sine', gain: 0.04, dur: 0.26, at: 0.09 }); },
-      classic() { tone({ f: 1046, type: 'square', gain: 0.022, dur: 0.07 }); tone({ f: 1568, type: 'square', gain: 0.02, dur: 0.16, at: 0.08 }); },
+      paper() { dyad(523, 659); },
+      graphite() { dyad(440, 554); },
+      black() { dyad(330, 415); },
       // Hoops. k scales with how hard the ball hit something.
       shoot() { hit({ f: 1400, q: 0.6, gain: 0.05, dur: 0.07 }); },
       bounce(k = 1) { tone({ f: 140, f2: 62, gain: 0.12 * k, dur: 0.1 }); hit({ f: 420, type: 'lowpass', q: 0.7, gain: 0.1 * k, dur: 0.05 }); },
@@ -1673,16 +1679,16 @@
         hit({ f: 3800, q: 3, gain: 0.07 * k, dur: 0.025 });
       },
       swish() { hit({ f: 5200, q: 0.5, gain: 0.08, dur: 0.24 }); hit({ f: 8000, q: 0.8, gain: 0.04, dur: 0.18, at: 0.04 }); },
-      score() { tone({ f: 784, type: 'triangle', gain: 0.035, dur: 0.1, at: 0.08 }); tone({ f: 1175, type: 'triangle', gain: 0.03, dur: 0.18, at: 0.16 }); },
-      tick() { tone({ f: 1480, type: 'square', gain: 0.018, dur: 0.035 }); },
-      tock() { tone({ f: 990, type: 'square', gain: 0.014, dur: 0.03 }); },
-      go() { tone({ f: 880, type: 'square', gain: 0.022, dur: 0.08 }); tone({ f: 1760, type: 'square', gain: 0.022, dur: 0.22, at: 0.08 }); },
-      buzzer() { tone({ f: 196, type: 'sawtooth', gain: 0.05, dur: 0.75 }); tone({ f: 207, type: 'square', gain: 0.03, dur: 0.75 }); },
-      letter() { tone({ f: 330, f2: 165, type: 'square', gain: 0.03, dur: 0.28 }); },
+      score() { tone({ f: 784, gain: 0.03, dur: 0.12, at: 0.08, air: true }); tone({ f: 1175, gain: 0.026, dur: 0.22, at: 0.16, air: true }); },
+      tick() { tone({ f: 1320, type: 'triangle', gain: 0.012, dur: 0.03 }); },
+      tock() { tone({ f: 880, type: 'triangle', gain: 0.01, dur: 0.03 }); },
+      go() { tone({ f: 784, gain: 0.025, dur: 0.08 }); tone({ f: 1175, gain: 0.022, dur: 0.2, at: 0.08, air: true }); },
+      buzzer() { tone({ f: 196, type: 'triangle', gain: 0.04, dur: 0.6 }); tone({ f: 202, gain: 0.03, dur: 0.6 }); },
+      letter() { tone({ f: 330, f2: 220, type: 'triangle', gain: 0.025, dur: 0.26 }); },
       // Bez
-      bezIn() { tone({ f: 660, f2: 990, gain: 0.04, dur: 0.12 }); tone({ f: 1320, type: 'triangle', gain: 0.025, dur: 0.1, at: 0.09 }); },
-      bezOut() { tone({ f: 990, f2: 560, gain: 0.035, dur: 0.14 }); },
-      bezYay() { [523, 659, 784, 1047].forEach((f, i) => tone({ f, type: 'triangle', gain: 0.03, dur: 0.12, at: i * 0.07 })); },
+      bezIn() { tone({ f: 660, f2: 990, gain: 0.03, dur: 0.12, air: true }); tone({ f: 1320, gain: 0.012, dur: 0.1, at: 0.09, air: true }); },
+      bezOut() { tone({ f: 990, f2: 560, gain: 0.028, dur: 0.14, air: true }); },
+      bezYay() { [523, 659, 784, 1047].forEach((f, i) => tone({ f, gain: 0.024, dur: 0.16, at: i * 0.07, air: true })); },
     };
     function play(name, k) { if (sfxOn && ctx && FX[name]) FX[name](k); }
 
@@ -1917,7 +1923,6 @@
     ['paper', 'Paper'],
     ['graphite', 'Graphite'],
     ['black', 'Black'],
-    ['classic', 'Classic'],
   ];
   const ids = THEMES.map((t) => t[0]);
   const themeMeta = $('meta[name="theme-color"]');
@@ -4080,14 +4085,17 @@
 
   /* ==========================================================
      Work — one slider through every piece. Swipe, scroll sideways,
-     drag, or use ← and →. The Info pill opens the project's card,
-     and follows along as you move from one project to the next.
+     drag, or use ← and →. Under it, a dock of every piece: the ring
+     slides to the one on screen, and hovering one shows it larger.
+     Info opens the project's card, which follows along as you move
+     from one project to the next.
   ========================================================== */
   const Work = (() => {
     const win = W.work;
-    const stage = $('#wk-stage'), track = $('#wk-track'), cap = $('#wk-cap'), dotsEl = $('#wk-dots');
-    const countEl = $('#wk-count'), prev = $('#wk-prev'), next = $('#wk-next');
-    const pill = $('#wk-pill'), card = $('#wk-card');
+    const stage = $('#wk-stage'), track = $('#wk-track'), bar = $('.wk-bar', win);
+    const dock = $('#wk-dock'), ring = $('.wk-ring', dock), peek = $('#wk-peek');
+    const projChip = $('#wk-proj'), infoChip = $('#wk-info'), titleEl = $('#wk-title'), countEl = $('#wk-count');
+    const prev = $('#wk-prev'), next = $('#wk-next'), card = $('#wk-card');
     const X = 'https://x.com/adieldesign/status/';
     const PROJECTS = [
       { name: 'Dessn', kind: 'Rebrand, 2026',
@@ -4108,7 +4116,7 @@
         link: 'https://hex.inc/work/ataraxis',
         pieces: [
           { id: 'ataraxis-a', title: 'Research editorial', w: 1334, h: 1600 },
-          { id: 'ataraxis-c', title: 'Understanding disease at scale', w: 1600, h: 900 },
+          { id: 'ataraxis-c', title: 'Disease at scale', w: 1600, h: 900 },
           { id: 'ataraxis-d', title: 'Clinical intelligence', w: 1600, h: 1554 },
           { id: 'ataraxis-b', title: 'Data illustration', w: 1600, h: 1600 },
           { id: 'ataraxis-e', title: 'Evidence', w: 1600, h: 1600 },
@@ -4125,18 +4133,18 @@
     const N = SLIDES.length;
     const pad = (n) => String(n).padStart(2, '0');
     let cur = -1, built = false, infoOpen = false, cardFor = -1, jumping = false;
-    const slides = [], dots = [];
+    const slides = [], thumbs = [];
 
     function build() {
       if (built) return;
       built = true;
       SLIDES.forEach((s, n) => {
         const pr = PROJECTS[s.k];
+        const src = 'work/' + s.id;
         const li = document.createElement('li');
         li.className = 'wk-slide';
         li.setAttribute('aria-roledescription', 'slide');
         li.setAttribute('aria-label', (n + 1) + ' of ' + N + ': ' + pr.name + ', ' + s.title);
-        const src = 'work/' + s.id;
         let el;
         if (s.video) {
           el = document.createElement('video');
@@ -4161,24 +4169,32 @@
         li.append(el);
         track.append(li);
         slides.push(li);
-        const d = document.createElement('button');
-        d.type = 'button';
-        d.className = 'wk-dot';
-        d.setAttribute('aria-label', pr.name + ', ' + s.title);
-        d.addEventListener('click', () => go(n));
-        dotsEl.append(d);
-        dots.push(d);
+        // Its place in the dock.
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'wk-thumb';
+        b.setAttribute('aria-label', pr.name + ', ' + s.title);
+        const im = document.createElement('img');
+        im.src = src + '.webp'; im.alt = ''; im.width = s.w; im.height = s.h;
+        im.decoding = 'async'; im.draggable = false;
+        b.append(im);
+        b.addEventListener('click', () => { hidePeek(); go(n); });
+        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPeek(n, b); });
+        dock.append(b);
+        thumbs.push(b);
       });
+      dock.addEventListener('pointerleave', hidePeek);
       prev.addEventListener('click', () => step(-1));
       next.addEventListener('click', () => step(1));
-      pill.addEventListener('click', () => toggleInfo());
+      infoChip.addEventListener('click', () => toggleInfo());
       track.addEventListener('scroll', onScroll, { passive: true });
       track.addEventListener('click', () => { if (infoOpen) toggleInfo(false); });
       dragging();
-      // Keep the current piece in place when the window changes size.
+      // Keep the current piece and the ring in place when the window changes size.
       if ('ResizeObserver' in window) new ResizeObserver(() => {
         stage.style.setProperty('--stage-h', stage.clientHeight + 'px');
         if (cur > -1 && !jumping) track.scrollLeft = slides[cur].offsetLeft;
+        placeRing();
       }).observe(stage);
       setCurrent(0);
     }
@@ -4189,17 +4205,35 @@
       const was = cur;
       cur = n;
       const s = SLIDES[n], pr = PROJECTS[s.k];
-      cap.innerHTML = '<b>' + pr.name + '</b><span>' + s.title + '</span>' +
+      projChip.textContent = pr.name;
+      titleEl.innerHTML = s.title +
         (s.post ? '<a href="' + X + s.post + '" target="_blank" rel="noopener" aria-label="' + s.title + ' on X">X ↗</a>' : '');
-      cap.classList.remove('is-new');
-      void cap.offsetWidth;
-      cap.classList.add('is-new');
-      countEl.innerHTML = pad(n + 1) + ' <span>/ ' + pad(N) + '</span>';
-      dots.forEach((d, k) => d.setAttribute('aria-current', String(k === n)));
+      titleEl.classList.remove('is-new');
+      void titleEl.offsetWidth;
+      titleEl.classList.add('is-new');
+      countEl.innerHTML = '<b>' + pad(n + 1) + '</b> / ' + pad(N);
+      thumbs.forEach((b, k) => b.setAttribute('aria-current', String(k === n)));
+      placeRing();
+      revealThumb(n);
       prev.disabled = n === 0;
       next.disabled = n === N - 1;
       if (infoOpen && was > -1 && SLIDES[was].k !== s.k) fillCard();
       media();
+    }
+    // The ring sits 3px outside the current piece's thumbnail.
+    function placeRing() {
+      const b = thumbs[cur];
+      if (!b) return;
+      ring.style.width = (b.offsetWidth + 6) + 'px';
+      ring.style.transform = 'translate(' + (b.offsetLeft - 3) + 'px, ' + (b.offsetTop - 3) + 'px)';
+    }
+    // When the dock is wider than its row, the current piece stays in view.
+    function revealThumb(n) {
+      const b = thumbs[n];
+      const l = b.offsetLeft - 3, r = l + b.offsetWidth + 6;
+      const behavior = reduced.matches ? 'auto' : 'smooth';
+      if (l < dock.scrollLeft) dock.scrollTo({ left: Math.max(0, l - 24), behavior });
+      else if (r > dock.scrollLeft + dock.clientWidth) dock.scrollTo({ left: r - dock.clientWidth + 24, behavior });
     }
     // Only the piece on screen plays; its neighbours get ready.
     function media() {
@@ -4227,18 +4261,17 @@
     // Next door slides across; further away fades through.
     function go(n, instant) {
       n = clamp(n, 0, N - 1);
-      const w = track.clientWidth;
-      if (!w) { setCurrent(n); return; }
+      if (!track.clientWidth) { setCurrent(n); return; }
       if (instant || reduced.matches || Math.abs(n - cur) <= 1) {
         track.scrollTo({ left: slides[n].offsetLeft, behavior: instant || reduced.matches ? 'auto' : 'smooth' });
         setCurrent(n);
         return;
       }
       jumping = true;
-      track.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, easing: 'ease-in', fill: 'forwards' }).finished.then(() => {
+      track.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 140, easing: 'ease-in', fill: 'forwards' }).finished.then(() => {
         track.scrollTo({ left: slides[n].offsetLeft, behavior: 'auto' });
         setCurrent(n);
-        return track.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 220, easing: 'ease-out' }).finished;
+        return track.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 320, easing: 'cubic-bezier(.16, 1, .3, 1)' }).finished;
       }).finally(() => { track.getAnimations().forEach((a) => a.cancel()); jumping = false; });
     }
     function step(d) {
@@ -4246,6 +4279,26 @@
       if (n === cur) return;
       go(n);
       Sound.play('up');
+    }
+
+    // Hovering a piece in the dock: a larger look at it, above the dock.
+    let peekTimer = 0, peekOn = false;
+    function showPeek(n, b) {
+      const s = SLIDES[n];
+      const img = $('img', peek);
+      img.src = 'work/' + s.id + '.webp';
+      img.style.setProperty('--ar', s.w + ' / ' + s.h);
+      $('span', peek).textContent = PROJECTS[s.k].name + ', ' + s.title;
+      const br = bar.getBoundingClientRect(), tr = b.getBoundingClientRect(), half = peek.offsetWidth / 2;
+      peek.style.setProperty('--x', clamp(tr.left + tr.width / 2 - br.left, half + 8, br.width - half - 8) + 'px');
+      clearTimeout(peekTimer);
+      if (peekOn) return;
+      peekTimer = setTimeout(() => { peekOn = true; peek.classList.add('is-on'); }, 80);
+    }
+    function hidePeek() {
+      clearTimeout(peekTimer);
+      peekOn = false;
+      peek.classList.remove('is-on');
     }
 
     // A mouse can drag the pieces too; touch and trackpads scroll natively.
@@ -4309,7 +4362,8 @@
     function toggleInfo(open = !infoOpen) {
       if (open === infoOpen) return;
       infoOpen = open;
-      pill.setAttribute('aria-expanded', String(open));
+      infoChip.setAttribute('aria-expanded', String(open));
+      infoChip.classList.toggle('is-on', open);
       card.getAnimations().forEach((a) => a.cancel());
       if (open) {
         if (cardFor !== SLIDES[cur].k) fillCard();
@@ -4321,20 +4375,20 @@
         card.classList.add('is-closing');
         card.addEventListener('animationend', () => { if (!infoOpen) { card.hidden = true; card.classList.remove('is-closing'); } }, { once: true });
       }
-      Sound.play(open ? 'down' : 'up');
+      Sound.play(open ? 'open' : 'close');
     }
 
     function keydown(e) {
       if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') step(e.key === 'ArrowRight' ? 1 : -1);
       else if (e.key === 'Home' || e.key === 'End') go(e.key === 'Home' ? 0 : N - 1);
       else if (e.key === 'i' || e.key === 'I') toggleInfo();
-      else if (e.key === 'Escape' && infoOpen) { toggleInfo(false); pill.focus({ preventScroll: true }); }
+      else if (e.key === 'Escape' && infoOpen) { toggleInfo(false); infoChip.focus({ preventScroll: true }); }
       else return false;
       e.preventDefault();
       return true;
     }
     function play() { media(); }
-    function pause() { $$('video', track).forEach((v) => v.pause()); }
+    function pause() { $$('video', track).forEach((v) => v.pause()); hidePeek(); }
     // Bring it forward, or open it again if it was closed.
     function show(focus = true) {
       if (win.hidden || win.hasAttribute('data-boot')) openWin(win, { focus });
@@ -4380,7 +4434,7 @@
       ['Serif', 'Georgia, "Times New Roman", serif'],
       ['Mono', 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'],
     ];
-    const SHADOW = { paper: ['none', 30], graphite: ['none', 30], black: ['none', 30], classic: ['hard', 33] };
+    const SHADOW = { paper: ['none', 30], graphite: ['none', 30], black: ['none', 30] };
     const VARS = COLORS.map((c) => c[1]).concat(['--radius', '--radius-s', '--win-shadow', '--pop-shadow', '--desk-size', '--sans']);
     const state = parse(store.get(KEY), {});
     state.themes = state.themes || {};
@@ -4509,7 +4563,7 @@
       rows = [
         rangeRow('Window corners', 0, 24, () => px('--radius'), (n) => { mine()['--radius'] = n + 'px'; }),
         rangeRow('Small corners', 0, 14, () => px('--radius-s'), (n) => { mine()['--radius-s'] = n + 'px'; }),
-        selectRow('Shadow', [['None', 'none'], ['Soft', 'soft'], ['Hard (1-bit)', 'hard']], () => shadowOf()[0], (m) => { mine().shadow = [m, shadowOf()[1]]; }),
+        selectRow('Shadow', [['None', 'none'], ['Soft', 'soft'], ['Hard', 'hard']], () => shadowOf()[0], (m) => { mine().shadow = [m, shadowOf()[1]]; }),
         rangeRow('Shadow strength', 0, 100, () => shadowOf()[1], (n) => { mine().shadow = [shadowOf()[0], n]; }, '%'),
       ];
       body.append(...rows.slice(0, 4));
@@ -6006,7 +6060,7 @@
       } else if (has(q, /screen ?saver|idle|sleep/)) {
         answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
       } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
-        answer('<p>Press <b>T</b> to flip between four displays: Paper, Graphite, Black and Classic, the old 1-bit desk.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
+        answer('<p>Press <b>T</b> to flip between three displays: Paper, Graphite and Black.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
       } else if (has(q, /joke|funny|laugh/)) {
         act('cheer', 1200);
         answer(pick(['<p>Why did the Bézier curve go to therapy? Too many handles on its feelings.</p>', '<p>I asked the pen tool for directions. It gave me two handles and said “you figure it out.”</p>', '<p>What’s a pianist’s favourite drink? Anything on the rocks, as long as it’s in C.</p>']));
