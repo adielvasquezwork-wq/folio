@@ -18,7 +18,7 @@
 <meta name="twitter:image" content="https://adiel.design/og.png">
 <meta name="theme-color" content="#ffffff">
 <link rel="canonical" href="https://adiel.design/">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' shape-rendering='crispEdges'%3E%3Crect width='16' height='16' fill='%23000'/%3E%3Cpath fill='%23fff' d='M6 4h4v1H6zM5 5h2v6H5zM9 5h2v6H9zM7 7h2v1H7z'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23000'/%3E%3Cpath d='M4.6 12.2 8 4l3.4 8.2M5.9 9.6h4.2' fill='none' stroke='%23fff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -204,10 +204,10 @@
   .mb-title .name { font-weight: 600; }
   .glyph { display: block; width: 12px; height: 12px; }
   .glyph .g-ink { fill: currentColor; }
-  .glyph .g-paper { fill: var(--under); }
+  .glyph .g-paper { fill: none; stroke: var(--under); stroke-width: 1.1; stroke-linecap: round; stroke-linejoin: round; }
   .mb-right { align-items: center; gap: 4px; padding-right: 2px; font-variant-numeric: tabular-nums; }
   .sfx { display: grid; place-items: center; width: 28px; height: calc(var(--bar) - 1px); cursor: default; color: var(--bar-ink); }
-  .sfx svg { width: 13px; height: 12px; fill: currentColor; }
+  .sfx svg { width: 14px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .sfx:active { background: var(--hl); color: var(--on-hl); }
   .sfx[aria-pressed="true"] .off, .sfx[aria-pressed="false"] .on { display: none; }
 
@@ -221,12 +221,9 @@
     cursor: default;
   }
   .theme-btn:active { background: var(--hl); color: var(--on-hl); }
-  .theme-btn svg { display: block; width: 13px; height: 11px; }
-  .theme-btn .m-frame { fill: currentColor; }
-  .theme-btn .m-screen { fill: var(--bar-bg); }
-  .theme-btn:active .m-screen { fill: var(--hl); }
-  .theme-btn .m-text { fill: currentColor; }
-  .theme-btn .m-cursor { fill: var(--accent); }
+  .theme-btn svg { display: block; width: 14px; height: 12px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+  .theme-btn .m-cursor { fill: var(--accent); stroke: none; }
+  .theme-btn:active .m-cursor { fill: currentColor; }
   .theme-name { min-width: 4.4em; text-align: left; }
 
   /* Pull-down menus */
@@ -261,7 +258,7 @@
   .cal { padding: 10px 12px 12px; font-variant-numeric: tabular-nums; }
   .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-weight: 600; }
   .cal-btn { display: grid; place-items: center; width: 22px; height: 22px; border-radius: var(--radius-s); cursor: default; }
-  .cal-btn svg { width: 4px; height: 7px; fill: currentColor; }
+  .cal-btn svg { width: 8px; height: 8px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .cal-btn:hover, .cal-btn:focus-visible { background: var(--hl); color: var(--on-hl); outline: none; }
   .cal-grid { display: grid; grid-template-columns: repeat(7, 28px); gap: 1px; text-align: center; font-size: 12px; }
   .cal-grid span { height: 24px; line-height: 24px; border-radius: var(--radius-s); }
@@ -281,16 +278,38 @@
     color: var(--desk-ink);
     font-size: var(--desk-size); line-height: 1.6;
   }
-  .intro { display: grid; gap: 20px; width: var(--intro); }
+  .intro { display: grid; gap: 18px; width: var(--intro); }
   .intro .who { font-size: var(--desk-size); font-weight: 600; line-height: 1.4; }
-  .intro .role { margin-top: -16px; color: var(--desk-dim); }
-  .intro .links { display: flex; flex-wrap: wrap; gap: 2px 16px; margin: 4px 0 0; padding: 0; list-style: none; }
+  .intro .role { margin-top: -14px; color: var(--desk-dim); }
+  .intro .meta { color: var(--desk-dim); }
+  .meta-block { display: grid; gap: 2px; }
+  /* Each project's name carries a corner of its work */
+  .fav { display: inline-block; width: 12px; height: 12px; margin: 0 5px 0 1px; vertical-align: -1px; border-radius: 3px; object-fit: cover; outline: 1px solid var(--edge); outline-offset: -1px; transition: transform .45s var(--ease); }
+  .proj { white-space: nowrap; }
+  .proj:hover .fav { transform: scale(1.18); }
+  /* The address copies itself */
+  .mail { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: default; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: color .3s var(--ease), text-decoration-color .15s ease; }
+  .mail:hover { color: var(--desk-ink); text-decoration-color: currentColor; }
+  .mail span { opacity: .6; }
+  .mail.is-done { color: var(--desk-ink); text-decoration: none; }
+  .mail:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  /* The work as a list: the name, and what it was */
+  .list { margin: 0; padding: 0; list-style: none; }
+  .desk .list a { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--desk-ink); text-decoration: none; transition: opacity .35s var(--ease); }
+  .list a span:last-child { color: var(--desk-dim); white-space: nowrap; }
+  .list:hover a { opacity: .4; }
+  .list a:hover, .list a:focus-visible { opacity: 1; }
+  /* The keys, as a plain page would list them */
+  .hints { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 4px; color: var(--desk-dim); font-size: 12px; }
+  .hints button { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: default; transition: color .3s var(--ease); }
+  .hints button:hover { color: var(--desk-ink); }
+  .hints button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+  .hints kbd { margin-right: 3px; font: inherit; opacity: .75; }
+  @media (hover: none) { .hints { display: none; } }
   .inline-link { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); cursor: default; }
   .inline-link:hover { text-decoration-color: currentColor; }
   .desk a { text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: text-decoration-color .15s ease; }
   .desk a:hover { text-decoration-color: currentColor; }
-  .links a { text-decoration: none; }
-  .links a:hover { text-decoration: underline; }
   .caret {
     display: inline-block;
     width: 2px; height: 1.05em;
@@ -343,13 +362,6 @@
   .window:focus { outline: none; }
   .window.is-shaded > :not(.titlebar) { display: none; }
   .window.is-shaded .titlebar { border-bottom: 0; }
-  #about {
-    top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 40px);
-    right: clamp(108px, 11vw, 220px);
-    width: 440px;
-    max-height: calc(100vh - var(--bar) - 72px);
-    max-height: calc(100dvh - var(--bar) - 72px);
-  }
   #piano { left: clamp(22px, 7.5vw, 128px); bottom: clamp(24px, 5vh, 64px); }
   #apps { left: clamp(60px, 30vw, 520px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 64px); width: 344px; }
   .js .window[data-boot] { display: none; }
@@ -388,7 +400,7 @@
     transition: opacity .15s ease;
   }
   .closebox::after { content: ""; position: absolute; inset: -9px; }
-  .closebox svg { display: block; width: 8px; height: 8px; fill: var(--paper); visibility: hidden; }
+  .closebox svg { display: block; width: 8px; height: 8px; fill: none; stroke: var(--paper); stroke-width: 1.5; stroke-linecap: round; visibility: hidden; }
   .window.is-active .closebox { opacity: .55; }
   .closebox:hover { opacity: 1 !important; }
   .closebox:hover svg, .closebox:active svg { visibility: visible; }
@@ -517,18 +529,6 @@
     transition: transform .55s var(--ease), width .55s var(--ease);
   }
 
-  /* Hovering a piece in the dock shows it larger, above the dock. */
-  .wk-peek {
-    position: absolute; left: 0; bottom: calc(100% + 8px); z-index: 3;
-    display: flex; flex-direction: column; align-items: center; gap: 6px;
-    pointer-events: none; opacity: 0;
-    transform: translate(calc(var(--x, 0px) - 50%), 4px);
-    transition: opacity .25s var(--ease), transform .5s var(--ease);
-  }
-  .wk-peek.is-on { opacity: 1; transform: translate(calc(var(--x, 0px) - 50%), 0); }
-  .wk-peek img { display: block; height: 96px; width: calc(96px * var(--ar, 1)); object-fit: cover; border-radius: 4px; background: var(--paper-2); outline: 1px solid var(--edge); outline-offset: -1px; }
-  .wk-peek span { display: inline-flex; align-items: center; height: 22px; padding: 0 8px; border: 1px solid var(--edge); border-radius: 4px; background: var(--paper); color: var(--ink); font-size: 12px; white-space: nowrap; }
-
   .wk-nav { flex: 1 1 0; display: flex; justify-content: flex-end; align-items: center; min-width: max-content; }
   .wk-count { color: var(--graphite); font-variant-numeric: tabular-nums; }
   .wk-count b { font-weight: 500; color: var(--ink); }
@@ -585,7 +585,6 @@
     .wk-lead::after { display: none; }
     .wk-nav { flex: none; }
     .wk-dock { order: 3; flex: 1 1 100%; max-width: none; }
-    .wk-peek { display: none; }
   }
 
   /* Tune: live design controls, only with ?tune in the URL */
@@ -621,31 +620,6 @@
     font: 11px/1.5 var(--mono); resize: vertical;
   }
 
-  /* About Me — laid out like a Get Info window */
-  .about { padding: 18px 18px 22px; }
-  .info-head { display: flex; align-items: center; gap: 14px; }
-  .portrait {
-    position: relative; flex: none;
-    display: grid; place-items: center;
-    width: 74px; height: 74px;
-    border: 1px solid var(--edge);
-    background: var(--paper);
-    overflow: hidden;
-  }
-  .portrait .avatar { width: 64px; height: 64px; }
-  .portrait canvas { display: block; width: 72px; height: 72px; image-rendering: pixelated; }
-  .portrait img { width: 72px; height: 72px; object-fit: cover; filter: grayscale(1) contrast(1.15); }
-  .portrait.has-photo .avatar { display: none; }
-  .info-name { font-size: 19px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.15; }
-  .info-kind { margin-top: 3px; color: var(--graphite); }
-  .rule { height: 1px; margin: 16px 0; border: 0; background: var(--edge); }
-  .info { display: grid; grid-template-columns: 58px 1fr; column-gap: 12px; row-gap: 7px; }
-  .info dt { text-align: right; color: var(--graphite); font-weight: 500; }
-  .info .with-btn { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-  .info-label { margin-bottom: 7px; color: var(--graphite); font-weight: 500; }
-  .comments { padding: 12px 14px; border: 1px solid var(--edge); font-size: 13.5px; line-height: 1.55; }
-  .comments p + p { margin-top: .8em; }
-
   /* Piano desk accessory */
   .piano-body { width: calc(var(--kbw, 392px) + 28px); padding: 12px 14px 12px; }
   .piano-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; font-size: 12px; font-weight: 500; }
@@ -657,12 +631,12 @@
     border: 1px solid var(--edge); border-radius: 4px;
     background: var(--paper); cursor: default;
   }
-  .mini svg { width: 4px; height: 7px; fill: currentColor; }
+  .mini svg { width: 8px; height: 8px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .mini:active { background: var(--ink); color: var(--paper); }
   .checkbox { position: relative; display: flex; align-items: center; gap: 7px; cursor: default; user-select: none; -webkit-user-select: none; }
   .checkbox input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
-  .checkbox .box { display: grid; place-items: center; width: 12px; height: 12px; border: 1px solid var(--edge); background: var(--paper); }
-  .checkbox .box svg { width: 8px; height: 8px; fill: currentColor; visibility: hidden; }
+  .checkbox .box { display: grid; place-items: center; width: 13px; height: 13px; border: 1px solid var(--edge); border-radius: 3px; background: var(--paper); }
+  .checkbox .box svg { width: 10px; height: 10px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; visibility: hidden; }
   .checkbox input:checked + .box svg { visibility: visible; }
   .checkbox input:focus-visible + .box { outline: 1px solid var(--accent); outline-offset: 2px; }
   .keys {
@@ -692,8 +666,8 @@
     border: 1px solid var(--edge); background: var(--ink);
   }
   .tool { display: grid; place-items: center; height: 22px; background: var(--paper); cursor: default; }
-  .tool svg { display: block; width: 16px; height: 16px; }
-  .tool[aria-pressed="true"] { background: var(--ink); }
+  .tool svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
+  .tool[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
   .tool[aria-pressed="true"] .i-ink { fill: var(--paper); }
   .tool[aria-pressed="true"] .i-fill { fill: var(--ink); }
   .tool:focus-visible { outline-offset: -4px; }
@@ -869,7 +843,7 @@
   }
   .notes-foot .pages { display: flex; align-items: center; gap: 6px; }
   .dogear { display: grid; place-items: center; width: 22px; height: 18px; border: 1px solid var(--edge); border-radius: 4px; cursor: default; }
-  .dogear svg { width: 4px; height: 7px; fill: currentColor; }
+  .dogear svg { width: 8px; height: 8px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .dogear:active { background: var(--ink); color: var(--paper); }
 
   /* Puzzle desk accessory */
@@ -956,7 +930,7 @@
     box-shadow: inset 0 0 0 2px var(--paper), inset 0 0 0 4px var(--ink), var(--pop-shadow);
     font-size: 19px; font-weight: 500; letter-spacing: -0.02em; white-space: nowrap;
   }
-  .welcome svg { width: 32px; height: 32px; flex: none; }
+  .welcome svg { width: 32px; height: 32px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .power.is-on .welcome { animation: appear 0s linear .25s both; }
 
   /* Screen saver */
@@ -983,7 +957,7 @@
     border: 1px solid var(--edge); border-radius: var(--radius);
     box-shadow: var(--pop-shadow);
   }
-  .alert svg { display: block; width: 32px; height: 32px; }
+  .alert svg { display: block; width: 32px; height: 32px; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .alert h2 { font-size: 14px; font-weight: 600; }
   .alert p { margin-top: 4px; color: var(--graphite); }
   .alert .wactions { grid-column: 1 / -1; margin-top: 14px; }
@@ -1046,7 +1020,7 @@
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
     .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
-    .wk-ring, .wk-peek, .wk-thumb, .chip svg, .sv-layer { transition: none; }
+    .wk-ring, .wk-thumb, .chip svg, .sv-layer { transition: none; }
     .sv-layer > img, .sv-layer > video, .sv-cap.is-new { animation: none; }
     .bez .bez-me { animation: none !important; }
     .tile { transition: none; }
@@ -1059,21 +1033,20 @@
 <body>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
-  <symbol id="i-burst" viewBox="0 0 11 11"><path d="M5 0h1v4H5zM5 7h1v4H5zM0 5h4v1H0zM7 5h4v1H7zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM7 7h1v1H7zM8 8h1v1H8zM9 9h1v1H9zM9 1h1v1H9zM8 2h1v1H8zM7 3h1v1H7zM3 7h1v1H3zM2 8h1v1H2zM1 9h1v1H1z"/></symbol>
+  <symbol id="i-burst" viewBox="0 0 10 10"><path d="M2.6 2.6l4.8 4.8M7.4 2.6 2.6 7.4"/></symbol>
 </svg>
 
 <header class="menubar">
   <nav class="mb-left" aria-label="Menu bar">
     <div class="mb-menu">
       <button class="mb-title" id="menu-adiel" type="button" aria-haspopup="menu" aria-expanded="false" aria-controls="m-adiel">
-        <svg class="glyph" viewBox="0 0 12 12" shape-rendering="crispEdges" aria-hidden="true">
-          <rect class="g-ink" width="12" height="12"/>
-          <path class="g-paper" d="M4 2h4v1H4zM3 3h2v6H3zM7 3h2v6H7zM5 5h2v1H5z"/>
+        <svg class="glyph" viewBox="0 0 12 12" aria-hidden="true">
+          <rect class="g-ink" width="12" height="12" rx="2.6"/>
+          <path class="g-paper" d="M3.5 9.1 6 3l2.5 6.1M4.5 7.2h3"/>
         </svg>
         <span class="name">Adiel</span>
       </button>
       <ul class="menu" id="m-adiel" role="menu" aria-labelledby="menu-adiel" hidden>
-        <li role="none"><button class="mi" role="menuitem" type="button" data-win="about">About Me</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-work>Selected Work</button></li>
         <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-win="apps">Apps</button></li>
         <li role="separator" class="sep"></li>
@@ -1106,19 +1079,18 @@
   </nav>
   <div class="mb-right">
     <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
-      <svg viewBox="0 0 13 11" shape-rendering="crispEdges" aria-hidden="true">
-        <path class="m-frame" d="M0 0h13v9H0zM5 9h3v1H5zM3 10h7v1H3z"/>
-        <path class="m-screen" d="M1 1h11v7H1z"/>
-        <path class="m-text" d="M3 3h5v1H3zM3 5h3v1H3z"/>
-        <path class="m-cursor" d="M9 3h1v1H9z"/>
+      <svg viewBox="0 0 14 12" aria-hidden="true">
+        <rect x=".75" y=".75" width="12.5" height="8.5" rx="1.6"/>
+        <path d="M5 11.25h4M3.5 4h4M3.5 6h2.5"/>
+        <circle class="m-cursor" cx="10.5" cy="4" r=".9"/>
       </svg>
       <span class="theme-name" id="theme-name">Paper</span>
     </button>
     <button class="sfx" id="sfx" type="button" aria-pressed="true" aria-label="Sound effects">
-      <svg viewBox="0 0 13 12" shape-rendering="crispEdges" aria-hidden="true">
-        <path d="M1 4h3v4H1zM4 3h1v6H4zM5 2h1v8H5zM6 1h1v10H6z"/>
-        <path class="on" d="M8 4h1v4H8zM10 2h1v1h-1zM11 3h1v6h-1zM10 9h1v1h-1z"/>
-        <path class="off" d="M9 4h1v1H9zM12 4h1v1h-1zM10 5h2v2h-2zM9 7h1v1H9zM12 7h1v1h-1z"/>
+      <svg viewBox="0 0 14 12" aria-hidden="true">
+        <path d="M1.5 4.25h2.3L7 1.75v8.5L3.8 7.75H1.5z"/>
+        <path class="on" d="M9.3 4.3a2.6 2.6 0 0 1 0 3.4M11 2.6a5 5 0 0 1 0 6.8"/>
+        <path class="off" d="M9.5 4.5l3 3M12.5 4.5l-3 3"/>
       </svg>
     </button>
     <div class="mb-menu is-right">
@@ -1133,13 +1105,24 @@
     <h1 class="who">Adiel Vásquez</h1>
     <p class="role">Brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a><br>Awwwards Young Jury</p>
     <p>A designer focused on brand identity. I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.</p>
-    <p>At HEX I’ve worked on the identities for Dessn, Ataraxis and Vorflux. I also build my own generative tools, because sometimes the right tool for a brand doesn’t exist yet.<span class="caret" aria-hidden="true"></span></p>
-    <ul class="links" aria-label="Elsewhere">
-      <li><a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a></li>
-      <li><a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a></li>
-      <li><a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a></li>
-      <li><a href="mailto:hello@adiel.design">Email</a></li>
-    </ul>
+    <p>At HEX I’ve worked on the identities for <a class="proj" href="#work" data-project="0"><img class="fav" src="work/dessn-film.webp" alt="" width="12" height="12">Dessn</a>, <a class="proj" href="#work" data-project="1"><img class="fav" src="work/ataraxis-b.webp" alt="" width="12" height="12">Ataraxis</a> and <a class="proj" href="#work" data-project="2"><img class="fav" src="work/vorflux.webp" alt="" width="12" height="12">Vorflux</a>. I also build my own generative tools, because sometimes the right tool for a brand doesn’t exist yet.<span class="caret" aria-hidden="true"></span></p>
+    <div class="meta-block">
+      <p class="meta">For projects: <button class="mail" id="mail" type="button" title="Copy the address">hello <span>[at]</span> adiel <span>[dot]</span> design</button></p>
+      <p class="meta">Elsewhere: <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a>, <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a></p>
+    </div>
+    <div class="meta-block">
+      <p class="meta">Selected work</p>
+      <ol class="list" aria-label="Selected work">
+        <li><a href="#work" data-project="0"><span>Dessn</span><span>Rebrand</span></a></li>
+        <li><a href="#work" data-project="1"><span>Ataraxis</span><span>Rebrand</span></a></li>
+        <li><a href="#work" data-project="2"><span>Vorflux</span><span>Brand system</span></a></li>
+      </ol>
+    </div>
+    <p class="hints" aria-label="Keys">
+      <button type="button" data-key="t"><kbd>(T)</kbd> Display</button>
+      <button type="button" data-key="?"><kbd>(?)</kbd> Ask Bez</button>
+      <button type="button" data-key="right"><kbd>(→)</kbd> Next piece</button>
+    </p>
   </section>
 
   <!-- Work -->
@@ -1163,62 +1146,10 @@
       <div class="wk-nav">
         <span class="wk-count" id="wk-count"></span>
       </div>
-      <div class="wk-peek" id="wk-peek" aria-hidden="true"><img alt="" draggable="false"><span></span></div>
       <div class="wk-card" id="wk-card" role="region" aria-label="About this project" hidden></div>
     </footer>
   </section>
 </main>
-
-<!-- About Me -->
-<section class="window is-float" id="about" data-icon="icon-about" tabindex="-1" aria-labelledby="about-title" hidden>
-  <header class="titlebar">
-    <button class="closebox" type="button" aria-label="Close About Me"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
-    <h2 class="wtitle" id="about-title">About Me</h2>
-  </header>
-  <div class="wbody about scroll">
-    <div class="info-head">
-      <div class="portrait" id="portrait">
-        <svg class="avatar" viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
-          <path class="i-fill" d="M4 8h24v18H4z"/>
-          <path class="i-ink" d="M4 7h24v1H4zM4 26h24v1H4zM3 8h1v18H3zM28 8h1v18h-1zM5 10h11v1H5zM5 22h11v1H5zM5 11h1v11H5zM15 11h1v11h-1zM9 12h3v1H9zM8 13h5v3H8zM9 16h3v1H9zM8 18h5v1H8zM7 19h7v3H7zM18 12h7v1h-7zM18 15h8v1h-8zM18 18h6v1h-6zM18 21h8v1h-8z"/>
-        </svg>
-        <canvas width="72" height="72" role="img" aria-label="Portrait of Adiel" hidden></canvas>
-      </div>
-      <div>
-        <h3 class="info-name">Adiel Vásquez</h3>
-        <p class="info-kind">Designer, brand and web</p>
-      </div>
-    </div>
-
-    <hr class="rule">
-
-    <dl class="info">
-      <dt>Now:</dt><dd>Brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a></dd>
-      <dt>Focus:</dt><dd>Brand identity, web design, art direction, naming</dd>
-      <dt>Honors:</dt><dd>Awwwards Young Jury member. Featured on A1 Gallery, Landbook and Framer Gallery.</dd>
-      <dt>Offline:</dt><dd>Reading, climbing volcanoes, basketball</dd>
-    </dl>
-
-    <hr class="rule">
-
-    <p class="info-label">Comments:</p>
-    <div class="comments">
-      <p>I’m a designer working with startups and studios on brand identities and websites, currently as a brand designer at HEX.</p>
-      <p>I care about work that has its own character. A lot of design today feels generic, so I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.</p>
-      <p>What I’m after is the balance between useful and distinctive. Brands and websites that do their job well, and that people remember not just for what they do, but for how they look and feel.</p>
-      <p>I also build my own generative tools and AI workflows, because sometimes the right tool for a brand doesn’t exist yet.</p>
-    </div>
-
-    <hr class="rule">
-
-    <dl class="info">
-      <dt>Email:</dt><dd class="with-btn"><a href="mailto:hello@adiel.design">hello@adiel.design</a><button class="btn btn-sm" type="button" id="copy-email">Copy</button></dd>
-      <dt>X:</dt><dd><a href="https://x.com/adieldesign" target="_blank" rel="noopener">@adieldesign</a></dd>
-      <dt>Cosmos:</dt><dd><a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">cosmos.so/adiell</a></dd>
-      <dt>Savee:</dt><dd><a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">savee.com/theadielv_</a></dd>
-    </dl>
-  </div>
-</section>
 
 <!-- Piano -->
 <section class="window is-float" id="piano" data-icon="app-piano" tabindex="-1" aria-labelledby="piano-title" hidden>
@@ -1229,11 +1160,11 @@
   <div class="wbody piano-body">
     <div class="piano-bar">
       <div class="octave">
-        <button class="mini" type="button" data-oct="-1" aria-label="Octave down" title="Octave down (Z)"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
+        <button class="mini" type="button" data-oct="-1" aria-label="Octave down" title="Octave down (Z)"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1.5 2.5 4 5 6.5"/></svg></button>
         <span class="range" id="range" aria-live="polite">C4–C6</span>
-        <button class="mini" type="button" data-oct="1" aria-label="Octave up" title="Octave up (X)"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+        <button class="mini" type="button" data-oct="1" aria-label="Octave up" title="Octave up (X)"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M3 1.5 5.5 4 3 6.5"/></svg></button>
       </div>
-      <label class="checkbox"><input type="checkbox" id="sustain"><span class="box" aria-hidden="true"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 4h1v1H4zM5 5h1v1H5zM6 6h1v1H6zM7 7h1v1H7zM7 0h1v1H7zM6 1h1v1H6zM5 2h1v1H5zM4 3h1v1H4zM3 4h1v1H3zM2 5h1v1H2zM1 6h1v1H1zM0 7h1v1H0z"/></svg></span>Sustain</label>
+      <label class="checkbox"><input type="checkbox" id="sustain"><span class="box" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2 5.3 4.2 7.5 8 3"/></svg></span>Sustain</label>
     </div>
     <div class="keys" id="keys" aria-label="Piano keyboard"></div>
     <p class="piano-status" id="piano-status">Click the keys, or play A to ; on your keyboard.</p>
@@ -1251,18 +1182,18 @@
     <div class="paint-main">
       <div class="paint-side">
         <div class="tools" role="toolbar" aria-label="Tools">
-          <button class="tool" type="button" data-tool="pencil" aria-pressed="true" aria-label="Pencil" title="Pencil"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M11 2h2v1h-2zM10 3h2v1h-2zM13 3h1v1h-1zM9 4h2v1h-2zM12 4h2v1h-2zM8 5h2v1h-2zM11 5h2v1h-2zM7 6h2v1h-2zM10 6h2v1h-2zM6 7h2v1h-2zM9 7h2v1h-2zM5 8h2v1h-2zM8 8h2v1h-2zM4 9h2v1h-2zM7 9h2v1h-2zM4 10h1v1h-1zM6 10h2v1h-2zM5 11h2v1h-2z"/><path class="i-ink" d="M11 1h2v1h-2zM10 2h1v1h-1zM13 2h1v1h-1zM9 3h1v1h-1zM12 3h1v1h-1zM14 3h1v1h-1zM8 4h1v1h-1zM11 4h1v1h-1zM14 4h1v1h-1zM7 5h1v1h-1zM10 5h1v1h-1zM13 5h1v1h-1zM6 6h1v1h-1zM9 6h1v1h-1zM12 6h1v1h-1zM5 7h1v1h-1zM8 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM7 8h1v1h-1zM10 8h1v1h-1zM3 9h1v1h-1zM6 9h1v1h-1zM9 9h1v1h-1zM3 10h1v1h-1zM5 10h1v1h-1zM8 10h1v1h-1zM3 11h2v1h-2zM7 11h1v1h-1zM3 12h4v1h-4zM3 13h2v1h-2z"/></svg></button>
-          <button class="tool" type="button" data-tool="brush" aria-pressed="false" aria-label="Brush" title="Brush"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M12 2h2v1h-2zM11 3h2v1h-2zM10 4h2v1h-2zM9 5h2v1h-2zM8 6h2v1h-2z"/><path class="i-ink" d="M12 1h2v1h-2zM11 2h1v1h-1zM14 2h1v1h-1zM10 3h1v1h-1zM13 3h1v1h-1zM9 4h1v1h-1zM12 4h1v1h-1zM8 5h1v1h-1zM11 5h1v1h-1zM7 6h1v1h-1zM10 6h1v1h-1zM6 7h4v1h-4zM5 8h5v1h-5zM4 9h6v1h-6zM3 10h6v1h-6zM3 11h5v1h-5zM2 12h4v1h-4zM2 13h2v1h-2z"/></svg></button>
-          <button class="tool" type="button" data-tool="spray" aria-pressed="false" aria-label="Spray can" title="Spray can"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M9 2h2v1h-2zM7 4h5v1h-5zM7 6h5v1h-5zM7 7h5v1h-5zM7 8h5v1h-5zM7 9h5v1h-5zM7 10h5v1h-5zM7 11h5v1h-5zM7 12h5v1h-5z"/><path class="i-ink" d="M1 1h1v1h-1zM3 1h1v1h-1zM8 1h4v1h-4zM0 2h1v1h-1zM2 2h1v1h-1zM4 2h1v1h-1zM8 2h1v1h-1zM11 2h1v1h-1zM1 3h1v1h-1zM3 3h1v1h-1zM5 3h7v1h-7zM0 4h1v1h-1zM2 4h1v1h-1zM4 4h1v1h-1zM6 4h1v1h-1zM12 4h1v1h-1zM1 5h1v1h-1zM3 5h1v1h-1zM6 5h7v1h-7zM6 6h1v1h-1zM12 6h1v1h-1zM6 7h1v1h-1zM12 7h1v1h-1zM6 8h1v1h-1zM12 8h1v1h-1zM6 9h1v1h-1zM12 9h1v1h-1zM6 10h1v1h-1zM12 10h1v1h-1zM6 11h1v1h-1zM12 11h1v1h-1zM6 12h1v1h-1zM12 12h1v1h-1zM6 13h7v1h-7z"/></svg></button>
-          <button class="tool" type="button" data-tool="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser (double-click to clear)"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M8 3h5v1h-5zM7 4h5v1h-5zM13 4h1v1h-1zM6 5h5v1h-5zM12 5h2v1h-2zM5 6h5v1h-5zM11 6h2v1h-2zM10 7h2v1h-2zM4 8h5v1h-5zM10 8h1v1h-1zM4 9h5v1h-5z"/><path class="i-ink" d="M8 2h7v1h-7zM7 3h1v1h-1zM13 3h2v1h-2zM6 4h1v1h-1zM12 4h1v1h-1zM14 4h1v1h-1zM5 5h1v1h-1zM11 5h1v1h-1zM14 5h1v1h-1zM4 6h1v1h-1zM10 6h1v1h-1zM13 6h1v1h-1zM3 7h7v1h-7zM12 7h1v1h-1zM3 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM3 9h1v1h-1zM9 9h2v1h-2zM3 10h7v1h-7z"/></svg></button>
-          <button class="tool" type="button" data-tool="bucket" aria-pressed="false" aria-label="Paint bucket" title="Paint bucket"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M7 2h1v1h-1zM6 3h3v1h-3zM5 4h5v1h-5zM4 5h7v1h-7zM3 6h9v1h-9zM3 7h9v1h-9zM1 8h1v1h-1zM4 8h7v1h-7zM1 9h2v1h-2zM5 9h5v1h-5zM2 10h2v1h-2zM6 10h3v1h-3zM3 11h2v1h-2zM6 11h2v1h-2zM5 12h1v1h-1z"/><path class="i-ink" d="M7 1h1v1h-1zM6 2h1v1h-1zM8 2h1v1h-1zM5 3h1v1h-1zM9 3h1v1h-1zM4 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM11 5h1v1h-1zM2 6h1v1h-1zM12 6h1v1h-1zM1 7h2v1h-2zM12 7h4v1h-4zM0 8h1v1h-1zM2 8h2v1h-2zM11 8h5v1h-5zM0 9h1v1h-1zM3 9h2v1h-2zM10 9h6v1h-6zM1 10h1v1h-1zM4 10h2v1h-2zM9 10h1v1h-1zM11 10h4v1h-4zM2 11h1v1h-1zM5 11h1v1h-1zM8 11h1v1h-1zM12 11h2v1h-2zM3 12h2v1h-2zM6 12h2v1h-2zM12 12h2v1h-2zM5 13h1v1h-1zM12 13h1v1h-1z"/></svg></button>
-          <button class="tool" type="button" data-tool="text" aria-pressed="false" aria-label="Text" title="Text"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-ink" d="M6 2h4v1h-4zM5 3h2v1h-2zM9 3h2v1h-2zM4 4h2v1h-2zM10 4h2v1h-2zM4 5h2v1h-2zM10 5h2v1h-2zM4 6h2v1h-2zM10 6h2v1h-2zM4 7h8v1h-8zM4 8h2v1h-2zM10 8h2v1h-2zM4 9h2v1h-2zM10 9h2v1h-2zM4 10h2v1h-2zM10 10h2v1h-2zM4 11h2v1h-2zM10 11h2v1h-2z"/></svg></button>
-          <button class="tool" type="button" data-tool="line" aria-pressed="false" aria-label="Line" title="Line"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-ink" d="M13 2h1v1h-1zM12 3h1v1h-1zM11 4h1v1h-1zM10 5h1v1h-1zM9 6h1v1h-1zM8 7h1v1h-1zM7 8h1v1h-1zM6 9h1v1h-1zM5 10h1v1h-1zM4 11h1v1h-1zM3 12h1v1h-1zM2 13h1v1h-1z"/></svg></button>
-          <button class="tool" type="button" data-tool="stamp" aria-pressed="false" aria-label="Stamp" title="Stamp"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M6 2h4v1h-4zM6 3h4v1h-4zM7 4h2v1h-2zM7 5h2v1h-2zM7 6h2v1h-2zM4 8h8v1h-8zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1z"/><path class="i-ink" d="M6 1h4v1h-4zM5 2h1v1h-1zM10 2h1v1h-1zM5 3h1v1h-1zM10 3h1v1h-1zM6 4h1v1h-1zM9 4h1v1h-1zM6 5h1v1h-1zM9 5h1v1h-1zM6 6h1v1h-1zM9 6h1v1h-1zM3 7h10v1h-10zM3 8h1v1h-1zM12 8h1v1h-1zM3 9h10v1h-10zM3 10h1v1h-1zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h2v1h-2zM3 11h10v1h-10zM2 13h12v1h-12z"/></svg></button>
-          <button class="tool" type="button" data-tool="rect" aria-pressed="false" aria-label="Rectangle" title="Rectangle"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M3 4h10v1h-10zM3 5h10v1h-10zM3 6h10v1h-10zM3 7h10v1h-10zM3 8h10v1h-10zM3 9h10v1h-10zM3 10h10v1h-10zM3 11h10v1h-10z"/><path class="i-ink" d="M2 3h12v1h-12zM2 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM13 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM13 9h1v1h-1zM2 10h1v1h-1zM13 10h1v1h-1zM2 11h1v1h-1zM13 11h1v1h-1zM2 12h12v1h-12z"/></svg></button>
-          <button class="tool" type="button" data-tool="rectf" aria-pressed="false" aria-label="Filled rectangle" title="Filled rectangle"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M4 4h1v1h-1zM6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM12 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM3 11h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1zM11 11h1v1h-1z"/><path class="i-ink" d="M2 3h12v1h-12zM2 4h2v1h-2zM5 4h1v1h-1zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h1v1h-1zM13 4h1v1h-1zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h2v1h-2zM2 6h2v1h-2zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h2v1h-2zM2 8h2v1h-2zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h2v1h-2zM2 10h2v1h-2zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM2 11h1v1h-1zM4 11h1v1h-1zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h1v1h-1zM12 11h2v1h-2zM2 12h12v1h-12z"/></svg></button>
-          <button class="tool" type="button" data-tool="oval" aria-pressed="false" aria-label="Oval" title="Oval"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M5 4h6v1h-6zM3 5h10v1h-10zM3 6h10v1h-10zM3 7h10v1h-10zM3 8h10v1h-10zM3 9h10v1h-10zM3 10h10v1h-10zM5 11h6v1h-6z"/><path class="i-ink" d="M5 3h6v1h-6zM3 4h2v1h-2zM11 4h2v1h-2zM2 5h1v1h-1zM13 5h1v1h-1zM2 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM13 7h1v1h-1zM2 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM13 9h1v1h-1zM2 10h1v1h-1zM13 10h1v1h-1zM3 11h2v1h-2zM11 11h2v1h-2zM5 12h6v1h-6z"/></svg></button>
-          <button class="tool" type="button" data-tool="ovalf" aria-pressed="false" aria-label="Filled oval" title="Filled oval"><svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="M6 4h1v1h-1zM8 4h1v1h-1zM10 4h1v1h-1zM3 5h1v1h-1zM5 5h1v1h-1zM7 5h1v1h-1zM9 5h1v1h-1zM11 5h1v1h-1zM4 6h1v1h-1zM6 6h1v1h-1zM8 6h1v1h-1zM10 6h1v1h-1zM12 6h1v1h-1zM3 7h1v1h-1zM5 7h1v1h-1zM7 7h1v1h-1zM9 7h1v1h-1zM11 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM8 8h1v1h-1zM10 8h1v1h-1zM12 8h1v1h-1zM3 9h1v1h-1zM5 9h1v1h-1zM7 9h1v1h-1zM9 9h1v1h-1zM11 9h1v1h-1zM4 10h1v1h-1zM6 10h1v1h-1zM8 10h1v1h-1zM10 10h1v1h-1zM12 10h1v1h-1zM5 11h1v1h-1zM7 11h1v1h-1zM9 11h1v1h-1z"/><path class="i-ink" d="M5 3h6v1h-6zM3 4h3v1h-3zM7 4h1v1h-1zM9 4h1v1h-1zM11 4h2v1h-2zM2 5h1v1h-1zM4 5h1v1h-1zM6 5h1v1h-1zM8 5h1v1h-1zM10 5h1v1h-1zM12 5h2v1h-2zM2 6h2v1h-2zM5 6h1v1h-1zM7 6h1v1h-1zM9 6h1v1h-1zM11 6h1v1h-1zM13 6h1v1h-1zM2 7h1v1h-1zM4 7h1v1h-1zM6 7h1v1h-1zM8 7h1v1h-1zM10 7h1v1h-1zM12 7h2v1h-2zM2 8h2v1h-2zM5 8h1v1h-1zM7 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM13 8h1v1h-1zM2 9h1v1h-1zM4 9h1v1h-1zM6 9h1v1h-1zM8 9h1v1h-1zM10 9h1v1h-1zM12 9h2v1h-2zM2 10h2v1h-2zM5 10h1v1h-1zM7 10h1v1h-1zM9 10h1v1h-1zM11 10h1v1h-1zM13 10h1v1h-1zM3 11h2v1h-2zM6 11h1v1h-1zM8 11h1v1h-1zM10 11h3v1h-3zM5 12h6v1h-6z"/></svg></button>
+          <button class="tool" type="button" data-tool="pencil" aria-pressed="true" aria-label="Pencil" title="Pencil"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13l.8-3.2 7.2-7.2a1.3 1.3 0 0 1 1.9 0l.5.5a1.3 1.3 0 0 1 0 1.9L6.2 12.2 3 13zM9.6 4l2.4 2.4"/></svg></button>
+          <button class="tool" type="button" data-tool="brush" aria-pressed="false" aria-label="Brush" title="Brush"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 2.5 8.2 7.8"/><path d="M7.8 8.2a1.7 1.7 0 0 1 0 2.4c-.9.9-2.3 1.1-3.8.9.7-.6.9-1.4 1-2.3a1.7 1.7 0 0 1 2.8-1z"/></svg></button>
+          <button class="tool" type="button" data-tool="spray" aria-pressed="false" aria-label="Spray can" title="Spray can"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="6" y="6" width="5" height="7.5" rx="1"/><path d="M8.5 6V4.5M7 4.5h3"/><circle cx="3.2" cy="3.4" r=".7" fill="currentColor" stroke="none"/><circle cx="4.6" cy="1.8" r=".7" fill="currentColor" stroke="none"/><circle cx="3.2" cy="6.2" r=".7" fill="currentColor" stroke="none"/></svg></button>
+          <button class="tool" type="button" data-tool="eraser" aria-pressed="false" aria-label="Eraser" title="Eraser (double-click to clear)"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.8 2.8l3.4 3.4a1.2 1.2 0 0 1 0 1.7L8.4 12.7H5.2L2.8 10.3a1.2 1.2 0 0 1 0-1.7l5.3-5.8a1.2 1.2 0 0 1 1.7 0zM6 7l3.4 3.4M3.5 12.7h9.5"/></svg></button>
+          <button class="tool" type="button" data-tool="bucket" aria-pressed="false" aria-label="Paint bucket" title="Paint bucket"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8.2 7.8 3.2l4.6 4.6-4.4 4.4a1 1 0 0 1-1.4 0L2.8 8.2zM2.8 8.2h9.6M13.6 10.3c0 .9.4 1.5.9 1.5s.9-.6.9-1.5-.9-2-.9-2-.9 1.1-.9 2z"/></svg></button>
+          <button class="tool" type="button" data-tool="text" aria-pressed="false" aria-label="Text" title="Text"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 4V2.5h9V4M8 2.5v11M6 13.5h4"/></svg></button>
+          <button class="tool" type="button" data-tool="line" aria-pressed="false" aria-label="Line" title="Line"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 13 13 3"/></svg></button>
+          <button class="tool" type="button" data-tool="stamp" aria-pressed="false" aria-label="Stamp" title="Stamp"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6.5 7V4.5a1.5 1.5 0 0 1 3 0V7M3 10.5h10v-2a1.5 1.5 0 0 0-1.5-1.5h-7A1.5 1.5 0 0 0 3 8.5zM4 13h8"/></svg></button>
+          <button class="tool" type="button" data-tool="rect" aria-pressed="false" aria-label="Rectangle" title="Rectangle"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1"/></svg></button>
+          <button class="tool" type="button" data-tool="rectf" aria-pressed="false" aria-label="Filled rectangle" title="Filled rectangle"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="2.5" y="3.5" width="11" height="9" rx="1" fill="currentColor"/></svg></button>
+          <button class="tool" type="button" data-tool="oval" aria-pressed="false" aria-label="Oval" title="Oval"><svg viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="8" rx="5.5" ry="4.5"/></svg></button>
+          <button class="tool" type="button" data-tool="ovalf" aria-pressed="false" aria-label="Filled oval" title="Filled oval"><svg viewBox="0 0 16 16" aria-hidden="true"><ellipse cx="8" cy="8" rx="5.5" ry="4.5" fill="currentColor"/></svg></button>
         </div>
         <div class="paint-actions">
           <button class="btn btn-sm" type="button" id="paint-undo" title="Undo (⌘Z)">Undo</button>
@@ -1327,9 +1258,9 @@
     <div class="notes-foot">
       <span id="note-count">0 words</span>
       <span class="pages">
-        <button class="dogear" type="button" id="note-prev" aria-label="Previous page"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
+        <button class="dogear" type="button" id="note-prev" aria-label="Previous page"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1.5 2.5 4 5 6.5"/></svg></button>
         <span id="note-page">1 of 8</span>
-        <button class="dogear" type="button" id="note-next" aria-label="Next page"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+        <button class="dogear" type="button" id="note-next" aria-label="Next page"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M3 1.5 5.5 4 3 6.5"/></svg></button>
       </span>
     </div>
   </div>
@@ -1366,8 +1297,8 @@
             <div>
               <div class="pat-edit" id="pat-edit" role="group" aria-label="Pattern editor, 8 by 8"></div>
               <div class="pat-nav">
-                <button class="mini" type="button" id="pat-prev" aria-label="Previous pattern"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z"/></svg></button>
-                <button class="mini" type="button" id="pat-next" aria-label="Next pattern"><svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z"/></svg></button>
+                <button class="mini" type="button" id="pat-prev" aria-label="Previous pattern"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1.5 2.5 4 5 6.5"/></svg></button>
+                <button class="mini" type="button" id="pat-next" aria-label="Next pattern"><svg viewBox="0 0 8 8" aria-hidden="true"><path d="M3 1.5 5.5 4 3 6.5"/></svg></button>
               </div>
             </div>
             <div>
@@ -1386,7 +1317,7 @@
         <dt>Sound</dt>
         <dd>
           <div class="vol">
-            <label class="checkbox"><input type="checkbox" id="cp-sfx"><span class="box" aria-hidden="true"><svg viewBox="0 0 8 8" shape-rendering="crispEdges"><path d="M0 0h1v1H0zM1 1h1v1H1zM2 2h1v1H2zM3 3h1v1H3zM4 4h1v1H4zM5 5h1v1H5zM6 6h1v1H6zM7 7h1v1H7zM7 0h1v1H7zM6 1h1v1H6zM5 2h1v1H5zM4 3h1v1H4zM3 4h1v1H3zM2 5h1v1H2zM1 6h1v1H1zM0 7h1v1H0z"/></svg></span>Effects</label>
+            <label class="checkbox"><input type="checkbox" id="cp-sfx"><span class="box" aria-hidden="true"><svg viewBox="0 0 10 10"><path d="M2 5.3 4.2 7.5 8 3"/></svg></span>Effects</label>
             <input type="range" id="cp-vol" min="0" max="7" step="1" value="5" aria-label="Volume">
             <b id="cp-vol-n">5</b>
           </div>
@@ -1478,10 +1409,6 @@
     <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5.5" width="17" height="13" rx="1.5"/><path d="M3.5 16.2l4.6-4.6 3.9 3.9 2.6-2.6 5.9 5.6"/><circle cx="15.5" cy="9.5" r="1.25"/></svg></span>
     <span class="icon-label" aria-hidden="true">Work</span>
   </button>
-  <button class="icon" id="icon-about" type="button" data-open="about" aria-label="About Me">
-    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="1.5"/><circle cx="9" cy="10.6" r="2"/><path d="M5.7 16.3c.6-1.7 1.9-2.6 3.3-2.6s2.7.9 3.3 2.6M14.5 9.5h3.5M14.5 12.5h3.5"/></svg></span>
-    <span class="icon-label" aria-hidden="true">About Me</span>
-  </button>
   <button class="icon" id="icon-apps" type="button" data-open="apps" aria-label="Apps">
     <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg></span>
     <span class="icon-label" aria-hidden="true">Apps</span>
@@ -1494,16 +1421,7 @@
 
 <div class="scrim" id="scrim" hidden></div>
 <section class="alert" id="alert" role="alertdialog" aria-modal="true" aria-labelledby="alert-title" aria-describedby="alert-text" hidden>
-  <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
-    <defs>
-      <pattern id="stripes" width="8" height="8" patternUnits="userSpaceOnUse">
-        <path class="i-ink" d="M0 0h4v1H0zM0 1h3v1H0zM7 1h1v1H7zM0 2h2v1H0zM6 2h2v1H6zM0 3h1v1H0zM5 3h3v1H5zM4 4h4v1H4zM3 5h4v1H3zM2 6h4v1H2zM1 7h4v1H1z"/>
-      </pattern>
-    </defs>
-    <path class="i-fill" d="M3 3h26v26H3z"/>
-    <path class="i-ink" d="M2 2h28v1H2zM2 29h28v1H2zM2 3h1v26H2zM29 3h1v26h-1z"/>
-    <rect x="4" y="4" width="24" height="24" fill="url(#stripes)"/>
-  </svg>
+  <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="11.5"/><path d="M16 10v7.5M16 21.4v.2"/></svg>
   <div>
     <h2 id="alert-title">Alert</h2>
     <p id="alert-text"></p>
@@ -1515,10 +1433,7 @@
   <div class="beam" aria-hidden="true"></div>
   <p class="off-text" id="off-text" hidden>It’s now safe to turn off your desk.<small>Click anywhere, or press any key, to start it up again.</small></p>
   <div class="welcome" id="welcome" hidden>
-    <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
-      <path class="i-fill" d="M4 4h24v24H4z"/>
-      <path class="i-ink" d="M3 3h26v1H3zM3 28h26v1H3zM3 4h1v24H3zM28 4h1v24h-1zM9 10h3v1H9zM20 10h3v1h-3zM9 11h3v2H9zM20 11h3v2h-3zM15 12h1v5h-1zM15 17h2v1h-2zM9 20h1v1H9zM22 20h1v1h-1zM10 21h1v1h-1zM21 21h1v1h-1zM11 22h10v1H11z"/>
-    </svg>
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="4.5" y="5.5" width="23" height="17" rx="2.5"/><path d="M11 26.5h10M12 15.5c1.3 2 6.7 2 8 0"/><circle cx="11.5" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="20.5" cy="11.5" r=".9" fill="currentColor" stroke="none"/></svg>
     <span>Welcome to Adiel’s desk.</span>
   </div>
 </div>
@@ -1934,7 +1849,6 @@
     store.set('adiel-theme', id);
     Tune.apply();
     syncTheme();
-    Portrait.render();
     Paint.render();
     Hoops.render();
     Bez.render();
@@ -1979,7 +1893,7 @@
     const list = $('#m-clock');
     const monthFmt = new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' });
     const dayFmt = new Intl.DateTimeFormat('en-US', { dateStyle: 'full' });
-    const arrow = (d) => '<svg viewBox="0 0 4 7" shape-rendering="crispEdges" aria-hidden="true"><path d="' + (d < 0 ? 'M3 0h1v7H3zM2 1h1v5H2zM1 2h1v3H1zM0 3h1v1H0z' : 'M0 0h1v7H0zM1 1h1v5H1zM2 2h1v3H2zM3 3h1v1H3z') + '"/></svg>';
+    const arrow = (d) => (d < 0 ? '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M5 1.5 2.5 4 5 6.5"/></svg>' : '<svg viewBox="0 0 8 8" aria-hidden="true"><path d="M3 1.5 5.5 4 3 6.5"/></svg>');
     let view = null;
     function build() {
       const today = new Date();
@@ -2110,7 +2024,7 @@
      Windows
   ========================================================== */
   const W = {
-    about: $('#about'), piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
+    piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
     puzzle: $('#puzzle'), calc: $('#calc'), notes: $('#notes'), panel: $('#panel'),
     apps: $('#apps'), work: $('#work'), tune: $('#tune'),
   };
@@ -2171,7 +2085,6 @@
   }
 
   const hooks = {
-    about: { before: () => Portrait.load() },
     piano: { before: () => Piano.layout(), after: () => { Piano.warm(); Bez.pianoOpened(); }, close: () => { Piano.releaseAll(); Bez.pianoClosed(); } },
     paint: { before: () => Paint.build(), close: () => Paint.commit() },
     hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => { Hoops.stop(); Bez.hoopsClosed(); } },
@@ -2293,78 +2206,6 @@
       Bez.keepOnScreen();
       Icons.layout();
     });
-  });
-
-  /* ==========================================================
-     About Me — portrait.jpg (optional) is Atkinson-dithered,
-     the algorithm MacPaint used, in the current theme's colours.
-  ========================================================== */
-  const Portrait = (() => {
-    const frame = $('#portrait');
-    const canvas = $('canvas', frame);
-    const S = 72;
-    let lum = null, started = false;
-    function render() {
-      if (!lum) return;
-      const { ink, paper } = Colors.get();
-      const px = Float32Array.from(lum);
-      const g = canvas.getContext('2d');
-      const out = g.createImageData(S, S);
-      const spread = [[1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]];
-      for (let y = 0; y < S; y++) {
-        for (let x = 0; x < S; x++) {
-          const i = y * S + x;
-          const on = px[i] >= 0.5 ? 1 : 0;
-          const err = (px[i] - on) / 8;
-          for (const [dx, dy] of spread) {
-            const xx = x + dx, yy = y + dy;
-            if (xx >= 0 && xx < S && yy < S) px[yy * S + xx] += err;
-          }
-          const c = on ? paper : ink;
-          out.data[i * 4] = c[0]; out.data[i * 4 + 1] = c[1]; out.data[i * 4 + 2] = c[2]; out.data[i * 4 + 3] = 255;
-        }
-      }
-      g.putImageData(out, 0, 0);
-    }
-    function load() {
-      if (started) return;
-      started = true;
-      const img = new Image();
-      img.onload = () => {
-        frame.classList.add('has-photo');
-        try {
-          const c = document.createElement('canvas');
-          c.width = c.height = S;
-          const g = c.getContext('2d');
-          const side = Math.min(img.naturalWidth, img.naturalHeight);
-          g.drawImage(img, (img.naturalWidth - side) / 2, (img.naturalHeight - side) / 2, side, side, 0, 0, S, S);
-          const d = g.getImageData(0, 0, S, S).data;
-          lum = new Float32Array(S * S);
-          for (let i = 0; i < S * S; i++) {
-            const l = (0.2126 * d[i * 4] + 0.7152 * d[i * 4 + 1] + 0.0722 * d[i * 4 + 2]) / 255;
-            lum[i] = clamp((l - 0.5) * 1.3 + 0.52, 0, 1);
-          }
-          canvas.hidden = false;
-          render();
-        } catch (e) {
-          // Opened from disk, the browser won't let us read pixels: show the photo as-is.
-          frame.append(img);
-        }
-      };
-      img.src = 'portrait.jpg';
-    }
-    return { load, render };
-  })();
-
-  const copyBtn = $('#copy-email');
-  copyBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText('hello@adiel.design');
-      copyBtn.textContent = 'Copied';
-    } catch (e) {
-      location.href = 'mailto:hello@adiel.design';
-    }
-    setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1600);
   });
 
   /* ==========================================================
@@ -2741,7 +2582,7 @@
     }
     function syncStamp() {
       const name = STAMP_NAMES[stampAt], rows = STAMPS[name];
-      stampBtn.innerHTML = '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-fill" d="' + pixPath(rows, '.') + '"/><path class="i-ink" d="' + pixPath(rows, '#') + '"/></svg>';
+      stampBtn.innerHTML = '<svg viewBox="0 0 16 16" shape-rendering="crispEdges" aria-hidden="true"><path class="i-ink" d="' + pixPath(rows, '#') + '" stroke="none"/></svg>';
       stampBtn.title = 'Stamp: ' + name + '. Click again for another.';
       stampBtn.setAttribute('aria-label', 'Stamp: ' + name);
     }
@@ -4080,14 +3921,14 @@
   /* ==========================================================
      Work — one slider through every piece. Swipe, scroll sideways,
      drag, or use ← and →. Under it, a dock of every piece: the ring
-     slides to the one on screen, and hovering one shows it larger.
+     slides to the one on screen.
      Info opens the project's card, which follows along as you move
      from one project to the next.
   ========================================================== */
   const Work = (() => {
     const win = W.work;
     const stage = $('#wk-stage'), track = $('#wk-track'), bar = $('.wk-bar', win);
-    const dock = $('#wk-dock'), ring = $('.wk-ring', dock), peek = $('#wk-peek');
+    const dock = $('#wk-dock'), ring = $('.wk-ring', dock);
     const projChip = $('#wk-proj'), infoChip = $('#wk-info'), titleEl = $('#wk-title'), countEl = $('#wk-count');
     const prev = $('#wk-prev'), next = $('#wk-next'), card = $('#wk-card');
     const X = 'https://x.com/adieldesign/status/';
@@ -4172,12 +4013,10 @@
         im.src = src + '.webp'; im.alt = ''; im.width = s.w; im.height = s.h;
         im.decoding = 'async'; im.draggable = false;
         b.append(im);
-        b.addEventListener('click', () => { hidePeek(); go(n); });
-        b.addEventListener('pointerenter', (e) => { if (e.pointerType === 'mouse') showPeek(n, b); });
+        b.addEventListener('click', () => go(n));
         dock.append(b);
         thumbs.push(b);
       });
-      dock.addEventListener('pointerleave', hidePeek);
       prev.addEventListener('click', () => step(-1));
       next.addEventListener('click', () => step(1));
       infoChip.addEventListener('click', () => toggleInfo());
@@ -4315,26 +4154,6 @@
       Sound.play('up');
     }
 
-    // Hovering a piece in the dock: a larger look at it, above the dock.
-    let peekTimer = 0, peekOn = false;
-    function showPeek(n, b) {
-      const s = SLIDES[n];
-      const img = $('img', peek);
-      img.src = 'work/' + s.id + '.webp';
-      img.style.setProperty('--ar', s.w + ' / ' + s.h);
-      $('span', peek).textContent = PROJECTS[s.k].name + ', ' + s.title;
-      const br = bar.getBoundingClientRect(), tr = b.getBoundingClientRect(), half = peek.offsetWidth / 2;
-      peek.style.setProperty('--x', clamp(tr.left + tr.width / 2 - br.left, half + 8, br.width - half - 8) + 'px');
-      clearTimeout(peekTimer);
-      if (peekOn) return;
-      peekTimer = setTimeout(() => { peekOn = true; peek.classList.add('is-on'); }, 80);
-    }
-    function hidePeek() {
-      clearTimeout(peekTimer);
-      peekOn = false;
-      peek.classList.remove('is-on');
-    }
-
     // A mouse can drag the pieces too; touch and trackpads scroll natively.
     function dragging() {
       let st = null;
@@ -4420,7 +4239,7 @@
       return true;
     }
     function play() { media(); }
-    function pause() { $$('video', track).forEach((v) => v.pause()); hidePeek(); }
+    function pause() { $$('video', track).forEach((v) => v.pause()); }
     // Bring it forward, or open it again if it was closed.
     function show(focus = true) {
       if (win.hidden || win.hasAttribute('data-boot')) openWin(win, { focus });
@@ -4442,7 +4261,7 @@
       Promise.race([fontsReady, new Promise((r) => setTimeout(r, 1200))]).then(() => setTimeout(() => show(false), 250));
     }
     return {
-      boot, show, open, find, play, pause, keydown,
+      boot, show, open, find, play, pause, step, keydown,
       get active() { return !win.hidden && win.classList.contains('is-active'); },
       // Every piece with its project's name, for the screen saver.
       get pieces() { return SLIDES.map((s) => ({ id: s.id, title: s.title, video: !!s.video, w: s.w, h: s.h, name: PROJECTS[s.k].name })); },
@@ -4519,7 +4338,7 @@
     // Repaint the pixel pictures once per frame at most while dragging a colour.
     function repaint() {
       cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(() => { Colors.reset(); Portrait.render(); Paint.render(); Hoops.render(); Bez.render(); out(); });
+      frame = requestAnimationFrame(() => { Colors.reset(); Paint.render(); Hoops.render(); Bez.render(); out(); });
     }
     // The display's own value, with this display's override lifted for a moment.
     function base(v) {
@@ -5884,7 +5703,7 @@
 
     /* Ask Bez: a handful of things he understands, matched by keywords. */
     const has = (q, re) => re.test(q);
-    const WNAMES = { about: 'about', piano: 'piano', paint: 'paint', hoops: 'hoops', calc: 'calc', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
+    const WNAMES = { piano: 'piano', paint: 'paint', hoops: 'hoops', calc: 'calc', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
     function notesIn(q) {
       const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
       let m;
@@ -5959,7 +5778,7 @@
         answer('<p>Adiel is a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a>.</p>');
       } else if (has(q, /adiel|who (made|built|designed|is)|about (you|this|the)|designer|\bowner\b/)) {
         answer('<p><b>Adiel Vásquez</b> is a designer focused on brand identity, currently a brand designer at HEX.</p><p>Adiel works concept-first on identities, websites, art direction and naming, and builds generative tools along the way. Offline: reading, climbing volcanoes, basketball.</p>',
-          [['About Me', () => openWin(W.about, { scroll: true })], ['Contact', () => ask('contact')], ['Back', () => home(true)]]);
+          [['Contact', () => ask('contact')], ['Selected work', () => { hush(); Work.show(); }], ['Back', () => home(true)]]);
       } else if (has(q, /^open |^show /) && Object.keys(WNAMES).some((k) => q.includes(WNAMES[k]))) {
         const k = Object.keys(WNAMES).find((w) => q.includes(WNAMES[w]));
         openWin(W[k], { scroll: true });
@@ -6129,6 +5948,31 @@
     }
   });
   document.addEventListener('keyup', (e) => Piano.keyup(e));
+
+  /* ==========================================================
+     Intro — the column on the desk. A project's name opens the
+     slider on it, the address copies itself, and the key hints do
+     what the keys do.
+  ========================================================== */
+  (() => {
+    $$('[data-project]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); Work.open(+el.dataset.project); }));
+    const mail = $('#mail'), label = mail.innerHTML;
+    let back = 0;
+    mail.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText('hello@adiel.design'); }
+      catch (e) { location.href = 'mailto:hello@adiel.design'; return; }
+      mail.textContent = 'copied';
+      mail.classList.add('is-done');
+      clearTimeout(back);
+      back = setTimeout(() => { mail.innerHTML = label; mail.classList.remove('is-done'); }, 1400);
+    });
+    $$('.hints [data-key]').forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.key;
+      if (k === 't') cycleTheme();
+      else if (k === '?') Bez.toggle();
+      else { Work.show(false); Work.step(1); }
+    }));
+  })();
 
   /* Boot */
   Panel.boot();
