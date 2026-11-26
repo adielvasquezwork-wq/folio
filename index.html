@@ -86,8 +86,8 @@
     --on-hl: var(--on-accent);
     --radius: 12px;
     --radius-s: 6px;
-    --win-shadow: 0 1px 1px rgb(0 0 0 / .04), 0 14px 44px rgb(0 0 0 / .12);
-    --pop-shadow: 0 10px 34px rgb(0 0 0 / .14);
+    --win-shadow: none;         /* flat: windows sit on the desk with an edge, no shadow */
+    --pop-shadow: none;
     --dither: var(--paper-2);
     --pat-alpha: .14;
     --desk: none;
@@ -96,6 +96,7 @@
     --bar: 28px;
     --gutter: clamp(20px, 6vw, 104px);
     --intro: clamp(236px, 21vw, 300px);
+    --desk-size: 15px;
     --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --font: var(--sans);
@@ -114,8 +115,6 @@
     --on-hl: #1c1c1c;
     --desk-ink: #e6e6e6;
     --desk-dim: #8e8e8e;
-    --win-shadow: 0 1px 1px rgb(0 0 0 / .2), 0 18px 50px rgb(0 0 0 / .38);
-    --pop-shadow: 0 12px 36px rgb(0 0 0 / .4);
     --pat-alpha: .1;
     color-scheme: dark;
   }
@@ -282,10 +281,10 @@
     min-height: 100dvh;
     padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 40px) calc(var(--gutter) + 96px) 40px var(--gutter);
     color: var(--desk-ink);
-    font-size: 15px; line-height: 1.6;
+    font-size: var(--desk-size); line-height: 1.6;
   }
   .intro { display: grid; gap: 20px; width: var(--intro); }
-  .intro .who { font-size: 15px; font-weight: 600; line-height: 1.4; }
+  .intro .who { font-size: var(--desk-size); font-weight: 600; line-height: 1.4; }
   .intro .role { margin-top: -16px; color: var(--desk-dim); }
   .intro .links { display: flex; flex-wrap: wrap; gap: 2px 16px; margin: 4px 0 0; padding: 0; list-style: none; }
   .inline-link { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); cursor: default; }
@@ -496,6 +495,39 @@
   .wk-thumb[aria-current="true"] { opacity: 1; box-shadow: 0 0 0 2px var(--paper), 0 0 0 3.5px var(--ink); }
   :root[data-theme="classic"] .wk-thumb, :root[data-theme="classic"] .wk-thumb img { border-radius: 0; }
   :root[data-theme="classic"] .wk-thumb[aria-current="true"] { box-shadow: 0 0 0 2px #fff, 0 0 0 4px #000; }
+
+  /* Tune: live design controls, only with ?tune in the URL */
+  #tune { right: 16px; top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 16px); width: 340px; max-height: calc(100vh - var(--bar) - 32px); max-height: calc(100dvh - var(--bar) - 32px); }
+  /* A palette: it floats above the windows it is adjusting. */
+  @media (min-width: 721px) { #tune { z-index: 44 !important; } }
+  .tune { padding: 12px 16px 16px; font-size: 12px; }
+  .tune-for { color: var(--graphite); }
+  .tune-for b { color: var(--ink); font-weight: 600; }
+  .tune h3 { margin: 14px 0 2px; font-size: 12px; font-weight: 600; }
+  .tune-row { display: grid; grid-template-columns: minmax(0, 1fr) auto 78px; align-items: center; gap: 8px; min-height: 26px; }
+  .tune-row.is-wide { grid-template-columns: minmax(0, 1fr) 132px 40px; }
+  .tune-row.is-pick { grid-template-columns: minmax(0, 1fr) 180px; }
+  .tune-row label { color: var(--ink); }
+  .tune input[type="color"] { width: 28px; height: 20px; padding: 0; border: 1px solid var(--edge); border-radius: 4px; background: none; cursor: default; }
+  .tune input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+  .tune input[type="color"]::-webkit-color-swatch { border: 0; border-radius: 3px; }
+  .tune input[type="color"]::-moz-color-swatch { border: 0; border-radius: 3px; }
+  .tune input[type="text"], .tune select {
+    width: 100%; height: 22px; padding: 0 6px;
+    border: 1px solid var(--edge); border-radius: var(--radius-s);
+    background: var(--paper); color: var(--ink);
+    font: 500 12px var(--font);
+  }
+  .tune input[type="text"] { font-family: var(--mono); }
+  .tune input[type="range"] { width: 100%; margin: 0; accent-color: var(--ink); }
+  .tune output { text-align: right; color: var(--graphite); font-variant-numeric: tabular-nums; }
+  .tune-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  .tune-out {
+    display: block; width: 100%; height: 108px; margin-top: 10px; padding: 8px;
+    border: 1px solid var(--edge); border-radius: var(--radius-s);
+    background: var(--paper-2); color: var(--ink);
+    font: 11px/1.5 var(--mono); resize: vertical;
+  }
 
   /* About Me — laid out like a Get Info window */
   .about { padding: 18px 18px 22px; }
@@ -885,7 +917,7 @@
   }
   @media (max-width: 720px) {
     .icons { display: none; }
-    .desk { padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 32px) 16px 40px; font-size: 15px; }
+    .desk { padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 32px) 16px 40px; }
     .work-win { margin: 32px -8px 0; }
     .window.is-float {
       left: 8px !important; right: 8px !important; bottom: auto !important;
@@ -1346,6 +1378,15 @@
   </div>
 </section>
 
+<!-- Tune: only with ?tune in the URL -->
+<section class="window is-float" id="tune" tabindex="-1" aria-labelledby="tune-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Tune"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="tune-title">Tune</h2>
+  </header>
+  <div class="wbody tune scroll" id="tune-body"></div>
+</section>
+
 <nav class="icons" aria-label="Desktop">
   <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
     <svg viewBox="0 0 32 32" shape-rendering="crispEdges" aria-hidden="true">
@@ -1804,13 +1845,14 @@
   function applyTheme(id) {
     root.dataset.theme = id;
     store.set('adiel-theme', id);
-    Colors.reset();
+    Tune.apply();
     syncTheme();
     Portrait.render();
     Paint.render();
     Hoops.render();
     Bez.render();
     Panel.sync();
+    Tune.sync();
   }
   function setTheme(id) {
     if (!ids.includes(id) || id === root.dataset.theme) return;
@@ -1983,7 +2025,7 @@
   const W = {
     about: $('#about'), piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
     puzzle: $('#puzzle'), calc: $('#calc'), notes: $('#notes'), panel: $('#panel'),
-    apps: $('#apps'), work: $('#work'),
+    apps: $('#apps'), work: $('#work'), tune: $('#tune'),
   };
   const stack = [];
   const box = (el) => { const r = el.getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; };
@@ -2051,6 +2093,7 @@
     notes: { before: () => Notes.build(), after: () => Notes.focus(), close: () => Notes.save() },
     panel: { before: () => Panel.build() },
     work: { after: () => Work.play(), close: () => Work.pause() },
+    tune: { before: () => Tune.build() },
   };
 
   function openWin(win, opts = {}) {
@@ -4095,6 +4138,231 @@
   })();
 
   /* ==========================================================
+     Tune — open the site with ?tune and a window of live design
+     controls appears: colours for each display, corners, shadows,
+     type. Changes are kept in this browser and only apply in tune
+     mode, and Copy settings hands over the exact values to bake in.
+  ========================================================== */
+  const Tune = (() => {
+    const on = new URLSearchParams(location.search).has('tune');
+    const win = W.tune, body = $('#tune-body');
+    const KEY = 'adiel-tune';
+    const COLORS = [
+      ['Desk', '--desk-color'], ['Desk text', '--desk-ink'], ['Desk secondary', '--desk-dim'],
+      ['Window', '--paper'], ['Panel', '--paper-2'], ['Text', '--ink'], ['Secondary', '--graphite'],
+      ['Edge', '--edge'], ['Accent', '--accent'], ['Selection', '--hl'], ['Selection text', '--on-hl'],
+    ];
+    const FACES = [
+      ['Inter', '"Inter", ui-sans-serif, system-ui, sans-serif'],
+      ['System', 'system-ui, -apple-system, "Segoe UI", sans-serif'],
+      ['Helvetica', '"Helvetica Neue", Helvetica, Arial, sans-serif'],
+      ['Serif', 'Georgia, "Times New Roman", serif'],
+      ['Mono', 'ui-monospace, "SF Mono", Menlo, Consolas, monospace'],
+    ];
+    const SHADOW = { paper: ['none', 30], graphite: ['none', 30], classic: ['hard', 33] };
+    const VARS = COLORS.map((c) => c[1]).concat(['--radius', '--radius-s', '--win-shadow', '--pop-shadow', '--desk-size', '--sans']);
+    const state = parse(store.get(KEY), {});
+    state.themes = state.themes || {};
+    let built = false, frame = 0;
+    const theme = () => root.dataset.theme;
+    const mine = () => (state.themes[theme()] = state.themes[theme()] || {});
+    const save = () => store.set(KEY, JSON.stringify(state));
+
+    // Any CSS colour to a hex and an alpha, via the canvas parser.
+    const probe = document.createElement('canvas').getContext('2d');
+    function split(c) {
+      probe.fillStyle = '#000';
+      probe.fillStyle = c.trim();
+      const v = probe.fillStyle;
+      if (v[0] === '#') return { hex: v, a: 1 };
+      const m = v.match(/[\d.]+/g).map(Number);
+      return { hex: '#' + m.slice(0, 3).map((n) => n.toString(16).padStart(2, '0')).join(''), a: m[3] == null ? 1 : m[3] };
+    }
+    const join = (hex, a) => {
+      if (a >= 1) return hex;
+      const n = parseInt(hex.slice(1), 16);
+      return 'rgb(' + (n >> 16) + ' ' + ((n >> 8) & 255) + ' ' + (n & 255) + ' / ' + +a.toFixed(2) + ')';
+    };
+    function shadow(mode, s) {
+      s /= 100;
+      if (mode === 'none' || !s) return ['none', 'none'];
+      if (mode === 'hard') { const n = Math.max(1, Math.round(s * 6)); return [n + 'px ' + n + 'px 0 var(--ink)', n + 'px ' + n + 'px 0 var(--ink)']; }
+      const a = +(s * (theme() === 'graphite' ? 0.55 : 0.2)).toFixed(3);
+      return ['0 1px 2px rgb(0 0 0 / ' + +(a * 0.4).toFixed(3) + '), 0 ' + Math.round(6 + 14 * s) + 'px ' + Math.round(20 + 34 * s) + 'px rgb(0 0 0 / ' + a + ')',
+        '0 ' + Math.round(4 + 10 * s) + 'px ' + Math.round(16 + 24 * s) + 'px rgb(0 0 0 / ' + a + ')'];
+    }
+
+    // Overrides sit on the root element, so they beat the display's own values.
+    function apply() {
+      VARS.forEach((v) => root.style.removeProperty(v));
+      if (on) {
+        const o = mine();
+        Object.keys(o).forEach((k) => { if (k.startsWith('--')) root.style.setProperty(k, o[k]); });
+        if (o.shadow) { const [w, pp] = shadow(o.shadow[0], o.shadow[1]); root.style.setProperty('--win-shadow', w); root.style.setProperty('--pop-shadow', pp); }
+        if (state.size) root.style.setProperty('--desk-size', state.size + 'px');
+        if (state.face != null) root.style.setProperty('--sans', FACES[state.face][1]);
+      }
+      Colors.reset();
+    }
+    // Repaint the pixel pictures once per frame at most while dragging a colour.
+    function repaint() {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => { Colors.reset(); Portrait.render(); Paint.render(); Hoops.render(); Bez.render(); out(); });
+    }
+    // The display's own value, with this display's override lifted for a moment.
+    function base(v) {
+      const had = root.style.getPropertyValue(v);
+      root.style.removeProperty(v);
+      const val = getComputedStyle(root).getPropertyValue(v).trim();
+      if (had) root.style.setProperty(v, had);
+      return val;
+    }
+    const current = (v) => getComputedStyle(root).getPropertyValue(v).trim();
+
+    function row(label, ...controls) {
+      const d = document.createElement('div');
+      d.className = 'tune-row';
+      const l = document.createElement('label');
+      l.textContent = label;
+      d.append(l, ...controls);
+      if (controls[0] && controls[0].id) l.htmlFor = controls[0].id;
+      return d;
+    }
+    const el = (tag, props) => Object.assign(document.createElement(tag), props);
+    function colorRow([label, v]) {
+      const id = 'tune' + v.replace(/-/g, '_');
+      const pick = el('input', { type: 'color', id });
+      const hex = el('input', { type: 'text', spellcheck: false, maxLength: 9 });
+      hex.setAttribute('aria-label', label + ' hex');
+      const set = (h, a) => { mine()[v] = join(h, a); save(); apply(); repaint(); };
+      pick.addEventListener('input', () => { const a = split(current(v)).a; hex.value = pick.value; set(pick.value, a); });
+      hex.addEventListener('change', () => {
+        const m = hex.value.trim().match(/^#?([0-9a-f]{6})$/i);
+        if (!m) { hex.value = split(current(v)).hex; return; }
+        pick.value = '#' + m[1].toLowerCase(); set(pick.value, split(current(v)).a);
+      });
+      const r = row(label, pick, hex);
+      r.dataset.var = v;
+      if (v === '--edge') {
+        const alpha = el('input', { type: 'range', min: 0, max: 100, step: 1 });
+        alpha.setAttribute('aria-label', 'Edge opacity');
+        const o = el('output');
+        alpha.addEventListener('input', () => { o.value = alpha.value + '%'; set(split(current(v)).hex, alpha.value / 100); });
+        const ar = row('Edge opacity', alpha, o);
+        ar.classList.add('is-wide');
+        ar.dataset.alpha = '1';
+        return [r, ar];
+      }
+      return [r];
+    }
+    function rangeRow(label, min, max, get, setv, unit = 'px') {
+      const r = el('input', { type: 'range', min, max, step: 1 });
+      r.setAttribute('aria-label', label);
+      const o = el('output');
+      r.addEventListener('input', () => { o.value = r.value + unit; setv(+r.value); save(); apply(); repaint(); });
+      const d = row(label, r, o);
+      d.classList.add('is-wide');
+      d.sync = () => { r.value = get(); o.value = r.value + unit; };
+      return d;
+    }
+    function selectRow(label, options, get, setv) {
+      const s = el('select');
+      s.setAttribute('aria-label', label);
+      options.forEach(([name, value]) => s.append(el('option', { textContent: name, value })));
+      s.addEventListener('change', () => { setv(s.value); save(); apply(); repaint(); sync(); });
+      const d = row(label, s);
+      d.classList.add('is-pick');
+      d.sync = () => { s.value = get(); };
+      return d;
+    }
+    const shadowOf = () => mine().shadow || SHADOW[theme()];
+    const px = (v) => parseFloat(current(v)) || 0;
+    let rows = [], who = null;
+    function build() {
+      if (built) return;
+      built = true;
+      who = el('p', { className: 'tune-for' });
+      body.append(who, el('h3', { textContent: 'Colour' }));
+      COLORS.forEach((c) => colorRow(c).forEach((r) => body.append(r)));
+      body.append(el('h3', { textContent: 'Shape' }));
+      rows = [
+        rangeRow('Window corners', 0, 24, () => px('--radius'), (n) => { mine()['--radius'] = n + 'px'; }),
+        rangeRow('Small corners', 0, 14, () => px('--radius-s'), (n) => { mine()['--radius-s'] = n + 'px'; }),
+        selectRow('Shadow', [['None', 'none'], ['Soft', 'soft'], ['Hard (1-bit)', 'hard']], () => shadowOf()[0], (m) => { mine().shadow = [m, shadowOf()[1]]; }),
+        rangeRow('Shadow strength', 0, 100, () => shadowOf()[1], (n) => { mine().shadow = [shadowOf()[0], n]; }, '%'),
+      ];
+      body.append(...rows.slice(0, 4));
+      body.append(el('h3', { textContent: 'Type' }));
+      const typeRows = [
+        selectRow('Typeface', FACES.map(([n], i) => [n, String(i)]), () => String(state.face == null ? 0 : state.face), (i) => { state.face = +i; }),
+        rangeRow('Text size', 12, 20, () => state.size || 15, (n) => { state.size = n; }),
+      ];
+      rows.push(...typeRows);
+      body.append(...typeRows);
+      const actions = el('div', { className: 'tune-actions' });
+      const copy = el('button', { type: 'button', className: 'btn btn-sm is-default', textContent: 'Copy settings' });
+      const reset = el('button', { type: 'button', className: 'btn btn-sm', textContent: 'Reset this display' });
+      const resetAll = el('button', { type: 'button', className: 'btn btn-sm', textContent: 'Reset all' });
+      copy.addEventListener('click', async () => {
+        out();
+        try { await navigator.clipboard.writeText(text.value); copy.textContent = 'Copied'; }
+        catch (e) { text.focus(); text.select(); copy.textContent = 'Selected, copy it'; }
+        setTimeout(() => { copy.textContent = 'Copy settings'; }, 1600);
+      });
+      reset.addEventListener('click', () => { delete state.themes[theme()]; save(); apply(); repaint(); sync(); });
+      resetAll.addEventListener('click', () => { state.themes = {}; delete state.size; delete state.face; save(); apply(); repaint(); sync(); });
+      actions.append(copy, reset, resetAll);
+      const text = el('textarea', { className: 'tune-out', readOnly: true, spellcheck: false });
+      text.setAttribute('aria-label', 'Settings to copy');
+      body.append(actions, text);
+      out.text = text;
+      sync();
+    }
+    // Fill every control from what is on screen now.
+    function sync() {
+      if (!built) return;
+      who.innerHTML = 'Editing <b>' + (THEMES.find(([id]) => id === theme()) || ['', ''])[1] + '</b>. Switch display to tune the others.';
+      $$('.tune-row[data-var]', body).forEach((r) => {
+        const { hex, a } = split(current(r.dataset.var));
+        $('input[type="color"]', r).value = hex;
+        $('input[type="text"]', r).value = hex;
+        const ar = r.nextElementSibling;
+        if (ar && ar.dataset.alpha) { $('input', ar).value = Math.round(a * 100); $('output', ar).value = Math.round(a * 100) + '%'; }
+      });
+      rows.forEach((r) => r.sync());
+      out();
+    }
+    // Only what differs from the shipped design, ready to paste back.
+    function out() {
+      if (!out.text) return;
+      const lines = [];
+      THEMES.forEach(([id, name]) => {
+        const o = state.themes[id];
+        if (!o || !Object.keys(o).length) return;
+        lines.push(name + ':');
+        Object.keys(o).forEach((k) => lines.push('  ' + (k === 'shadow' ? 'shadow: ' + o.shadow[0] + ' ' + o.shadow[1] + '%' : k + ': ' + o[k])));
+      });
+      if (state.size || state.face != null) {
+        lines.push('Type:');
+        if (state.face != null) lines.push('  typeface: ' + FACES[state.face][0]);
+        if (state.size) lines.push('  text size: ' + state.size + 'px');
+      }
+      out.text.value = lines.length ? lines.join('\n') : 'No changes yet. Adjust anything above and the values show up here.';
+    }
+    function boot() {
+      if (!on) return;
+      apply();
+      repaint();
+      // A menu item to bring it back once closed.
+      const li = el('li', { role: 'none' });
+      li.innerHTML = '<button class="mi" role="menuitem" type="button" data-win="tune">Tune…</button>';
+      $('#m-adiel [data-win="panel"]').parentNode.before(li);
+      setTimeout(() => openWin(win, { focus: false }), 1500);
+    }
+    return { boot, build, apply, sync, get on() { return on; } };
+  })();
+
+  /* ==========================================================
      Desktop icons — a column down the right, the Trash in the
      corner. Drag them anywhere; the desk remembers. Nothing can
      actually go in the Trash.
@@ -5660,6 +5928,7 @@
 
   /* Boot */
   Panel.boot();
+  Tune.boot();
   Work.boot();
 })();
 </script>
