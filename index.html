@@ -283,10 +283,48 @@
   .intro .role { margin-top: -14px; color: var(--desk-dim); }
   .intro .meta { color: var(--desk-dim); }
   .meta-block { display: grid; gap: 2px; }
-  /* Each project's name carries a corner of its work */
-  .fav { display: inline-block; width: 12px; height: 12px; margin: 0 5px 0 1px; vertical-align: -1px; border-radius: 3px; object-fit: cover; outline: 1px solid var(--edge); outline-offset: -1px; transition: transform .45s var(--ease); }
-  .proj { white-space: nowrap; }
-  .proj:hover .fav { transform: scale(1.18); }
+  .who-block { display: grid; }
+  .intro .who-block .role { margin-top: 0; }
+  /* Each company's name carries its own mark, the way a plain page credits people */
+  .org { white-space: nowrap; }
+  .desk a.org { text-decoration: none; color: var(--desk-ink); border-radius: 4px; padding: 1px 2px; margin: 0 -2px; transition: background-color .3s var(--ease); }
+  .desk a.org span { font-weight: 500; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: text-decoration-color .3s var(--ease); }
+  .desk a.org:hover, .desk a.org.is-peeking { background: color-mix(in srgb, var(--desk-ink) 9%, transparent); }
+  .desk a.org:hover span { text-decoration-color: transparent; }
+  .lg { display: inline-block; height: 13px; width: auto; margin-right: 4px; vertical-align: -1.5px; overflow: visible; color: var(--desk-ink); transition: color .4s var(--ease); }
+  .org:hover .lg, .org.is-peeking .lg { color: var(--brand, var(--desk-ink)); }
+  .org[data-org="dessn"] { --brand: #e34927; }
+  .org[data-org="ataraxis"] { --brand: #d99a36; }
+  .org[data-org="vorflux"] { --brand: #e8452c; }
+  .lg-hex { height: 12px; vertical-align: -1px; }
+  .lg-hex rect { fill: currentColor; }
+  .lg-hex path { fill: var(--desk-color); }
+  .lg-dessn { height: 14px; vertical-align: -2px; }
+  .lg-dessn path { fill: none; stroke: currentColor; stroke-width: 13; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .lg-ataraxis path { fill: none; stroke: currentColor; stroke-width: 2.6; stroke-dasharray: 1; stroke-dashoffset: 0; }
+  .lg-vorflux { height: 11px; vertical-align: -.5px; }
+  .lg-vorflux path { fill: currentColor; transform-box: fill-box; transform-origin: center; }
+  /* The marks that move do: Dessn draws itself as one line, Ataraxis
+     traces its three triangles, and Vorflux's screen lights tile by tile. */
+  .lg.is-playing.lg-dessn path { animation: lg-draw .9s cubic-bezier(.65, 0, .35, 1) both; animation-delay: calc(var(--i) * .55s); }
+  .lg.is-playing.lg-ataraxis path { animation: lg-draw .7s cubic-bezier(.65, 0, .35, 1) both; animation-delay: calc(var(--i) * .14s); }
+  .lg.is-playing.lg-vorflux path { animation: lg-tile .5s var(--ease) both; animation-delay: calc(var(--i) * 45ms); }
+  @keyframes lg-draw { from { stroke-dashoffset: 1; } }
+  @keyframes lg-tile { 0% { opacity: 0; transform: scale(.3); } 60% { opacity: 1; } }
+  /* Hovering a project shows a glimpse of it beside the cursor */
+  .peek {
+    position: fixed; left: 0; top: 0; z-index: 46;
+    width: 220px; aspect-ratio: var(--ar, 16 / 9);
+    border-radius: 6px; overflow: hidden;
+    background: var(--paper-2); outline: 1px solid var(--edge); outline-offset: -1px;
+    pointer-events: none; opacity: 0;
+    transform: translate(var(--x, 0px), var(--y, 0px)) scale(.94);
+    transform-origin: 0 0;
+    transition: opacity .25s var(--ease), scale .45s var(--ease);
+    will-change: transform;
+  }
+  .peek.is-on { opacity: 1; transform: translate(var(--x, 0px), var(--y, 0px)); }
+  .peek > img, .peek > video { display: block; width: 100%; height: 100%; object-fit: cover; }
   /* The address copies itself */
   .mail { padding: 0; border: 0; background: none; color: inherit; font: inherit; cursor: default; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: color .3s var(--ease), text-decoration-color .15s ease; }
   .mail:hover { color: var(--desk-ink); text-decoration-color: currentColor; }
@@ -297,7 +335,7 @@
   .list { margin: 0; padding: 0; list-style: none; }
   .desk .list a { display: flex; justify-content: space-between; gap: 12px; padding: 2px 0; color: var(--desk-ink); text-decoration: none; transition: opacity .35s var(--ease); }
   .list a span:last-child { color: var(--desk-dim); white-space: nowrap; }
-  .list:hover a { opacity: .4; }
+  .list:hover a:not(:hover) { opacity: .4; }
   .list a:hover, .list a:focus-visible { opacity: 1; }
   /* The keys, as a plain page would list them */
   .hints { display: flex; flex-wrap: wrap; gap: 2px 14px; margin-top: 4px; color: var(--desk-dim); font-size: 12px; }
@@ -305,7 +343,7 @@
   .hints button:hover { color: var(--desk-ink); }
   .hints button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
   .hints kbd { margin-right: 3px; font: inherit; opacity: .75; }
-  @media (hover: none) { .hints { display: none; } }
+  @media (hover: none) { .hints, .peek { display: none; } }
   .inline-link { color: inherit; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); cursor: default; }
   .inline-link:hover { text-decoration-color: currentColor; }
   .desk a { text-decoration-line: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: text-decoration-color .15s ease; }
@@ -570,10 +608,9 @@
   @keyframes wk-card-out { to { opacity: 0; transform: translateY(4px) scale(.99); } }
   .wk-card-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
   .wk-card-head b { font-weight: 500; }
-  .wk-card-head span, .wk-card-credit { color: var(--graphite); }
+  .wk-card-head span { color: var(--graphite); }
   .wk-card-head span { font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .wk-card-text { margin-top: 8px; text-wrap: pretty; }
-  .wk-card-credit { margin-top: 8px; font-size: 12px; }
   .work-win .wk-card-link { display: inline-block; margin-top: 12px; color: var(--graphite); font-size: 12px; text-decoration: none; transition: color .3s var(--ease); }
   .work-win .wk-card-link:hover { color: var(--ink); }
   .wk-card-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
@@ -692,9 +729,9 @@
   #hoops { right: clamp(104px, 12vw, 240px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 96px); }
   .hoops-body { padding: 10px 12px 12px; }
   .hoops-bar { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
-  .hoops-bar b { padding: 0 3px; font-weight: 700; }
+  .hoops-bar b { padding: 0 3px; font-weight: 600; letter-spacing: .14em; }
   .hoops-bar b.is-lit { background: var(--ink); color: var(--paper); }
-  .hoops-bar i { font-style: normal; color: var(--graphite); }  /* HORSE letters not earned yet */
+  .hoops-bar i { font-style: normal; color: var(--graphite); opacity: .6; }  /* letters not taken yet */
   .games { display: flex; margin-bottom: 8px; }
   .game {
     flex: 1 1 0; min-width: 0; height: 20px; padding: 0 4px;
@@ -1020,7 +1057,8 @@
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
     .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
-    .wk-ring, .wk-thumb, .chip svg, .sv-layer { transition: none; }
+    .wk-ring, .wk-thumb, .chip svg, .sv-layer, .peek { transition: none; }
+    .lg.is-playing path { animation: none !important; }
     .sv-layer > img, .sv-layer > video, .sv-cap.is-new { animation: none; }
     .bez .bez-me { animation: none !important; }
     .tile { transition: none; }
@@ -1102,22 +1140,23 @@
 
 <main class="desk">
   <section class="intro" aria-label="About">
-    <h1 class="who">Adiel Vásquez</h1>
-    <p class="role">Brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a><br>Awwwards Young Jury</p>
-    <p>A designer focused on brand identity. I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.</p>
-    <p>At HEX I’ve worked on the identities for <a class="proj" href="#work" data-project="0"><img class="fav" src="work/dessn-film.webp" alt="" width="12" height="12">Dessn</a>, <a class="proj" href="#work" data-project="1"><img class="fav" src="work/ataraxis-b.webp" alt="" width="12" height="12">Ataraxis</a> and <a class="proj" href="#work" data-project="2"><img class="fav" src="work/vorflux.webp" alt="" width="12" height="12">Vorflux</a>. I also build my own generative tools, because sometimes the right tool for a brand doesn’t exist yet.<span class="caret" aria-hidden="true"></span></p>
-    <div class="meta-block">
-      <p class="meta">For projects: <button class="mail" id="mail" type="button" title="Copy the address">hello <span>[at]</span> adiel <span>[dot]</span> design</button></p>
-      <p class="meta">Elsewhere: <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a>, <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a></p>
-    </div>
+    <header class="who-block">
+      <h1 class="who">Adiel Vásquez</h1>
+      <p class="role">Brand designer</p>
+    </header>
+    <p>I work across brand, web and motion, turning one good idea into an identity a company can live in.</p>
+    <p>Currently a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener" class="org" data-org="hex" data-peek="work/hex-reel.mp4" data-poster="work/hex-reel.webp" data-ar="16 / 9"><svg class="lg lg-hex" viewBox="-7 -5.5 74 34" aria-hidden="true"><rect x="-7" y="-5.5" width="74" height="34" rx="6"/><path d="M37.3502 22.848L45.0622 11.424L37.1582 0H43.8782L48.5502 7.04L53.0942 0L59.9102 0.032L52.0702 11.424L59.7182 22.848H52.8382L48.5502 16.032L44.3262 22.848H37.3502Z"/><path d="M37.408 0V5.056H27.744V8.96H36.736V13.856H27.744V17.792H37.504V22.848H21.792V0H37.408Z"/><path d="M13.728 0H19.68V22.848H13.728V13.92H5.952V22.848H0V0H5.952V8.864H13.728V0Z"/></svg><span>HEX</span></a>, where I’ve worked on the identities for <a href="#work" data-project="0" class="org" data-org="dessn" data-peek="work/dessn-film.mp4" data-poster="work/dessn-film.webp" data-ar="1 / 1"><svg class="lg lg-dessn" viewBox="-5 -5 162 173" aria-hidden="true"><path pathLength="1" style="--i:0" d="M69.9006 162.398C69.9006 162.398 80.266 140.763 82.9704 119.128C85.6748 97.4943 84.621 74.4247 73.5809 70.3801C62.5408 66.3355 48.4889 74.4241 50.1619 84.1996C51.8349 93.9744 81.6099 99.3673 92.3157 80.8291C103.022 62.2908 111.72 35.6625 100.345 19.1462C88.9698 2.62997 58.8605 0.607791 46.8164 16.1127C34.7722 31.6176 46.8164 52.7851 46.8164 52.5155C46.8164 52.366 31.4621 47.673 20.7714 51.5204C12.1731 54.6148 1.84018 65.0419 7.24946 81.2678C12.6587 97.4943 34.4379 95.6594 34.4379 95.6594C34.4379 95.6594 8.00818 109.479 24.4013 125.995C40.7944 142.511 63.2093 121.95 63.2093 121.95"/><path pathLength="1" style="--i:1" d="M98.918 125.994C98.918 125.994 121.338 142.836 132.854 125.994C144.37 109.151 118.412 95.6581 118.412 95.6581C118.412 95.6581 149.792 97.4924 150.58 73.1533C151.368 48.8147 120.832 51.5191 120.832 51.5191"/></svg><span>Dessn</span></a>, <a href="#work" data-project="1" class="org" data-org="ataraxis" data-peek="" data-poster="work/ataraxis-c.webp" data-ar="16 / 9"><svg class="lg lg-ataraxis" viewBox="0 2 42 37" aria-hidden="true"><path pathLength="1" style="--i:0" d="M2.21582 36.9995L20.8941 4.0283L39.5724 36.9995H2.21582Z"/><path pathLength="1" style="--i:1" d="M2.89795 36.9993L20.8653 18.2153L38.8327 36.9993H2.89795Z"/><path pathLength="1" style="--i:2" d="M4.42822 36.9996L20.9807 27.8349L37.5332 36.9996H4.42822Z"/></svg><span>Ataraxis</span></a> and <a href="#work" data-project="2" class="org" data-org="vorflux" data-peek="" data-poster="work/vorflux.webp" data-ar="16 / 9"><svg class="lg lg-vorflux" viewBox="0 0 22.26 18.75" aria-hidden="true"><path style="--i:0" d="M9.04 11.61C9.03 11.49 9.08 11.38 9.16 11.3C9.24 11.22 9.35 11.18 9.46 11.18C10.57 11.19 11.68 11.19 12.79 11.18C12.91 11.18 13.02 11.22 13.1 11.3C13.18 11.38 13.22 11.49 13.22 11.61C13.2 12.53 13.17 13.45 13.14 14.36C13.13 14.48 13.08 14.59 13 14.68C12.92 14.76 12.82 14.81 12.71 14.81C11.65 14.83 10.6 14.83 9.55 14.81C9.44 14.81 9.33 14.76 9.25 14.68C9.17 14.59 9.12 14.48 9.12 14.36C9.08 13.45 9.05 12.53 9.04 11.61Z"/><path style="--i:1" d="M13.49 11.61C13.49 11.49 13.54 11.38 13.62 11.3C13.71 11.21 13.82 11.17 13.93 11.17C15.04 11.15 16.15 11.13 17.26 11.09C17.38 11.09 17.49 11.13 17.56 11.21C17.64 11.28 17.68 11.39 17.67 11.5C17.62 12.38 17.53 13.25 17.41 14.13C17.4 14.24 17.34 14.35 17.25 14.44C17.17 14.52 17.06 14.58 16.95 14.58C15.89 14.67 14.84 14.74 13.79 14.78C13.68 14.78 13.58 14.74 13.5 14.66C13.43 14.58 13.39 14.47 13.4 14.36C13.44 13.44 13.47 12.52 13.49 11.61Z"/><path style="--i:2" d="M4.58 11.5C4.58 11.39 4.61 11.28 4.69 11.21C4.77 11.13 4.88 11.09 4.99 11.09C6.1 11.13 7.21 11.15 8.32 11.17C8.44 11.17 8.55 11.21 8.63 11.3C8.72 11.38 8.76 11.49 8.77 11.61C8.79 12.52 8.82 13.44 8.86 14.36C8.86 14.47 8.83 14.58 8.75 14.66C8.68 14.74 8.58 14.78 8.47 14.78C7.42 14.74 6.36 14.67 5.31 14.58C5.2 14.58 5.09 14.52 5 14.44C4.91 14.35 4.86 14.24 4.84 14.13C4.73 13.25 4.64 12.38 4.58 11.5Z"/><path style="--i:3" d="M4.53 7.77C4.53 7.66 4.58 7.55 4.67 7.47C4.75 7.39 4.86 7.35 4.98 7.34C6.09 7.32 7.21 7.3 8.32 7.28C8.43 7.28 8.54 7.33 8.62 7.41C8.7 7.49 8.75 7.6 8.75 7.71C8.73 8.63 8.73 9.55 8.75 10.46C8.75 10.58 8.7 10.69 8.62 10.77C8.54 10.85 8.43 10.9 8.32 10.89C7.21 10.88 6.09 10.86 4.98 10.83C4.86 10.83 4.75 10.78 4.67 10.7C4.58 10.62 4.53 10.52 4.53 10.41C4.5 9.53 4.5 8.65 4.53 7.77Z"/><path style="--i:4" d="M13.51 7.71C13.51 7.6 13.55 7.49 13.63 7.41C13.71 7.33 13.82 7.28 13.94 7.28C15.05 7.3 16.16 7.32 17.28 7.34C17.39 7.35 17.5 7.39 17.59 7.47C17.67 7.55 17.72 7.66 17.73 7.77C17.76 8.65 17.76 9.53 17.73 10.41C17.72 10.52 17.67 10.62 17.59 10.7C17.5 10.78 17.39 10.83 17.28 10.83C16.16 10.86 15.05 10.88 13.94 10.89C13.82 10.9 13.71 10.85 13.63 10.77C13.55 10.69 13.51 10.58 13.51 10.46C13.52 9.55 13.52 8.63 13.51 7.71Z"/><path style="--i:5" d="M9.17 15.51C9.17 15.39 9.2 15.28 9.28 15.2C9.35 15.12 9.45 15.08 9.56 15.08C10.61 15.11 11.65 15.11 12.7 15.08C12.81 15.08 12.91 15.12 12.98 15.2C13.05 15.28 13.09 15.39 13.09 15.51C13.04 16.43 12.99 17.35 12.92 18.26C12.91 18.38 12.87 18.49 12.79 18.58C12.72 18.66 12.62 18.71 12.53 18.72C11.59 18.76 10.66 18.76 9.73 18.72C9.64 18.71 9.54 18.66 9.47 18.58C9.39 18.49 9.34 18.38 9.34 18.26C9.27 17.35 9.22 16.43 9.17 15.51Z"/><path style="--i:6" d="M18 7.78C18 7.67 18.04 7.56 18.12 7.49C18.19 7.41 18.3 7.37 18.42 7.37C19.53 7.41 20.64 7.45 21.75 7.5C21.87 7.5 21.98 7.55 22.07 7.62C22.16 7.7 22.21 7.79 22.22 7.89C22.27 8.69 22.27 9.49 22.22 10.28C22.21 10.38 22.16 10.48 22.07 10.55C21.98 10.63 21.87 10.67 21.75 10.68C20.64 10.73 19.53 10.77 18.42 10.8C18.3 10.8 18.19 10.76 18.12 10.69C18.04 10.61 18 10.51 18 10.4C18.03 9.52 18.03 8.65 18 7.78Z"/><path style="--i:7" d="M0.04 7.89C0.05 7.79 0.1 7.7 0.18 7.62C0.27 7.55 0.39 7.5 0.5 7.5C1.61 7.45 2.73 7.41 3.84 7.37C3.95 7.37 4.06 7.41 4.14 7.49C4.22 7.56 4.26 7.67 4.26 7.78C4.22 8.65 4.22 9.52 4.26 10.4C4.26 10.51 4.22 10.61 4.14 10.69C4.06 10.76 3.95 10.8 3.84 10.8C2.73 10.77 1.61 10.73 0.5 10.68C0.39 10.67 0.27 10.63 0.18 10.55C0.1 10.48 0.05 10.38 0.04 10.28C-0.01 9.49 -0.01 8.69 0.04 7.89Z"/><path style="--i:8" d="M17.68 4.06C17.66 3.96 17.69 3.85 17.75 3.78C17.82 3.71 17.92 3.68 18.03 3.69C19.08 3.8 20.13 3.92 21.18 4.08C21.29 4.09 21.41 4.15 21.5 4.23C21.6 4.31 21.67 4.41 21.69 4.51C21.89 5.31 22.03 6.11 22.13 6.9C22.14 7 22.1 7.1 22.03 7.16C21.96 7.23 21.85 7.26 21.73 7.26C20.62 7.2 19.51 7.16 18.4 7.12C18.29 7.11 18.18 7.07 18.09 6.99C18 6.91 17.95 6.8 17.95 6.69C17.89 5.81 17.8 4.94 17.68 4.06Z"/><path style="--i:9" d="M0.56 4.51C0.59 4.41 0.66 4.31 0.75 4.23C0.85 4.15 0.96 4.09 1.07 4.08C2.12 3.92 3.18 3.8 4.23 3.69C4.34 3.68 4.44 3.71 4.5 3.78C4.57 3.85 4.6 3.96 4.58 4.06C4.46 4.94 4.37 5.81 4.31 6.69C4.3 6.8 4.25 6.91 4.17 6.99C4.08 7.07 3.97 7.11 3.85 7.12C2.74 7.16 1.63 7.2 0.52 7.26C0.41 7.26 0.3 7.23 0.23 7.16C0.15 7.1 0.12 7 0.13 6.9C0.22 6.11 0.37 5.31 0.56 4.51Z"/><path style="--i:10" d="M16.97 0.35C16.94 0.24 16.96 0.14 17 0.08C17.05 0.01 17.13 -0.01 17.23 0.01C18.16 0.18 19.09 0.4 20.02 0.65C20.12 0.68 20.23 0.75 20.33 0.84C20.43 0.93 20.51 1.03 20.55 1.13C20.89 1.93 21.18 2.73 21.42 3.52C21.45 3.62 21.44 3.71 21.38 3.77C21.32 3.83 21.23 3.85 21.12 3.84C20.08 3.68 19.03 3.54 17.98 3.43C17.88 3.42 17.76 3.37 17.67 3.28C17.59 3.2 17.53 3.09 17.51 2.98C17.36 2.1 17.18 1.23 16.97 0.35Z"/><path style="--i:11" d="M1.7 1.13C1.75 1.03 1.83 0.93 1.93 0.84C2.03 0.75 2.14 0.68 2.23 0.65C3.16 0.4 4.1 0.18 5.03 0.01C5.12 -0.01 5.2 0.01 5.25 0.08C5.3 0.14 5.31 0.24 5.29 0.35C5.08 1.23 4.9 2.1 4.75 2.98C4.73 3.09 4.67 3.2 4.58 3.28C4.49 3.37 4.38 3.42 4.27 3.43C3.23 3.54 2.18 3.68 1.13 3.84C1.02 3.85 0.93 3.83 0.88 3.77C0.82 3.71 0.8 3.62 0.83 3.52C1.07 2.73 1.36 1.93 1.7 1.13Z"/></svg><span>Vorflux</span></a>. I also build my own generative tools, for when the right one doesn’t exist yet.</p>
+    <p class="meta">On the Awwwards Young Jury, and featured on A1 Gallery, Landbook and Framer Gallery. Away from the screen: reading, climbing volcanoes, basketball.<span class="caret" aria-hidden="true"></span></p>
+    <p class="meta">Find me on <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a> and <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a>, or write to <button class="mail" id="mail" type="button" title="Copy the address">hello <span>[at]</span> adiel <span>[dot]</span> design</button>.</p>
     <div class="meta-block">
       <p class="meta">Selected work</p>
       <ol class="list" aria-label="Selected work">
-        <li><a href="#work" data-project="0"><span>Dessn</span><span>Rebrand</span></a></li>
-        <li><a href="#work" data-project="1"><span>Ataraxis</span><span>Rebrand</span></a></li>
-        <li><a href="#work" data-project="2"><span>Vorflux</span><span>Brand system</span></a></li>
+        <li><a href="#work" data-project="0" data-peek="work/dessn-film.mp4" data-poster="work/dessn-film.webp" data-ar="1 / 1"><span>Dessn</span><span>Rebrand, 2026</span></a></li>
+        <li><a href="#work" data-project="1" data-peek="" data-poster="work/ataraxis-c.webp" data-ar="16 / 9"><span>Ataraxis</span><span>Rebrand, 2026</span></a></li>
+        <li><a href="#work" data-project="2" data-peek="" data-poster="work/vorflux.webp" data-ar="16 / 9"><span>Vorflux</span><span>Brand system</span></a></li>
       </ol>
     </div>
+    <div class="peek" id="peek" aria-hidden="true"></div>
     <p class="hints" aria-label="Keys">
       <button type="button" data-key="t"><kbd>(T)</kbd> Display</button>
       <button type="button" data-key="?"><kbd>(?)</kbd> Ask Bez</button>
@@ -2834,7 +2873,8 @@
     const say = (text) => { statusEl.textContent = text; };
     const emit = (e) => players.forEach((fn) => fn(e));
     const mult = () => (streak >= 6 ? 3 : streak >= 3 ? 2 : 1);
-    const word = (n) => WORD.slice(0, n) + (n < 5 ? '<i>' + WORD.slice(n) + '</i>' : '');
+    // Letters you've taken, and a dot for each one still to come.
+    const word = (n) => WORD.slice(0, n) + (n < 5 ? '<i>' + '·'.repeat(5 - n) + '</i>' : '');
     function turnText() {
       const h = horse;
       if (h.over) return h.you >= 5 ? 'Bez wins' : 'You win';
@@ -3935,7 +3975,6 @@
     const PROJECTS = [
       { name: 'Dessn', kind: 'Rebrand, 2026',
         text: 'Dessn turns a team’s codebase into a collaborative design canvas, so designers, PMs and engineers work on the real product together. The rebrand is an invitation to let your mind wander.',
-        credit: 'At HEX with Xchyler, Amin, Maz, Ayush, Farhan, Théo and Riri.',
         link: 'https://hex.inc/work/dessn',
         pieces: [
           { id: 'dessn-film', title: 'Identity film', video: true, w: 1000, h: 1000 },
@@ -3947,7 +3986,6 @@
         ] },
       { name: 'Ataraxis', kind: 'Rebrand, 2026',
         text: 'Ataraxis builds AI that reads pathology slides to help guide cancer care. An identity as precise as the models behind it: biology underneath, interpretation on top.',
-        credit: 'At HEX with Ayush, Maz, Xchyler, Emmi, Ivan and Shais.',
         link: 'https://hex.inc/work/ataraxis',
         pieces: [
           { id: 'ataraxis-a', title: 'Research editorial', w: 1334, h: 1600 },
@@ -3958,7 +3996,6 @@
         ] },
       { name: 'Vorflux', kind: 'Brand system',
         text: 'A system with momentum, built to move as fast as the team behind it: HUD instruments, patterns and networks around one curved, screen-like mark.',
-        credit: 'At HEX.',
         pieces: [
           { id: 'vorflux', title: 'Mark', w: 1600, h: 900 },
         ] },
@@ -4207,7 +4244,6 @@
       cardFor = SLIDES[cur].k;
       card.innerHTML = '<p class="wk-card-head"><b>' + pr.name + '</b><span>' + pr.kind + '</span></p>' +
         '<p class="wk-card-text">' + pr.text + '</p>' +
-        '<p class="wk-card-credit">' + pr.credit + '</p>' +
         (pr.link ? '<a class="wk-card-link" href="' + pr.link + '" target="_blank" rel="noopener">Case study ↗</a>' : '');
     }
     function toggleInfo(open = !infoOpen) {
@@ -5955,7 +5991,65 @@
      what the keys do.
   ========================================================== */
   (() => {
-    $$('[data-project]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); Work.open(+el.dataset.project); }));
+    $$('[data-project]').forEach((el) => el.addEventListener('click', (e) => { e.preventDefault(); peekOff(); Work.open(+el.dataset.project); }));
+
+    // The marks play once as the desk comes up, and again on hover.
+    const marks = $$('.org .lg');
+    const playMark = (lg) => { lg.classList.remove('is-playing'); void lg.getBoundingClientRect(); lg.classList.add('is-playing'); };
+    if (!reduced.matches) marks.forEach((lg, i) => setTimeout(() => playMark(lg), 700 + i * 260));
+
+    // A glimpse of the work follows the cursor while you hover a name.
+    const peek = $('#peek');
+    let peekFor = null, px = 0, py = 0, tx = 0, ty = 0, follow = 0;
+    const place = () => {
+      const w = peek.offsetWidth, h = peek.offsetHeight;
+      tx = Math.min(tx, innerWidth - w - 12); ty = ty + h + 12 > innerHeight ? ty - h - 36 : ty;
+      px += (tx - px) * (reduced.matches ? 1 : 0.22); py += (ty - py) * (reduced.matches ? 1 : 0.22);
+      peek.style.setProperty('--x', px + 'px'); peek.style.setProperty('--y', py + 'px');
+      if (Math.abs(tx - px) + Math.abs(ty - py) > 0.5 && peekFor) follow = requestAnimationFrame(place); else follow = 0;
+    };
+    function peekOn(el, e) {
+      if (e.pointerType !== 'mouse') return;
+      if (peekFor !== el) {
+        peekFor && peekFor.classList.remove('is-peeking');
+        peekFor = el;
+        el.classList.add('is-peeking');
+        const { peek: src, poster, ar } = el.dataset;
+        let m;
+        if (src && !reduced.matches) {
+          m = document.createElement('video');
+          m.src = src; m.poster = poster; m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true;
+        } else {
+          m = document.createElement('img');
+          m.src = poster; m.alt = '';
+        }
+        peek.style.setProperty('--ar', ar);
+        peek.replaceChildren(m);
+        const lg = $('.lg', el);
+        if (lg && !reduced.matches) playMark(lg);
+        tx = px = e.clientX + 18; ty = py = e.clientY + 20;
+      }
+      peek.classList.add('is-on');
+      move(e);
+    }
+    function move(e) {
+      if (!peekFor) return;
+      tx = e.clientX + 18; ty = e.clientY + 20;
+      if (!follow) follow = requestAnimationFrame(place);
+    }
+    function peekOff() {
+      if (!peekFor) return;
+      peekFor.classList.remove('is-peeking');
+      peekFor = null;
+      peek.classList.remove('is-on');
+      setTimeout(() => { if (!peekFor) peek.replaceChildren(); }, 300);
+    }
+    $$('[data-peek]').forEach((el) => {
+      el.addEventListener('pointerenter', (e) => peekOn(el, e));
+      el.addEventListener('pointermove', move);
+      el.addEventListener('pointerleave', peekOff);
+    });
+    addEventListener('scroll', peekOff, { passive: true });
     const mail = $('#mail'), label = mail.innerHTML;
     let back = 0;
     mail.addEventListener('click', async () => {
