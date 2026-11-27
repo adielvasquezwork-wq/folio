@@ -622,6 +622,10 @@
   .chip.is-on, button.chip.is-on:hover { background: var(--ink); color: var(--paper); }
   .chip svg { width: 8px; height: 8px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; fill: none; transition: transform .5s var(--glide); }
   .chip.is-on svg { transform: rotate(45deg); }
+  .chip.wk-sound svg { width: 13px; height: 10px; stroke-width: 1.2; stroke-linejoin: round; }
+  .chip.wk-sound.is-on svg { transform: none; }
+  .chip.wk-sound .wv { opacity: 0; transition: opacity .3s ease; }
+  .chip.wk-sound.is-on .wv { opacity: 1; }
   .wk-title { min-width: 0; margin-left: 6px; color: var(--graphite); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .work-win .wk-title a { margin-left: 8px; color: inherit; text-decoration: none; transition: color .3s ease; }
   .work-win .wk-title a:hover { color: var(--ink); }
@@ -1476,6 +1480,7 @@
       <div class="wk-lead">
         <span class="chip" id="wk-proj"></span>
         <button class="chip" id="wk-info" type="button" aria-expanded="false" aria-controls="wk-card">Info<svg viewBox="0 0 10 10" aria-hidden="true"><path d="M5 1v8M1 5h8"/></svg></button>
+        <button class="chip wk-sound" id="wk-sound" type="button" aria-pressed="false" hidden>Sound<svg viewBox="0 0 13 10" aria-hidden="true"><path d="M1 3.6h2.1L6 1.2v7.6L3.1 6.4H1z"/><path class="wv" d="M8.3 3.3a2.4 2.4 0 0 1 0 3.4M10.1 1.7a4.6 4.6 0 0 1 0 6.6"/></svg></button>
         <p class="wk-title" id="wk-title" aria-live="polite"></p>
       </div>
       <div class="wk-nav">
@@ -4331,6 +4336,7 @@
       vol.addEventListener('input', () => {
         Prefs.set('vol', +vol.value);
         Sound.setVolume(+vol.value);
+        Work.quiet();
         volN.textContent = vol.value;
         Sound.play('up');
       });
@@ -4373,6 +4379,8 @@
     const stage = $('#wk-stage'), track = $('#wk-track');
     const projChip = $('#wk-proj'), infoChip = $('#wk-info'), titleEl = $('#wk-title'), countEl = $('#wk-count');
     const prev = $('#wk-prev'), next = $('#wk-next'), card = $('#wk-card');
+    const soundChip = $('#wk-sound');
+    let soundOn = false;   // asked for once, kept for every piece that has sound
     const X = 'https://x.com/adieldesign/status/';
     const PROJECTS = [
       { name: 'Dessn', kind: 'Rebrand, 2026',
@@ -4388,7 +4396,7 @@
         text: 'Ataraxis builds AI that reads pathology slides to help guide cancer care. An identity as precise as the models behind it: biology underneath, interpretation on top.',
         link: 'https://hex.inc/work/ataraxis',
         pieces: [
-          { id: 'ataraxis-reel', title: 'Showreel', video: true, w: 1440, h: 810 },
+          { id: 'ataraxis-reel', title: 'Showreel', video: true, sound: true, w: 1600, h: 900 },
           { id: 'ataraxis-future-live', title: 'Modeling the future of disease', video: true, w: 1920, h: 1080 },
           { id: 'ataraxis-f86715', title: 'Research', w: 1920, h: 1080 },
           { id: 'ataraxis-f38035', title: 'Disease trajectories', w: 1920, h: 1080 },
@@ -4499,6 +4507,12 @@
       prev.addEventListener('click', () => step(-1));
       next.addEventListener('click', () => step(1));
       infoChip.addEventListener('click', () => toggleInfo());
+      soundChip.addEventListener('click', () => {
+        soundOn = !soundOn;
+        quiet();
+        const v = $('video', slides[cur]);
+        if (soundOn && v && v.paused && !win.hidden) v.play().catch(() => {});
+      });
       stage.addEventListener('wheel', onWheel, { passive: false });
       track.addEventListener('click', () => { if (infoOpen) toggleInfo(false); });
       Space.init();
@@ -4534,6 +4548,24 @@
       next.disabled = n === N - 1;
       if (infoOpen && was > -1 && SLIDES[was].k !== s.k) fillCard();
       media();
+      quiet();
+    }
+    // Pieces with sound start muted; the Sound chip lets the one on screen be
+    // heard, at the desk's volume. Anything else (another slide, the grid,
+    // the sphere, a closed window) stays silent.
+    function quiet() {
+      const s = SLIDES[cur], slider = Space.mode === 'slider';
+      soundChip.hidden = !(s && s.sound && slider);
+      soundChip.classList.toggle('is-on', soundOn);
+      soundChip.setAttribute('aria-pressed', String(soundOn));
+      soundChip.setAttribute('aria-label', soundOn ? 'Mute the showreel' : 'Play the showreel with sound');
+      slides.forEach((li, k) => {
+        const v = SLIDES[k].sound && $('video', li);
+        if (!v) return;
+        const heard = soundOn && k === cur && slider && !win.hidden;
+        v.volume = Math.pow(clamp(+Prefs.get('vol'), 0, 7) / 7, 0.6);
+        v.muted = !heard;
+      });
     }
     // Only the piece on screen plays; its neighbours get ready.
     function media() {
@@ -4681,7 +4713,7 @@
       e.preventDefault();
       return true;
     }
-    function play() { if (Space.mode === 'slider') media(); else Space.resume(); }
+    function play() { if (Space.mode === 'slider') { media(); quiet(); } else Space.resume(); }
     // Straight to a piece, no glide and no grow, for the space to land on.
     function jumpTo(n) {
       const el = slides[n].firstElementChild;
@@ -4698,7 +4730,7 @@
       const s = SLIDES[n], w = Math.min(stage.clientWidth * 0.7, stage.clientHeight * 0.8 * (s.w / s.h));
       return [w, w * (s.h / s.w)];
     }
-    function pause() { $$('video', track).forEach((v) => v.pause()); }
+    function pause() { $$('video', track).forEach((v) => { v.pause(); v.muted = true; }); }
     // Bring it forward, or open it again if it was closed.
     function show(focus = true) {
       if (win.hidden || win.hasAttribute('data-boot')) openWin(win, { focus });
@@ -5097,6 +5129,7 @@
         const was = mode, t = now(), N = SLIDES.length;
         mode = v;
         $$('button', views).forEach((b) => b.setAttribute('aria-checked', String(b.dataset.view === v)));
+        quiet();
         clearTimeout(landTimer);
         if (v === 'slider') {
           landing = land > -1 ? land : Math.max(0, cur);
@@ -5144,7 +5177,7 @@
       Promise.race([fontsReady, new Promise((r) => setTimeout(r, 1200))]).then(() => setTimeout(() => show(false), 250));
     }
     return {
-      boot, show, open, find, play, pause, step, keydown,
+      boot, show, open, find, play, pause, quiet: () => { if (built) quiet(); }, step, keydown,
       get active() { return !win.hidden && win.classList.contains('is-active'); },
       // Straight to one piece, from the slider or from the space.
       piece(n) { show(); requestAnimationFrame(() => { if (Space.mode !== 'slider') Space.set('slider', n); else go(n); }); },
