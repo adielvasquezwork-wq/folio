@@ -97,7 +97,7 @@
     --bar: 28px;
     --gutter: clamp(20px, 6vw, 104px);
     --intro: clamp(236px, 21vw, 300px);
-    --desk-size: 15px;
+    --desk-size: 16px;
     --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
     --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --font: var(--sans);
@@ -292,11 +292,8 @@
   .desk a.org span { font-weight: 500; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; text-decoration-color: color-mix(in srgb, currentColor 35%, transparent); transition: text-decoration-color .3s var(--ease); }
   .desk a.org:hover, .desk a.org.is-peeking { background: color-mix(in srgb, var(--desk-ink) 9%, transparent); }
   .desk a.org:hover span { text-decoration-color: transparent; }
-  .lg { display: inline-block; height: 13px; width: auto; margin-right: 4px; vertical-align: -1.5px; overflow: visible; color: var(--desk-ink); transition: color .4s var(--ease); }
-  .org:hover .lg, .org.is-peeking .lg { color: var(--brand, var(--desk-ink)); }
-  .org[data-org="dessn"] { --brand: #e34927; }
-  .org[data-org="ataraxis"] { --brand: #d99a36; }
-  .org[data-org="vorflux"] { --brand: #e8452c; }
+  .lg { display: inline-block; height: 13px; width: auto; margin-right: 4px; vertical-align: -1.5px; overflow: visible; color: color-mix(in srgb, var(--desk-ink) 62%, var(--desk-color)); transition: color .4s ease; }
+  .org:hover .lg, .org.is-peeking .lg { color: var(--desk-ink); }
   .lg-hex { height: 12px; vertical-align: -1px; }
   .lg-hex rect { fill: currentColor; }
   .lg-hex path { fill: var(--desk-color); }
@@ -398,6 +395,21 @@
     overflow: hidden;
   }
   .window.is-shaded > :not(.titlebar) { display: none; }
+  /* Resize handles: invisible strips on the right and bottom edges, and
+     a small corner mark that shows when you're over the window. */
+  .rz { position: absolute; z-index: 5; touch-action: none; }
+  .rz-e { top: 30px; right: -3px; bottom: 12px; width: 8px; cursor: ew-resize; }
+  .rz-s { left: 12px; right: 12px; bottom: -3px; height: 8px; cursor: ns-resize; }
+  .rz-se { right: 0; bottom: 0; width: 16px; height: 16px; cursor: nwse-resize; }
+  .rz-se::after {
+    content: ""; position: absolute; right: 4px; bottom: 4px; width: 7px; height: 7px;
+    background: linear-gradient(135deg, transparent 0 45%, var(--graphite) 45% 55%, transparent 55% 70%, var(--graphite) 70% 80%, transparent 80%);
+    opacity: 0; transition: opacity .2s ease;
+  }
+  .window:hover .rz-se::after, .window.is-resizing .rz-se::after { opacity: .55; }
+  .window.is-resizing, .window.is-resizing * { user-select: none; -webkit-user-select: none; }
+  /* A window with a size of its own lets its body take the room. */
+  .window.is-sized:not(.work-win) > :not(.titlebar):not(.rz) { flex: 1 1 auto; min-height: 0; overflow: auto; }
   .window.is-shaded .titlebar { border-bottom: 0; }
   #piano { left: clamp(22px, 7.5vw, 128px); bottom: clamp(24px, 5vh, 64px); }
   #apps { left: clamp(60px, 30vw, 520px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 64px); width: 344px; }
@@ -500,24 +512,23 @@
   .wk-slide.is-current > img, .wk-slide.is-current > video { opacity: 1; transform: none; }
   .wk-stage.is-dragging .wk-slide > * { transition-duration: .4s; }
 
-  /* The arrows: soft round buttons, centred in the margin beside the work */
+  /* The arrows: a thin chevron centred in the margin beside the work.
+     No fill, no border, no motion of their own: they darken on hover,
+     and leave when there's nowhere to go. */
   .wk-arrow {
     position: absolute; top: 50%; z-index: 2;
     display: grid; place-items: center;
-    width: 32px; height: 32px; margin-top: -16px;
-    border: 0; border-radius: 999px;
-    background: color-mix(in srgb, var(--ink) 7%, transparent); color: var(--ink);
+    width: 44px; height: 64px; margin-top: -32px;
+    border: 0; padding: 0; background: none;
+    color: var(--graphite);
     cursor: default;
-    transition: background-color .3s ease, opacity .4s ease, transform .5s var(--glide);
+    transition: color .2s ease, opacity .25s ease, visibility 0s;
   }
-  #wk-prev { left: calc((var(--px) - 32px) / 2); }
-  #wk-next { right: calc((var(--px) - 32px) / 2); }
-  .wk-arrow svg { width: 14px; height: 14px; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; fill: none; }
-  .wk-arrow:hover { background: color-mix(in srgb, var(--ink) 12%, transparent); }
-  .wk-arrow:active { transform: scale(.92); transition-duration: .3s, .4s, .12s; }
-  .wk-arrow:disabled { opacity: 0; pointer-events: none; }
-  #wk-prev:disabled { transform: translateX(4px); }
-  #wk-next:disabled { transform: translateX(-4px); }
+  #wk-prev { left: calc((var(--px) - 44px) / 2); }
+  #wk-next { right: calc((var(--px) - 44px) / 2); }
+  .wk-arrow svg { width: 11px; height: 20px; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+  .wk-arrow:hover { color: var(--ink); }
+  .wk-arrow:disabled { opacity: 0; visibility: hidden; transition: color .2s ease, opacity .25s ease, visibility 0s .25s; }
   @media (hover: none) { .wk-arrow { display: none; } .work-win { --px: var(--pad); } }
 
   /* The line under the stage */
@@ -780,28 +791,6 @@
   .b-text a { color: inherit; }
 
   /* Calculator desk accessory */
-  #calc { left: clamp(60px, 18vw, 320px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 120px); }
-  .calc-body { padding: 10px; }
-  .lcd {
-    display: block; height: 34px; padding: 0 10px; margin-bottom: 8px;
-    border: 1px solid var(--edge);
-    font: 500 20px/32px var(--mono); text-align: right; letter-spacing: 0;
-    overflow: hidden; white-space: nowrap; font-variant-numeric: tabular-nums;
-  }
-  .calc-keys { display: grid; grid-template-columns: repeat(4, 42px); gap: 4px; width: max-content; margin: 0 auto; }
-  .ckey {
-    height: 30px;
-    border: 1px solid var(--edge); border-radius: 6px;
-    background: var(--paper); color: var(--ink);
-    font-size: 14px; font-weight: 600; cursor: default;
-  }
-  .ckey.is-op { background: var(--dither); }
-  .ckey.is-op span { padding: 0 3px; background: var(--paper); }
-  .ckey.is-wide { grid-column: span 2; }
-  .ckey:active, .ckey.is-lit { background: var(--ink); color: var(--paper); }
-  .ckey.is-lit span, .ckey:active span { background: var(--ink); }
-
-  /* Note Pad desk accessory */
   #notes { left: clamp(40px, 14vw, 260px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 80px); width: 300px; }
   .notes-body { padding: 0; }
   .notes-body textarea {
@@ -911,14 +900,18 @@
   .power.is-on .welcome { animation: appear 0s linear .25s both; }
 
   /* Screen saver */
-  .saver { position: fixed; inset: 0; z-index: 90; background: #000; color: #fff; cursor: none; }
-  .sv-layer { position: absolute; inset: 0; display: grid; place-items: center; opacity: 0; transition: opacity 1.6s var(--ease); }
-  .sv-layer.is-on { opacity: 1; }
-  .sv-layer > img, .sv-layer > video { display: block; width: auto; height: auto; max-width: 70vw; max-height: 70vh; border-radius: 4px; animation: sv-drift 9s linear both; }
-  @keyframes sv-drift { to { transform: scale(1.03); } }
-  .sv-cap { position: absolute; left: 24px; bottom: 22px; margin: 0; font-size: 12px; letter-spacing: .01em; color: rgb(255 255 255 / .5); }
-  .sv-cap b { margin-right: 8px; font-weight: 500; color: #fff; }
-  .sv-cap.is-new { animation: wk-cap-in .9s var(--ease) both; }
+  /* The screen saver: the time, full screen, and nothing else */
+  .saver { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: #000; color: #fff; cursor: none; animation: sv-in 1.2s ease both; }
+  @keyframes sv-in { from { opacity: 0; } }
+  .sv-time {
+    margin: 0;
+    font-size: min(30vw, 52vh); font-weight: 300; line-height: 1; letter-spacing: -0.055em;
+    font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "ss01";
+    white-space: nowrap;
+  }
+  .sv-time .sep { animation: sv-tick 2s steps(1, end) infinite; }
+  @keyframes sv-tick { 50% { opacity: .25; } }
+  .sv-time .ap { margin-left: .12em; font-size: .18em; font-weight: 400; letter-spacing: 0; vertical-align: .2em; opacity: .5; }
 
   /* ------------------------------------------------------------
      Alert
@@ -954,12 +947,13 @@
       width: auto; height: auto; min-width: 0; min-height: 0;
       margin-top: 40px;
     }
-    .work-win .closebox { display: none; }
+    .work-win .closebox, .work-win .rz { display: none; }
     .work-win .titlebar { touch-action: auto; }
     .work-win { --pad: clamp(16px, 4vw, 32px); --px: max(var(--pad), 60px); }
     .wk-stage { flex: none; height: min(66vh, 78vw); }
   }
   @media (max-width: 720px) {
+    .rz { display: none; }
     .icons { display: none; }
     .desk { padding: calc(var(--bar) + env(safe-area-inset-top, 0px) + 32px) 16px 40px; }
     .work-win { margin: 32px -8px 0; --pad: 14px; --px: var(--pad); }
@@ -997,9 +991,9 @@
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
     .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
-    .chip svg, .sv-layer, .peek, .wk-slide > img, .wk-slide > video, .wk-arrow { transition: none; }
+    .chip svg, .peek, .wk-slide > img, .wk-slide > video, .wk-arrow { transition: none; }
     .lg.is-playing path { animation: none !important; }
-    .sv-layer > img, .sv-layer > video, .sv-cap.is-new { animation: none; }
+    .saver, .sv-time .sep { animation: none; }
     .bez .bez-me { animation: none !important; }
     .tile { transition: none; }
     .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
@@ -1046,7 +1040,6 @@
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="paint">Paint</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="hoops">Hoops</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="puzzle">Puzzle</button></li>
-        <li role="none"><button class="mi" role="menuitem" type="button" data-win="calc">Calculator</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="notes">Note Pad</button></li>
         <li role="separator" class="sep"></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="apps">Show All</button></li>
@@ -1086,7 +1079,7 @@
     </header>
     <p>I work across brand, web and motion, turning one good idea into an identity a company can live in.</p>
     <p>Currently a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener" class="org" data-org="hex" data-peek="work/hex-reel.mp4" data-poster="work/hex-reel.webp" data-ar="16 / 9"><svg class="lg lg-hex" viewBox="-7 -5.5 74 34" aria-hidden="true"><rect x="-7" y="-5.5" width="74" height="34" rx="6"/><path d="M37.3502 22.848L45.0622 11.424L37.1582 0H43.8782L48.5502 7.04L53.0942 0L59.9102 0.032L52.0702 11.424L59.7182 22.848H52.8382L48.5502 16.032L44.3262 22.848H37.3502Z"/><path d="M37.408 0V5.056H27.744V8.96H36.736V13.856H27.744V17.792H37.504V22.848H21.792V0H37.408Z"/><path d="M13.728 0H19.68V22.848H13.728V13.92H5.952V22.848H0V0H5.952V8.864H13.728V0Z"/></svg><span>HEX</span></a>, where I’ve worked on the identities for <a href="#work" data-project="0" class="org" data-org="dessn" data-peek="work/dessn-film.mp4" data-poster="work/dessn-film.webp" data-ar="1 / 1"><svg class="lg lg-dessn" viewBox="-5 -5 162 173" aria-hidden="true"><path pathLength="1" style="--i:0" d="M69.9006 162.398C69.9006 162.398 80.266 140.763 82.9704 119.128C85.6748 97.4943 84.621 74.4247 73.5809 70.3801C62.5408 66.3355 48.4889 74.4241 50.1619 84.1996C51.8349 93.9744 81.6099 99.3673 92.3157 80.8291C103.022 62.2908 111.72 35.6625 100.345 19.1462C88.9698 2.62997 58.8605 0.607791 46.8164 16.1127C34.7722 31.6176 46.8164 52.7851 46.8164 52.5155C46.8164 52.366 31.4621 47.673 20.7714 51.5204C12.1731 54.6148 1.84018 65.0419 7.24946 81.2678C12.6587 97.4943 34.4379 95.6594 34.4379 95.6594C34.4379 95.6594 8.00818 109.479 24.4013 125.995C40.7944 142.511 63.2093 121.95 63.2093 121.95"/><path pathLength="1" style="--i:1" d="M98.918 125.994C98.918 125.994 121.338 142.836 132.854 125.994C144.37 109.151 118.412 95.6581 118.412 95.6581C118.412 95.6581 149.792 97.4924 150.58 73.1533C151.368 48.8147 120.832 51.5191 120.832 51.5191"/></svg><span>Dessn</span></a>, <a href="#work" data-project="1" class="org" data-org="ataraxis" data-peek="" data-poster="work/ataraxis-c.webp" data-ar="16 / 9"><svg class="lg lg-ataraxis" viewBox="0 2 42 37" aria-hidden="true"><path pathLength="1" style="--i:0" d="M2.21582 36.9995L20.8941 4.0283L39.5724 36.9995H2.21582Z"/><path pathLength="1" style="--i:1" d="M2.89795 36.9993L20.8653 18.2153L38.8327 36.9993H2.89795Z"/><path pathLength="1" style="--i:2" d="M4.42822 36.9996L20.9807 27.8349L37.5332 36.9996H4.42822Z"/></svg><span>Ataraxis</span></a> and <a href="#work" data-project="2" class="org" data-org="vorflux" data-peek="" data-poster="work/vorflux.webp" data-ar="16 / 9"><svg class="lg lg-vorflux" viewBox="0 0 22.26 18.75" aria-hidden="true"><path style="--i:0" d="M9.04 11.61C9.03 11.49 9.08 11.38 9.16 11.3C9.24 11.22 9.35 11.18 9.46 11.18C10.57 11.19 11.68 11.19 12.79 11.18C12.91 11.18 13.02 11.22 13.1 11.3C13.18 11.38 13.22 11.49 13.22 11.61C13.2 12.53 13.17 13.45 13.14 14.36C13.13 14.48 13.08 14.59 13 14.68C12.92 14.76 12.82 14.81 12.71 14.81C11.65 14.83 10.6 14.83 9.55 14.81C9.44 14.81 9.33 14.76 9.25 14.68C9.17 14.59 9.12 14.48 9.12 14.36C9.08 13.45 9.05 12.53 9.04 11.61Z"/><path style="--i:1" d="M13.49 11.61C13.49 11.49 13.54 11.38 13.62 11.3C13.71 11.21 13.82 11.17 13.93 11.17C15.04 11.15 16.15 11.13 17.26 11.09C17.38 11.09 17.49 11.13 17.56 11.21C17.64 11.28 17.68 11.39 17.67 11.5C17.62 12.38 17.53 13.25 17.41 14.13C17.4 14.24 17.34 14.35 17.25 14.44C17.17 14.52 17.06 14.58 16.95 14.58C15.89 14.67 14.84 14.74 13.79 14.78C13.68 14.78 13.58 14.74 13.5 14.66C13.43 14.58 13.39 14.47 13.4 14.36C13.44 13.44 13.47 12.52 13.49 11.61Z"/><path style="--i:2" d="M4.58 11.5C4.58 11.39 4.61 11.28 4.69 11.21C4.77 11.13 4.88 11.09 4.99 11.09C6.1 11.13 7.21 11.15 8.32 11.17C8.44 11.17 8.55 11.21 8.63 11.3C8.72 11.38 8.76 11.49 8.77 11.61C8.79 12.52 8.82 13.44 8.86 14.36C8.86 14.47 8.83 14.58 8.75 14.66C8.68 14.74 8.58 14.78 8.47 14.78C7.42 14.74 6.36 14.67 5.31 14.58C5.2 14.58 5.09 14.52 5 14.44C4.91 14.35 4.86 14.24 4.84 14.13C4.73 13.25 4.64 12.38 4.58 11.5Z"/><path style="--i:3" d="M4.53 7.77C4.53 7.66 4.58 7.55 4.67 7.47C4.75 7.39 4.86 7.35 4.98 7.34C6.09 7.32 7.21 7.3 8.32 7.28C8.43 7.28 8.54 7.33 8.62 7.41C8.7 7.49 8.75 7.6 8.75 7.71C8.73 8.63 8.73 9.55 8.75 10.46C8.75 10.58 8.7 10.69 8.62 10.77C8.54 10.85 8.43 10.9 8.32 10.89C7.21 10.88 6.09 10.86 4.98 10.83C4.86 10.83 4.75 10.78 4.67 10.7C4.58 10.62 4.53 10.52 4.53 10.41C4.5 9.53 4.5 8.65 4.53 7.77Z"/><path style="--i:4" d="M13.51 7.71C13.51 7.6 13.55 7.49 13.63 7.41C13.71 7.33 13.82 7.28 13.94 7.28C15.05 7.3 16.16 7.32 17.28 7.34C17.39 7.35 17.5 7.39 17.59 7.47C17.67 7.55 17.72 7.66 17.73 7.77C17.76 8.65 17.76 9.53 17.73 10.41C17.72 10.52 17.67 10.62 17.59 10.7C17.5 10.78 17.39 10.83 17.28 10.83C16.16 10.86 15.05 10.88 13.94 10.89C13.82 10.9 13.71 10.85 13.63 10.77C13.55 10.69 13.51 10.58 13.51 10.46C13.52 9.55 13.52 8.63 13.51 7.71Z"/><path style="--i:5" d="M9.17 15.51C9.17 15.39 9.2 15.28 9.28 15.2C9.35 15.12 9.45 15.08 9.56 15.08C10.61 15.11 11.65 15.11 12.7 15.08C12.81 15.08 12.91 15.12 12.98 15.2C13.05 15.28 13.09 15.39 13.09 15.51C13.04 16.43 12.99 17.35 12.92 18.26C12.91 18.38 12.87 18.49 12.79 18.58C12.72 18.66 12.62 18.71 12.53 18.72C11.59 18.76 10.66 18.76 9.73 18.72C9.64 18.71 9.54 18.66 9.47 18.58C9.39 18.49 9.34 18.38 9.34 18.26C9.27 17.35 9.22 16.43 9.17 15.51Z"/><path style="--i:6" d="M18 7.78C18 7.67 18.04 7.56 18.12 7.49C18.19 7.41 18.3 7.37 18.42 7.37C19.53 7.41 20.64 7.45 21.75 7.5C21.87 7.5 21.98 7.55 22.07 7.62C22.16 7.7 22.21 7.79 22.22 7.89C22.27 8.69 22.27 9.49 22.22 10.28C22.21 10.38 22.16 10.48 22.07 10.55C21.98 10.63 21.87 10.67 21.75 10.68C20.64 10.73 19.53 10.77 18.42 10.8C18.3 10.8 18.19 10.76 18.12 10.69C18.04 10.61 18 10.51 18 10.4C18.03 9.52 18.03 8.65 18 7.78Z"/><path style="--i:7" d="M0.04 7.89C0.05 7.79 0.1 7.7 0.18 7.62C0.27 7.55 0.39 7.5 0.5 7.5C1.61 7.45 2.73 7.41 3.84 7.37C3.95 7.37 4.06 7.41 4.14 7.49C4.22 7.56 4.26 7.67 4.26 7.78C4.22 8.65 4.22 9.52 4.26 10.4C4.26 10.51 4.22 10.61 4.14 10.69C4.06 10.76 3.95 10.8 3.84 10.8C2.73 10.77 1.61 10.73 0.5 10.68C0.39 10.67 0.27 10.63 0.18 10.55C0.1 10.48 0.05 10.38 0.04 10.28C-0.01 9.49 -0.01 8.69 0.04 7.89Z"/><path style="--i:8" d="M17.68 4.06C17.66 3.96 17.69 3.85 17.75 3.78C17.82 3.71 17.92 3.68 18.03 3.69C19.08 3.8 20.13 3.92 21.18 4.08C21.29 4.09 21.41 4.15 21.5 4.23C21.6 4.31 21.67 4.41 21.69 4.51C21.89 5.31 22.03 6.11 22.13 6.9C22.14 7 22.1 7.1 22.03 7.16C21.96 7.23 21.85 7.26 21.73 7.26C20.62 7.2 19.51 7.16 18.4 7.12C18.29 7.11 18.18 7.07 18.09 6.99C18 6.91 17.95 6.8 17.95 6.69C17.89 5.81 17.8 4.94 17.68 4.06Z"/><path style="--i:9" d="M0.56 4.51C0.59 4.41 0.66 4.31 0.75 4.23C0.85 4.15 0.96 4.09 1.07 4.08C2.12 3.92 3.18 3.8 4.23 3.69C4.34 3.68 4.44 3.71 4.5 3.78C4.57 3.85 4.6 3.96 4.58 4.06C4.46 4.94 4.37 5.81 4.31 6.69C4.3 6.8 4.25 6.91 4.17 6.99C4.08 7.07 3.97 7.11 3.85 7.12C2.74 7.16 1.63 7.2 0.52 7.26C0.41 7.26 0.3 7.23 0.23 7.16C0.15 7.1 0.12 7 0.13 6.9C0.22 6.11 0.37 5.31 0.56 4.51Z"/><path style="--i:10" d="M16.97 0.35C16.94 0.24 16.96 0.14 17 0.08C17.05 0.01 17.13 -0.01 17.23 0.01C18.16 0.18 19.09 0.4 20.02 0.65C20.12 0.68 20.23 0.75 20.33 0.84C20.43 0.93 20.51 1.03 20.55 1.13C20.89 1.93 21.18 2.73 21.42 3.52C21.45 3.62 21.44 3.71 21.38 3.77C21.32 3.83 21.23 3.85 21.12 3.84C20.08 3.68 19.03 3.54 17.98 3.43C17.88 3.42 17.76 3.37 17.67 3.28C17.59 3.2 17.53 3.09 17.51 2.98C17.36 2.1 17.18 1.23 16.97 0.35Z"/><path style="--i:11" d="M1.7 1.13C1.75 1.03 1.83 0.93 1.93 0.84C2.03 0.75 2.14 0.68 2.23 0.65C3.16 0.4 4.1 0.18 5.03 0.01C5.12 -0.01 5.2 0.01 5.25 0.08C5.3 0.14 5.31 0.24 5.29 0.35C5.08 1.23 4.9 2.1 4.75 2.98C4.73 3.09 4.67 3.2 4.58 3.28C4.49 3.37 4.38 3.42 4.27 3.43C3.23 3.54 2.18 3.68 1.13 3.84C1.02 3.85 0.93 3.83 0.88 3.77C0.82 3.71 0.8 3.62 0.83 3.52C1.07 2.73 1.36 1.93 1.7 1.13Z"/></svg><span>Vorflux</span></a>. I also build my own generative tools, for when the right one doesn’t exist yet.</p>
-    <p class="meta">On the Awwwards Young Jury, and featured on A1 Gallery, Landbook and Framer Gallery. Away from the screen: reading, climbing volcanoes, basketball.<span class="caret" aria-hidden="true"></span></p>
+    <p>I’m on the <a href="https://www.awwwards.com/" target="_blank" rel="noopener">Awwwards</a> Young Jury. Away from the screen, I read, climb volcanoes and play basketball.<span class="caret" aria-hidden="true"></span></p>
     <p class="meta">Find me on <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a> and <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a>, or write to <button class="mail" id="mail" type="button" title="Copy the address">hello <span>[at]</span> adiel <span>[dot]</span> design</button>.</p>
     <div class="meta-block">
       <p class="meta">Selected work</p>
@@ -1105,15 +1098,15 @@
   </section>
 
   <!-- Work -->
-  <section class="window work-win" id="work" data-icon="icon-work" data-boot tabindex="-1" aria-labelledby="work-title">
+  <section class="window work-win" id="work" data-min-w="520" data-min-h="400" data-icon="icon-work" data-boot tabindex="-1" aria-labelledby="work-title">
     <header class="titlebar">
       <button class="closebox" type="button" aria-label="Close Work"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
       <h2 class="wtitle" id="work-title">Work</h2>
     </header>
     <div class="wk-stage" id="wk-stage" aria-roledescription="carousel" aria-label="Selected work">
       <ol class="wk-track" id="wk-track"></ol>
-      <button class="wk-arrow" type="button" id="wk-prev" aria-label="Previous piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg></button>
-      <button class="wk-arrow" type="button" id="wk-next" aria-label="Next piece"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5"/></svg></button>
+      <button class="wk-arrow" type="button" id="wk-prev" aria-label="Previous piece"><svg viewBox="0 0 11 20" aria-hidden="true"><path d="M9.5 1 1.5 10l8 9"/></svg></button>
+      <button class="wk-arrow" type="button" id="wk-next" aria-label="Next piece"><svg viewBox="0 0 11 20" aria-hidden="true"><path d="M1.5 1l8 9-8 9"/></svg></button>
     </div>
     <footer class="wk-bar">
       <div class="wk-lead">
@@ -1213,17 +1206,6 @@
   </div>
 </section>
 
-<!-- Calculator -->
-<section class="window is-float" id="calc" data-icon="app-calc" tabindex="-1" aria-labelledby="calc-title" hidden>
-  <header class="titlebar">
-    <button class="closebox" type="button" aria-label="Close Calculator"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
-    <h2 class="wtitle" id="calc-title">Calculator</h2>
-  </header>
-  <div class="wbody calc-body">
-    <output class="lcd" id="lcd" aria-live="polite" aria-label="Display">0</output>
-    <div class="calc-keys" id="calc-keys" role="group" aria-label="Keys"></div>
-  </div>
-</section>
 
 <!-- Note Pad -->
 <section class="window is-float" id="notes" data-icon="app-notes" tabindex="-1" aria-labelledby="notes-title" hidden>
@@ -1358,10 +1340,6 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="1.5"/><path d="M9.3 4v16M14.7 4v10.7M4 9.3h16M4 14.7h10.7"/></svg>
       <span>Puzzle</span>
     </button>
-    <button class="app" id="app-calc" type="button" data-win="calc">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M8 7.2h8"/><circle cx="9" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="15" cy="11.5" r=".9" fill="currentColor" stroke="none"/><circle cx="9" cy="15.2" r=".9" fill="currentColor" stroke="none"/><circle cx="12" cy="15.2" r=".9" fill="currentColor" stroke="none"/><circle cx="15" cy="15.2" r=".9" fill="currentColor" stroke="none"/></svg>
-      <span>Calculator</span>
-    </button>
     <button class="app" id="app-notes" type="button" data-win="notes">
       <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="4.5" width="14" height="15.5" rx="1.5"/><path d="M8.5 9.5h7M8.5 12.5h7M8.5 15.5h4.5M8.5 3v3M12 3v3M15.5 3v3"/></svg>
       <span>Note Pad</span>
@@ -1430,7 +1408,7 @@
 </div>
 
 <div class="deskpat" aria-hidden="true"></div>
-<div class="saver" id="saver" aria-hidden="true" hidden><div class="sv-stage"></div><p class="sv-cap"></p></div>
+<div class="saver" id="saver" aria-hidden="true" hidden><p class="sv-time" id="sv-time"></p></div>
 
 <script>
 (() => {
@@ -2003,7 +1981,7 @@
   ========================================================== */
   const W = {
     piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
-    puzzle: $('#puzzle'), calc: $('#calc'), notes: $('#notes'), panel: $('#panel'),
+    puzzle: $('#puzzle'), notes: $('#notes'), panel: $('#panel'),
     apps: $('#apps'), work: $('#work'), tune: $('#tune'),
   };
   const stack = [];
@@ -2017,6 +1995,7 @@
   const positions = parse(store.get(POS_KEY), {});
   function savePos(win) {
     positions[win.id] = [parseFloat(win.style.left), parseFloat(win.style.top)];
+    if (win.classList.contains('is-sized')) positions[win.id].push(win.offsetWidth, win.offsetHeight);
     store.set(POS_KEY, JSON.stringify(positions));
   }
   // Below 1100px the Work window is part of the page, not a floating window.
@@ -2067,7 +2046,6 @@
     paint: { before: () => Paint.build(), close: () => Paint.commit() },
     hoops: { before: () => Hoops.build(), after: () => Hoops.start(), close: () => { Hoops.stop(); Bez.hoopsClosed(); } },
     puzzle: { before: () => Puzzle.build() },
-    calc: { before: () => Calc.build() },
     notes: { before: () => Notes.build(), after: () => Notes.focus(), close: () => Notes.save() },
     panel: { before: () => Panel.build() },
     work: { after: () => Work.play(), close: () => Work.pause() },
@@ -2089,6 +2067,7 @@
       win.style.right = 'auto';
       win.style.bottom = 'auto';
       placeWin(win, p[0], p[1]);
+      if (p[2]) sizeWin(win, p[2], p[3]);
     }
     const h = hooks[win.id] || {};
     if (h.before) h.before();
@@ -2132,6 +2111,16 @@
   }
 
 
+  // Size a window, within its own minimum and the screen.
+  function sizeWin(win, w, h) {
+    const r = win.getBoundingClientRect(), cs = getComputedStyle(win);
+    const minW = Math.max(parseFloat(cs.minWidth) || 0, +(win.dataset.minW || 240));
+    const minH = Math.max(parseFloat(cs.minHeight) || 0, +(win.dataset.minH || 140));
+    if (w != null) win.style.width = Math.round(clamp(w, minW, innerWidth - r.left - 8)) + 'px';
+    if (h != null) win.style.height = Math.round(clamp(h, minH, innerHeight - r.top - 8)) + 'px';
+    win.style.maxHeight = 'none';
+    win.classList.add('is-sized');
+  }
   function placeWin(win, x, y) {
     const w = win.offsetWidth;
     win.style.left = Math.round(clamp(x, 56 - w, innerWidth - 56)) + 'px';
@@ -2163,6 +2152,47 @@
       bar.addEventListener('pointermove', move);
       bar.addEventListener('pointerup', end);
       bar.addEventListener('pointercancel', end);
+    });
+  });
+  // Every window but the alert resizes: from its right edge, its
+  // bottom edge, or the corner between them.
+  $$('.window').forEach((win) => {
+    ['e', 's', 'se'].forEach((dir) => {
+      const h = document.createElement('div');
+      h.className = 'rz rz-' + dir;
+      h.setAttribute('aria-hidden', 'true');
+      win.append(h);
+      h.addEventListener('pointerdown', (e) => {
+        if (narrow.matches || isDocked(win) || e.button !== 0 || win.classList.contains('is-shaded')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        raise(win);
+        const r = win.getBoundingClientRect();
+        win.style.right = 'auto';
+        win.style.bottom = 'auto';
+        placeWin(win, r.left, r.top);
+        const sx = e.clientX, sy = e.clientY;
+        h.setPointerCapture(e.pointerId);
+        win.classList.add('is-resizing');
+        const move = (ev) => sizeWin(win, dir === 's' ? null : r.width + ev.clientX - sx, dir === 'e' ? null : r.height + ev.clientY - sy);
+        const end = () => {
+          h.removeEventListener('pointermove', move);
+          h.removeEventListener('pointerup', end);
+          h.removeEventListener('pointercancel', end);
+          win.classList.remove('is-resizing');
+          savePos(win);
+          if (win === W.piano) Piano.layout();
+        };
+        h.addEventListener('pointermove', move);
+        h.addEventListener('pointerup', end);
+        h.addEventListener('pointercancel', end);
+      });
+      // Double-click the corner to go back to the window's own size.
+      if (dir === 'se') h.addEventListener('dblclick', () => {
+        win.style.width = win.style.height = win.style.maxHeight = '';
+        win.classList.remove('is-sized');
+        savePos(win);
+      });
     });
   });
   // Apps in the folder, and the inline links, open their windows.
@@ -3571,93 +3601,6 @@
   })();
 
   /* ==========================================================
-     Calculator — the four functions, like the desk accessory.
-     Type on your keyboard too.
-  ========================================================== */
-  const Calc = (() => {
-    const win = W.calc, lcd = $('#lcd'), keysEl = $('#calc-keys');
-    const KEYS = [
-      ['C', 'c', 'Clear'], ['±', '±', 'Change sign'], ['%', '%', 'Percent'], ['÷', '/', 'Divide'],
-      ['7', '7'], ['8', '8'], ['9', '9'], ['×', '*', 'Multiply'],
-      ['4', '4'], ['5', '5'], ['6', '6'], ['−', '-', 'Subtract'],
-      ['1', '1'], ['2', '2'], ['3', '3'], ['+', '+', 'Add'],
-      ['0', '0'], ['.', '.', 'Decimal point'], ['=', '=', 'Equals'],
-    ];
-    const OPS = '+-*/';
-    const btns = new Map();
-    let acc = null, op = null, cur = '0', fresh = true, built = false;
-    const show = () => { lcd.textContent = cur; };
-    function fmt(n) {
-      if (!isFinite(n)) return 'Error';
-      const abs = Math.abs(n);
-      if (abs >= 1e12 || (abs && abs < 1e-9)) return n.toExponential(5);
-      return String(Number(n.toPrecision(10)));
-    }
-    const calc = (a, b, o) => (o === '+' ? a + b : o === '-' ? a - b : o === '*' ? a * b : b === 0 ? NaN : a / b);
-    const light = (o) => btns.forEach((b, k) => b.classList.toggle('is-lit', k === o));
-    function digit(d) {
-      if (cur === 'Error') cur = '0';
-      if (fresh) { cur = d === '.' ? '0.' : d; fresh = false; show(); return; }
-      if (d === '.' && cur.includes('.')) return;
-      if (cur.replace(/[-.]/g, '').length >= 12) return;
-      cur = cur === '0' && d !== '.' ? d : cur + d;
-      show();
-    }
-    function operate(o) {
-      const v = parseFloat(cur);
-      if (op && !fresh) { acc = calc(acc, v, op); cur = fmt(acc); }
-      else if (acc === null || !op) acc = v;
-      op = o; fresh = true;
-      show(); light(o);
-    }
-    function equals() {
-      if (op) { acc = calc(acc, parseFloat(cur), op); cur = fmt(acc); }
-      op = null; acc = null; fresh = true;
-      show(); light(null);
-    }
-    function clear() { acc = null; op = null; cur = '0'; fresh = true; show(); light(null); }
-    function press(k) {
-      if (/^[0-9.]$/.test(k)) digit(k);
-      else if (OPS.includes(k)) operate(k);
-      else if (k === '=') equals();
-      else if (k === 'c') clear();
-      else if (k === '±') { if (cur !== '0' && cur !== 'Error') { cur = cur.startsWith('-') ? cur.slice(1) : '-' + cur; show(); } }
-      else if (k === '%') { cur = fmt(parseFloat(cur) / 100); fresh = true; show(); }
-      else if (k === 'back') { cur = !fresh && cur.length > 1 && cur !== 'Error' ? cur.slice(0, -1) : '0'; if (cur === '-') cur = '0'; show(); }
-    }
-    function build() {
-      if (built) return;
-      built = true;
-      KEYS.forEach(([label, k, name]) => {
-        const b = document.createElement('button');
-        b.type = 'button';
-        b.className = 'ckey' + (OPS.includes(k) || k === '=' ? ' is-op' : '') + (k === '0' ? ' is-wide' : '');
-        b.innerHTML = '<span>' + label + '</span>';
-        if (name) b.setAttribute('aria-label', name);
-        b.addEventListener('click', () => press(k));
-        keysEl.append(b);
-        btns.set(k, b);
-      });
-      show();
-    }
-    function keydown(e) {
-      const k = e.key;
-      let map = null;
-      if (/^[0-9.]$/.test(k) || (OPS.includes(k) && k.length === 1) || k === '%') map = k;
-      else if (k === 'Enter' || k === '=') map = '=';
-      else if (k === 'Backspace') map = 'back';
-      else if (k === 'Delete' || k === 'c' || k === 'C') map = 'c';
-      else return false;
-      e.preventDefault();
-      press(map);
-      const b = btns.get(map === 'back' ? null : map);
-      if (b && !OPS.includes(map)) { b.classList.add('is-lit'); setTimeout(() => b.classList.remove('is-lit'), 90); }
-      return true;
-    }
-    return { build, keydown, get active() { return !win.hidden && win.classList.contains('is-active'); } };
-  })();
-
-  /* ==========================================================
      Note Pad — eight pages, kept in this browser.
   ========================================================== */
   const Notes = (() => {
@@ -4627,45 +4570,20 @@
      is drawn on a coarse pixel grid. Any input wakes the desk.
   ========================================================== */
   const Saver = (() => {
-    const el = $('#saver'), stage = $('.sv-stage', el), cap = $('.sv-cap', el);
-    const IDLE = 90 * 1000, DWELL = 6500;
-    let on = false, timer = 0, at = 0, layer = null, lastInput = performance.now(), startedAt = 0, anchor = null;
+    const el = $('#saver'), time = $('#sv-time');
+    const IDLE = 90 * 1000;
+    let on = false, timer = 0, lastInput = performance.now(), startedAt = 0, anchor = null;
 
-    function media(s) {
-      const src = 'work/' + s.id;
-      let m;
-      if (s.video && !reduced.matches) {
-        m = document.createElement('video');
-        m.src = src + '.mp4'; m.poster = src + '.webp';
-        m.muted = true; m.loop = true; m.playsInline = true; m.autoplay = true;
-        m.disablePictureInPicture = true;
-      } else {
-        m = document.createElement('img');
-        m.src = src + '.webp'; m.alt = '';
-        m.decoding = 'async';
-      }
-      m.width = s.w; m.height = s.h;
-      return m;
+    // Hours and minutes, large and light; the colon keeps the seconds.
+    function draw() {
+      const d = new Date(), h24 = Prefs.get('clock24');
+      let h = d.getHours();
+      const ap = h < 12 ? 'am' : 'pm';
+      if (!h24) h = h % 12 || 12;
+      const hh = h24 ? String(h).padStart(2, '0') : String(h);
+      time.innerHTML = hh + '<span class="sep">:</span>' + String(d.getMinutes()).padStart(2, '0') + (h24 ? '' : '<span class="ap">' + ap + '</span>');
+      time.setAttribute('aria-label', d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
     }
-    // The next piece fades in over the last, which then goes.
-    function show(i) {
-      const s = Work.pieces[i];
-      const next = document.createElement('div');
-      next.className = 'sv-layer';
-      next.append(media(s));
-      stage.append(next);
-      const old = layer;
-      layer = next;
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        next.classList.add('is-on');
-        if (old) { old.classList.remove('is-on'); setTimeout(() => old.remove(), 1800); }
-      }));
-      cap.innerHTML = '<b>' + s.name + '</b><span>' + s.title + '</span>';
-      cap.classList.remove('is-new');
-      void cap.offsetWidth;
-      cap.classList.add('is-new');
-    }
-
     function start() {
       if (on) return;
       on = true;
@@ -4673,20 +4591,19 @@
       Piano.releaseAll();
       Paint.commit();
       Work.pause();
-      at = Math.floor(Math.random() * Work.pieces.length);
       startedAt = performance.now();
       anchor = null;
+      draw();
       el.hidden = false;
-      show(at);
-      timer = setInterval(() => { at = (at + 1) % Work.pieces.length; show(at); }, DWELL);
+      // On the minute, every minute.
+      const tick = () => { draw(); timer = setTimeout(tick, 60000 - (Date.now() % 60000) + 20); };
+      timer = setTimeout(tick, 60000 - (Date.now() % 60000) + 20);
     }
     function stop() {
       if (!on) return;
       on = false;
-      clearInterval(timer);
+      clearTimeout(timer);
       el.hidden = true;
-      stage.replaceChildren();
-      layer = null;
       lastInput = performance.now();
       Work.play();
     }
@@ -5624,7 +5541,7 @@
 
     /* Ask Bez: a handful of things he understands, matched by keywords. */
     const has = (q, re) => re.test(q);
-    const WNAMES = { piano: 'piano', paint: 'paint', hoops: 'hoops', calc: 'calc', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
+    const WNAMES = { piano: 'piano', paint: 'paint', hoops: 'hoops', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
     function notesIn(q) {
       const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
       let m;
@@ -5709,9 +5626,6 @@
       else if (has(q, /control panel|settings|preferences|pattern|volume|wallpaper|desktop|blink/)) {
         openWin(W.panel, { scroll: true });
         answer('<p>The Control Panel: desktop pattern, display, volume, blinking and the clock. Draw your own pattern in the little grid.</p>');
-      } else if (has(q, /calculat|\bcalc\b|\bmaths?\b|arithmetic|\bsum\b|add up/)) {
-        openWin(W.calc, { scroll: true });
-        answer('<p>Calculator’s open. Your keyboard works too: Enter for equals, C to clear.</p>');
       } else if (has(q, /\bnotes?\b|note ?pad|write|memo|jot/)) {
         openWin(W.notes, { scroll: true });
         answer('<p>Note Pad’s open. Eight pages, and they stay in this browser.</p>');
@@ -5727,7 +5641,7 @@
         openWin(W.paint, { scroll: true });
         answer('<p>Paint’s open. Double-click the eraser to start over, and Ctrl+Z (⌘Z on a Mac) undoes. Your drawing stays in this browser.</p>');
       } else if (has(q, /screen ?saver|idle|sleep/)) {
-        answer('<p>Leave the desk alone for a minute and a half and the screen saver starts by itself. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
+        answer('<p>Leave the desk alone for a minute and a half and the clock comes up. Want to see it now?</p>', [['Start it', () => { hush(); Saver.start(); }], ['Back', () => home(true)]]);
       } else if (has(q, /theme|display|colou?r|dark|amber|green|retro|mode/)) {
         answer('<p>Press <b>T</b> to flip between three displays: Paper, Graphite and Black.</p>', [['Next display', cycleTheme], ['Control Panel', () => openWin(W.panel, { scroll: true })], ['Back', () => home(true)]]);
       } else if (has(q, /joke|funny|laugh/)) {
@@ -5857,7 +5771,6 @@
     if (Piano.active && Piano.keydown(e)) return;
     if (Hoops.active && Hoops.keydown(e)) return;
     if (Work.active && Work.keydown(e)) return;
-    if (Calc.active && Calc.keydown(e)) return;
     if (Puzzle.active && Puzzle.keydown(e)) return;
     if (Paint.active && Paint.keydown(e)) return;
     if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
