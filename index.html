@@ -803,6 +803,21 @@
   .b-text a { color: inherit; }
 
   /* Calculator desk accessory */
+  /* Writing: one piece at a time, set for reading */
+  #writing { left: clamp(60px, 26vw, 460px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 56px); width: 540px; max-height: calc(100vh - var(--bar) - 96px); max-height: calc(100dvh - var(--bar) - 96px); }
+  .wr-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .wr-read { flex: 1 1 auto; min-height: 0; padding: 30px 34px 34px; }
+  .wr-read h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; text-wrap: balance; }
+  .wr-kind { margin-top: 4px; color: var(--graphite); font-size: 13px; }
+  .wr-read .body { max-width: 60ch; margin-top: 18px; font-size: 16px; line-height: 1.65; text-wrap: pretty; }
+  .wr-read .body + .body { margin-top: 1em; }
+  .wr-read.is-new > * { animation: wk-cap-in .6s cubic-bezier(.22, 1, .36, 1) both; }
+  .wr-read.is-new > :nth-child(2) { animation-delay: .04s; }
+  .wr-read.is-new > :nth-child(n + 3) { animation-delay: .08s; }
+  .wr-nav { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--edge); font-size: 12px; }
+  .wr-count { color: var(--graphite); font-variant-numeric: tabular-nums; }
+  .chip:disabled { opacity: .35; pointer-events: none; }
+  @media (max-width: 720px) { .wr-read { padding: 22px 22px 26px; } .wr-read h3 { font-size: 20px; } }
   #notes { left: clamp(40px, 14vw, 260px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 80px); width: 300px; }
   .notes-body { padding: 0; }
   .notes-body textarea {
@@ -1030,6 +1045,7 @@
       </button>
       <ul class="menu" id="m-adiel" role="menu" aria-labelledby="menu-adiel" hidden>
         <li role="none"><button class="mi" role="menuitem" type="button" data-work>Selected Work</button></li>
+        <li role="none"><button class="mi" role="menuitem" type="button" data-win="writing">Writing</button></li>
         <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-win="apps">Apps</button></li>
         <li role="separator" class="sep"></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="panel">Control Panel</button></li>
@@ -1097,6 +1113,14 @@
         <li><a href="#work" data-project="0" data-peek="work/dessn-film.mp4" data-poster="work/dessn-film.webp" data-ar="1 / 1"><span>Dessn</span><span>Rebrand, 2026</span></a></li>
         <li><a href="#work" data-project="1" data-peek="" data-poster="work/ataraxis-c.webp" data-ar="16 / 9"><span>Ataraxis</span><span>Rebrand, 2026</span></a></li>
         <li><a href="#work" data-project="2" data-peek="" data-poster="work/vorflux.webp" data-ar="16 / 9"><span>Vorflux</span><span>Brand system</span></a></li>
+      </ol>
+    </div>
+    <div class="meta-block">
+      <p class="meta">Writing</p>
+      <ol class="list" aria-label="Writing">
+        <li><a href="#writing" data-note="0"><span>Concept first</span><span>Process</span></a></li>
+        <li><a href="#writing" data-note="1"><span>Useful and distinctive</span><span>Principles</span></a></li>
+        <li><a href="#writing" data-note="2"><span>Making my own tools</span><span>Tools</span></a></li>
       </ol>
     </div>
     <div class="peek" id="peek" aria-hidden="true"></div>
@@ -1221,6 +1245,22 @@
   </div>
 </section>
 
+
+<!-- Writing -->
+<section class="window is-float" id="writing" data-min-w="340" data-min-h="260" tabindex="-1" aria-labelledby="writing-title" hidden>
+  <header class="titlebar">
+    <button class="closebox" type="button" aria-label="Close Writing"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
+    <h2 class="wtitle" id="writing-title">Writing</h2>
+  </header>
+  <div class="wr-body">
+    <article class="wr-read scroll" id="wr-read" aria-live="polite"></article>
+    <footer class="wr-nav">
+      <button class="chip" type="button" id="wr-prev">Previous</button>
+      <span class="wr-count" id="wr-count"></span>
+      <button class="chip" type="button" id="wr-next">Next</button>
+    </footer>
+  </div>
+</section>
 
 <!-- Note Pad -->
 <section class="window is-float" id="notes" data-icon="app-notes" tabindex="-1" aria-labelledby="notes-title" hidden>
@@ -2000,7 +2040,7 @@
   ========================================================== */
   const W = {
     piano: $('#piano'), paint: $('#paint'), hoops: $('#hoops'),
-    puzzle: $('#puzzle'), notes: $('#notes'), panel: $('#panel'),
+    puzzle: $('#puzzle'), notes: $('#notes'), writing: $('#writing'), panel: $('#panel'),
     apps: $('#apps'), work: $('#work'), tune: $('#tune'),
   };
   const stack = [];
@@ -5962,7 +6002,7 @@
 
     /* Ask Bez: a handful of things he understands, matched by keywords. */
     const has = (q, re) => re.test(q);
-    const WNAMES = { piano: 'piano', paint: 'paint', hoops: 'hoops', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
+    const WNAMES = { writing: 'writing', piano: 'piano', paint: 'paint', hoops: 'hoops', notes: 'note', puzzle: 'puzzle', panel: 'control panel', apps: 'apps', work: 'work' };
     function notesIn(q) {
       const out = [], re = /(?:^|[\s,–-])([a-g])(#|♯|b|♭| ?sharp| ?flat)?(?=$|[\s,?.!–-])/gi;
       let m;
@@ -6047,6 +6087,9 @@
       else if (has(q, /control panel|settings|preferences|pattern|volume|wallpaper|desktop|blink/)) {
         openWin(W.panel, { scroll: true });
         answer('<p>The Control Panel: desktop pattern, display, volume, blinking and the clock. Draw your own pattern in the little grid.</p>');
+      } else if (has(q, /writing|essays?|blog|articles?|thoughts|read something/)) {
+        Writing.open(0);
+        answer('<p>Writing is open: short pieces on how the work gets made. ← and → move between them.</p>');
       } else if (has(q, /\bnotes?\b|note ?pad|write|memo|jot/)) {
         openWin(W.notes, { scroll: true });
         answer('<p>Note Pad’s open. Eight pages, and they stay in this browser.</p>');
@@ -6192,6 +6235,7 @@
     if (Piano.active && Piano.keydown(e)) return;
     if (Hoops.active && Hoops.keydown(e)) return;
     if (Work.active && Work.keydown(e)) return;
+    if (Writing.active && Writing.keydown(e)) return;
     if (Puzzle.active && Puzzle.keydown(e)) return;
     if (Paint.active && Paint.keydown(e)) return;
     if (e.key === '?' && !e.repeat) { Bez.toggle(); return; }
@@ -6285,6 +6329,45 @@
       else if (k === '?') Bez.toggle();
       else { Work.show(false); Work.step(1); }
     }));
+  })();
+
+  /* ==========================================================
+     Writing — short pieces, one at a time, in a window set for
+     reading. Each is a title, a kind and its paragraphs.
+  ========================================================== */
+  const Writing = (() => {
+    const win = W.writing, read = $('#wr-read'), count = $('#wr-count'), prev = $('#wr-prev'), next = $('#wr-next');
+    const NOTES = [
+      { title: 'Concept first', kind: 'Process', body: ['I care about work that has its own character. A lot of design today feels generic, so I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.'] },
+      { title: 'Useful and distinctive', kind: 'Principles', body: ['What I’m after is the balance between useful and distinctive. Brands and websites that do their job well, and that people remember not just for what they do, but for how they look and feel.'] },
+      { title: 'Making my own tools', kind: 'Tools', body: ['I also build my own generative tools and AI workflows, because sometimes the right tool for a brand doesn’t exist yet.'] },
+    ];
+    let at = 0;
+    function render() {
+      const n = NOTES[at];
+      read.innerHTML = '<h3>' + n.title + '</h3><p class="wr-kind">' + n.kind + '</p>' + n.body.map((x) => '<p class="body">' + x + '</p>').join('');
+      read.classList.remove('is-new');
+      void read.offsetWidth;
+      read.classList.add('is-new');
+      read.scrollTop = 0;
+      count.textContent = (at + 1) + ' of ' + NOTES.length;
+      prev.disabled = at === 0;
+      next.disabled = at === NOTES.length - 1;
+    }
+    function go(i) { at = clamp(i, 0, NOTES.length - 1); render(); }
+    function open(i = at) { go(i); openWin(win); }
+    prev.addEventListener('click', () => { go(at - 1); Sound.play('up'); });
+    next.addEventListener('click', () => { go(at + 1); Sound.play('up'); });
+    $$('[data-note]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); open(+a.dataset.note); }));
+    render();
+    function keydown(e) {
+      if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return false;
+      e.preventDefault();
+      const i = at + (e.key === 'ArrowRight' ? 1 : -1);
+      if (i >= 0 && i < NOTES.length) { go(i); Sound.play('up'); }
+      return true;
+    }
+    return { open, keydown, get active() { return !win.hidden && win.classList.contains('is-active'); } };
   })();
 
   /* Boot */
