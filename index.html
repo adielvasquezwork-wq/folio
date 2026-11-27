@@ -542,6 +542,8 @@
      either side of it, and one quiet line under it. The track moves
      by transform, so a move is one glide on the compositor. */
   .work-win { --pad: clamp(24px, 3vw, 44px); --px: max(var(--pad), 68px); --glide: cubic-bezier(.22, 1, .36, 1); container: work / inline-size; }
+  /* the grid scrolls: its edges fade so a cut-off piece reads as more below */
+  .wk-stage.is-space:not(.is-sphere) canvas { -webkit-mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); mask-image: linear-gradient(transparent, #000 24px, #000 calc(100% - 24px), transparent); }
   .wk-stage { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; touch-action: pan-y; user-select: none; -webkit-user-select: none; }
   .wk-stage.is-dragging { cursor: grabbing; }
   .wk-track {
@@ -552,7 +554,7 @@
     display: grid; place-items: center;
     container-type: size;
   }
-  .wk-slide > img, .wk-slide > video {
+  .wk-slide > img, .wk-slide > video, .wk-slide > .wk-pair {
     display: block;
     width: calc(100% - 2 * var(--px)); height: auto; max-height: calc(100% - 2 * var(--pad));
     object-fit: contain;
@@ -566,7 +568,17 @@
     opacity: .2; transform: scale(.94);
     transition: opacity .7s ease, transform 1s var(--glide);
   }
-  .wk-slide.is-current > img, .wk-slide.is-current > video { opacity: 1; transform: none; }
+  .wk-slide.is-current > img, .wk-slide.is-current > video, .wk-slide.is-current > .wk-pair { opacity: 1; transform: none; }
+  .wk-slide > .wk-pair {
+    display: grid; grid-template-columns: 1fr 1fr; column-gap: 2.5%;
+    background: none; outline: none; border-radius: 0;
+  }
+  .wk-pair img {
+    display: block; width: 100%; height: 100%; object-fit: cover;
+    border-radius: 4px; background: var(--paper-2);
+    outline: 1px solid color-mix(in srgb, var(--edge) 60%, transparent); outline-offset: -1px;
+    -webkit-user-drag: none;
+  }
   .wk-stage.is-dragging .wk-slide > * { transition-duration: .4s; }
 
   /* The arrows: a thin chevron centred in the margin beside the work.
@@ -1327,8 +1339,8 @@
   @media (prefers-reduced-motion: reduce) {
     .caret, .key.is-target::after { animation: none; }
     .desk a { transition: none; }
-    .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
-    .chip svg, .peek, .wk-slide > img, .wk-slide > video, .wk-arrow { transition: none; }
+    .wk-slide > img, .wk-slide > video, .wk-slide > .wk-pair, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
+    .chip svg, .peek, .wk-slide > img, .wk-slide > video, .wk-slide > .wk-pair, .wk-arrow { transition: none; }
     .lg.is-playing path { animation: none !important; }
     .saver, .sv-watch, .palette, .pal-scrim { animation: none; }
     .bez .bez-me, .balloon { animation: none !important; }
@@ -4396,6 +4408,7 @@
       { name: 'MagicPath', kind: 'Identity',
         text: 'MagicPath is a design canvas for humans and agents. The mark is one looping path, set in colour that shifts as it moves.',
         pieces: [
+          { id: 'magicpath-pair', title: 'App icon and tee', w: 2837, h: 1498, pair: ['magicpath-icon', 'magicpath-tee'] },
           { id: 'magicpath', title: 'Identity', w: 1920, h: 1080 },
         ] },
       { name: 'Serveo', kind: 'Identity',
@@ -4412,6 +4425,7 @@
       { name: 'Talon', kind: 'Campaign',
         text: 'Talon is one system for American manufacturing. A poster campaign for a stronger industrial base, by design.',
         pieces: [
+          { id: 'talon-f14', title: 'A new operating model', w: 1200, h: 1766 },
           { id: 'talon-poster', title: 'One system', w: 592, h: 740 },
           { id: 'talon-signal', title: 'Find the signal', w: 1920, h: 1080 },
         ] },
@@ -4450,6 +4464,19 @@
           el.disablePictureInPicture = true;
           el.setAttribute('disableremoteplayback', '');
           el.setAttribute('aria-label', pr.name + ', ' + s.title.toLowerCase());
+        } else if (s.pair) {
+          // two pieces set side by side on one slide, each its own file
+          el = document.createElement('div');
+          el.className = 'wk-pair';
+          el.setAttribute('role', 'img');
+          el.setAttribute('aria-label', pr.name + ', ' + s.title.toLowerCase());
+          s.pair.forEach((id) => {
+            const im = document.createElement('img');
+            im.src = 'work/' + id + '.webp';
+            im.alt = '';
+            im.loading = 'lazy'; im.decoding = 'async'; im.draggable = false;
+            el.append(im);
+          });
         } else {
           el = document.createElement('img');
           el.src = src + '.webp';
@@ -4458,7 +4485,7 @@
           el.decoding = 'async';
           el.draggable = false;
         }
-        el.width = s.w; el.height = s.h;
+        if (!s.pair) { el.width = s.w; el.height = s.h; }
         el.style.setProperty('--ar', s.w + ' / ' + s.h);
         li.append(el);
         track.append(li);
@@ -4706,6 +4733,7 @@
       const tiles = [];                     // { n, tex, vid, ar, g, gs, s, ss, from, raw, cur, h, dl }
       let W = 0, H = 0, D = 0, R = 1, dpr = 1, proj = null;
       let yaw = 0.4, pitch = -0.18, vy = 0, vp = 0, zoom = 1, hover = -1, tilt = [0, 0], tiltTo = [0, 0];
+      let gy = 0, gyTo = 0, gMax = 0;   // how far down the grid has been scrolled
       let fill = [0.08, 0.08, 0.08], bg = [0, 0, 0];
       // The move in progress: where every tile is headed, since when, for how long.
       let target = 'grid', T0 = 0, DUR = 1, bump = 0, landing = -1, landTimer = 0;
@@ -4844,28 +4872,24 @@
       function layout() {
         const N = SLIDES.length;
         const pad = clamp(Math.min(W, H) * 0.07, 20, 56), gap = clamp(Math.min(W, H) * 0.022, 10, 18);
-        let best = null;
-        for (let cols = 2; cols <= 6; cols++) {
-          const cw = (W - pad * 2 - gap * (cols - 1)) / cols;
-          if (cw < 56 && best) break;
-          const hs = new Array(cols).fill(0), at = [];
-          for (let i = 0; i < N; i++) {
-            let c = 0;
-            for (let k = 1; k < cols; k++) if (hs[k] < hs[c] - 0.5) c = k;
-            at.push([c, hs[c]]);
-            hs[c] += cw / tiles[i].ar + gap;
-          }
-          const tall = Math.max(...hs) - gap, s = Math.min(1, (H - pad * 2) / tall);
-          const even = 1 - 0.12 * (Math.max(...hs) - Math.min(...hs)) / tall;
-          const score = cw * s * even;
-          if (!best || score > best.score) best = { cols, cw, at, tall, s, score };
-        }
-        const { cols, cw, at, tall, s } = best;
-        const w = cw * s, gp = gap * s, x0 = -(cols * w + (cols - 1) * gp) / 2, y0 = (tall * s) / 2;
+        // columns about 280px wide: big enough to see the work, the wall scrolls for the rest
+        const cols = clamp(Math.round((W - pad * 2 + gap) / (280 + gap)), W < 520 ? 1 : 2, 5);
+        const cw = (W - pad * 2 - gap * (cols - 1)) / cols;
+        const hs = new Array(cols).fill(0), at = [];
         for (let i = 0; i < N; i++) {
-          const [c, y] = at[i], h = w / tiles[i].ar;
-          tiles[i].g = [x0 + c * (w + gp) + w / 2, y0 - y * s - h / 2];
-          tiles[i].gs = [w, h];
+          let c = 0;
+          for (let k = 1; k < cols; k++) if (hs[k] < hs[c] - 0.5) c = k;
+          at.push([c, hs[c]]);
+          hs[c] += cw / tiles[i].ar + gap;
+        }
+        const tall = Math.max(...hs) - gap;
+        gMax = Math.max(0, tall + pad * 2 - H);
+        gyTo = clamp(gyTo, 0, gMax); gy = clamp(gy, 0, gMax);
+        const x0 = -(cols * cw + (cols - 1) * gap) / 2, y0 = gMax ? H / 2 - pad : tall / 2;
+        for (let i = 0; i < N; i++) {
+          const [c, y] = at[i], h = cw / tiles[i].ar;
+          tiles[i].g = [x0 + c * (cw + gap) + cw / 2, y0 - y - h / 2];
+          tiles[i].gs = [cw, h];
         }
         const total = tiles.length, base = R * 0.46;
         tiles.forEach((tl, i) => {
@@ -4885,7 +4909,8 @@
         const N = SLIDES.length;
         if (kind === 'grid') {
           const o = i < N ? tl : tiles[i % N];
-          return { c: [o.g[0], o.g[1], -D + o.g[0] * tilt[0] + o.g[1] * tilt[1]], sz: i < N ? o.gs : [0, 0], a: 1, f: 1, e: 0.12 };
+          const y = o.g[1] + gy;
+          return { c: [o.g[0], y, -D + o.g[0] * tilt[0] + y * tilt[1]], sz: i < N ? o.gs : [0, 0], a: 1, f: 1, e: 0.12 };
         }
         if (kind === 'sphere') {
           const q = turned(tl.s);
@@ -4979,6 +5004,7 @@
         last = t;
         const k = reduced.matches ? 1 : 1 - Math.pow(0.0015, dt);   // the same feel at any frame rate
         tilt[0] += (tiltTo[0] - tilt[0]) * k; tilt[1] += (tiltTo[1] - tilt[1]) * k;
+        gy += (gyTo - gy) * (reduced.matches ? 1 : 1 - Math.pow(0.00002, dt));
         if (!drag) {
           yaw += vy * dt; pitch += vp * dt;
           vy *= Math.pow(0.08, dt); vp *= Math.pow(0.08, dt);
@@ -5006,7 +5032,8 @@
           // the piece you press is the one that opens, even if the sphere drifts on
           const r = canvas.getBoundingClientRect();
           drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: e.timeStamp, moved: false, id: e.pointerId, h: pick(e.clientX - r.left, e.clientY - r.top) };
-          if (mode === 'sphere') { canvas.setPointerCapture(e.pointerId); canvas.classList.add('is-grabbing'); }
+          if (mode === 'sphere' || (mode === 'grid' && gMax)) canvas.setPointerCapture(e.pointerId);
+          if (mode === 'sphere') canvas.classList.add('is-grabbing');
         });
         canvas.addEventListener('pointermove', (e) => {
           if (mode === 'slider') return;
@@ -5020,6 +5047,11 @@
             if (drag.moved) { hover = -1; return; }
           }
           if (drag && Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) drag.moved = true;
+          if (drag && mode === 'grid' && gMax) {
+            gyTo = gy = clamp(gyTo - (e.clientY - drag.ly), 0, gMax);
+            drag.lx = e.clientX; drag.ly = e.clientY;
+            if (drag.moved) { hover = -1; canvas.style.cursor = 'grabbing'; return; }
+          }
           if (mode === 'grid') tiltTo = [(px / W - 0.5) * 0.05, (py / H - 0.5) * 0.05];
           hover = pick(px, py);
           canvas.style.cursor = hover > -1 ? 'pointer' : '';
@@ -5037,12 +5069,21 @@
         canvas.addEventListener('pointercancel', end);
         canvas.addEventListener('pointerleave', () => { hover = -1; tiltTo = [0, 0]; canvas.style.cursor = ''; });
         canvas.addEventListener('wheel', (e) => {
+          if (mode === 'grid') {
+            if (!gMax) return;
+            const dy = e.deltaMode === 1 ? e.deltaY * 32 : e.deltaMode === 2 ? e.deltaY * H : e.deltaY;
+            const to = clamp(gyTo + dy, 0, gMax);
+            if (to === gyTo && isDocked(win)) return;   // at an end, the page scrolls on
+            e.preventDefault();
+            gyTo = to;
+            return;
+          }
           if (mode !== 'sphere' || isDocked(win)) return;
           e.preventDefault();
           zoom = clamp(zoom * Math.exp(-e.deltaY * 0.0012), 0.7, 1.6);
         }, { passive: false });
       }
-      function hint() { titleEl.textContent = mode === 'sphere' ? 'Drag to turn, click a piece to open it' : 'Click a piece to open it'; }
+      function hint() { titleEl.textContent = mode === 'sphere' ? 'Drag to turn, click a piece to open it' : gMax ? 'Scroll, click a piece to open it' : 'Click a piece to open it'; }
 
       // Switch views. Leaving the slider, the pieces fly out of the one on
       // screen; coming back, the chosen piece lands exactly on its slide.
@@ -5069,13 +5110,15 @@
           } else snapshot();
           stage.classList.add('is-space');
           stage.classList.toggle('is-sphere', v === 'sphere');
+          // the wall opens scrolled to the piece you were looking at
+          if (v === 'grid' && was === 'slider') gyTo = gy = clamp(-tiles[Math.max(0, cur)].g[1], 0, gMax);
           target = v; T0 = t;
           DUR = v === 'sphere' ? 1.3 : 1.05;
           bump = was === 'slider' ? 0 : 90;
           if (v === 'sphere' && was === 'grid') vy = 0.9;   // set it spinning as it rounds
           const far = Math.hypot(W, H) / 2 || 1;
           tiles.forEach((tl, i) => {
-            if (v === 'grid') tl.dl = i < N ? (Math.hypot(tl.g[0], tl.g[1]) / far) * 0.26 + hash(i) * 0.05 : hash(i) * 0.15;
+            if (v === 'grid') tl.dl = i < N ? Math.min(1, Math.hypot(tl.g[0], tl.g[1] + gy) / far) * 0.26 + hash(i) * 0.05 : hash(i) * 0.15;
             else tl.dl = hash(i) * 0.3 + (i < N ? 0 : 0.12);
           });
           playAll(true);
