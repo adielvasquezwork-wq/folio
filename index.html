@@ -934,7 +934,7 @@
     font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "ss01";
     white-space: nowrap;
   }
-  .sv-time .sep { animation: sv-tick 2s steps(1, end) infinite; }
+  .sv-colon { animation: sv-tick 2s steps(1, end) infinite; }
   @keyframes sv-tick { 50% { opacity: .25; } }
   .sv-time .ap { margin-left: .12em; font-size: .18em; font-weight: 400; letter-spacing: 0; vertical-align: .2em; opacity: .5; }
 
@@ -1018,7 +1018,7 @@
     .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
     .chip svg, .peek, .wk-slide > img, .wk-slide > video, .wk-arrow { transition: none; }
     .lg.is-playing path { animation: none !important; }
-    .saver, .sv-time .sep { animation: none; }
+    .saver, .sv-colon { animation: none; }
     .bez .bez-me { animation: none !important; }
     .jig-piece.is-placed { transition: none; }
     .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
@@ -5042,7 +5042,7 @@
       const ap = h < 12 ? 'am' : 'pm';
       if (!h24) h = h % 12 || 12;
       const hh = h24 ? String(h).padStart(2, '0') : String(h);
-      time.innerHTML = hh + '<span class="sep">:</span>' + String(d.getMinutes()).padStart(2, '0') + (h24 ? '' : '<span class="ap">' + ap + '</span>');
+      time.innerHTML = hh + '<span class="sv-colon">:</span>' + String(d.getMinutes()).padStart(2, '0') + (h24 ? '' : '<span class="ap">' + ap + '</span>');
       time.setAttribute('aria-label', d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
     }
     function start() {
