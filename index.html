@@ -21,7 +21,7 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3.5' fill='%23000'/%3E%3Cpath d='M4.6 12.2 8 4l3.4 8.2M5.9 9.6h4.2' fill='none' stroke='%23fff' stroke-width='1.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <script>
   /* Pick the theme before first paint so there's no flash. */
@@ -99,7 +99,7 @@
     --intro: clamp(236px, 21vw, 300px);
     --desk-size: 16px;
     --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-    --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    --mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     --font: var(--sans);
     color-scheme: light;
   }
@@ -254,7 +254,7 @@
   .mb-menu.is-right .menu { left: auto; right: 0; min-width: 0; }
 
   /* The calendar under the clock */
-  .mb-clock { align-self: stretch; display: flex; align-items: center; padding: 0 8px; cursor: default; color: var(--bar-ink); }
+  .mb-clock { align-self: stretch; display: flex; align-items: center; padding: 0 8px; cursor: default; color: var(--bar-ink); white-space: nowrap; }
   .mb-clock[aria-expanded="true"] { background: var(--hl); color: var(--on-hl); }
   .cal { padding: 10px 12px 12px; font-variant-numeric: tabular-nums; }
   .cal-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; font-weight: 600; }
@@ -381,6 +381,25 @@
   .i-fill { fill: var(--paper); }   /* Paint's tools are still drawn in pixels */
   .i-ink { fill: var(--ink); }
   .icon.is-selected .icon-label { background: var(--hl); color: var(--on-hl); }
+
+  /* Each icon does one small thing when you come near: the folder
+     opens a little and its papers rise, the apps step apart and one
+     turns round, and the trash lifts its lid. */
+  .icon-art svg * { transform-box: fill-box; transition: transform .5s var(--ease), rx .5s var(--ease), fill .3s ease; }
+  .f-front { fill: var(--desk-color); transform-origin: 50% 100%; }
+  .icon:hover .f-front, .icon:focus-visible .f-front, .icon.is-selected .f-front { fill: var(--icon-tile); }
+  .icon.is-selected .f-front { fill: var(--icon-tile-on); }
+  .f-sheet { fill: var(--icon-tile); }
+  .icon:hover .f-front, .icon:focus-visible .f-front, .icon.is-drop .f-front { transform: scale(1.05, .8); }
+  .icon:hover .f-sheet, .icon:focus-visible .f-sheet { transform: translateY(-1.8px); }
+  .icon:hover .f-sheet-2, .icon:focus-visible .f-sheet-2 { transform: translateY(-2.6px); transition-delay: .05s; }
+  .a-tile { transform-origin: center; }
+  .icon:hover .a1 { transform: translate(-1px, -1px); }
+  .icon:hover .a2 { transform: translate(1px, -1px) rotate(45deg); rx: 3.25px; }
+  .icon:hover .a3 { transform: translate(-1px, 1px); }
+  .icon:hover .a4 { transform: translate(1px, 1px); }
+  .t-lid { transform-origin: 100% 100%; }
+  .icon:hover .t-lid, .icon:focus-visible .t-lid, .icon.is-drop .t-lid { transform: translateY(-1.4px) rotate(-14deg); }
 
   /* ------------------------------------------------------------
      Windows
@@ -573,6 +592,19 @@
   .wk-track, .wk-arrow { transition-property: transform, opacity, color, visibility; }
   .wk-stage.is-space .wk-track { opacity: 0; transition: opacity .35s ease; }
   .wk-stage.is-space .wk-arrow { opacity: 0; visibility: hidden; }
+  .wk-tag {
+    position: absolute; left: 0; top: 0; z-index: 4;
+    display: flex; gap: 8px; align-items: baseline;
+    padding: 5px 9px; border-radius: 8px;
+    background: var(--glass-pop); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+    box-shadow: inset 0 0 0 1px var(--glass-edge), inset 0 1px 0 var(--glass-hi);
+    font: 400 11px/14px var(--mono); white-space: nowrap; color: var(--ink);
+    pointer-events: none; opacity: 0; transition: opacity .2s ease;
+  }
+  .wk-tag.is-on { opacity: 1; }
+  .wk-tag b { font-weight: 500; }
+  .wk-tag span { color: var(--graphite); }
+  .wk-stage:not(.is-space) .wk-tag { display: none; }
   .wk-count { color: var(--graphite); font-variant-numeric: tabular-nums; }
   .wk-count b { font-weight: 500; color: var(--ink); }
 
@@ -707,14 +739,14 @@
   .hoops-bar b { padding: 0 3px; font-weight: 600; letter-spacing: .14em; }
   .hoops-bar b.is-lit { border-radius: 3px; background: var(--ink); color: var(--paper); }
   .hoops-bar i { font-style: normal; color: var(--graphite); opacity: .6; }  /* letters not taken yet */
-  .games { display: flex; width: max-content; max-width: 100%; margin-bottom: 10px; padding: 2px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
+  .games { display: flex; width: max-content; max-width: 100%; margin: 0 auto 10px; padding: 2px; gap: 2px; border-radius: 999px; background: color-mix(in srgb, var(--ink) 7%, transparent); }
   .game { height: 22px; padding: 0 11px; border: 0; border-radius: 999px; background: none; color: var(--graphite); font: 500 12px/1 var(--font); white-space: nowrap; cursor: default; transition: background-color .25s ease, color .25s ease; }
   .game:hover { color: var(--ink); }
   .game[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
   .court {
     display: block; width: 402px; max-width: 100%; height: auto; aspect-ratio: 200 / 140;
-    border: 1px solid var(--edge); border-radius: 6px; background: var(--paper);
-    touch-action: none; cursor: grab;
+    border: 1px solid var(--edge); border-radius: 6px;
+    image-rendering: pixelated; touch-action: none; cursor: grab;
   }
   #hoops.is-sized .court { width: 100%; }
   .court.is-aiming { cursor: grabbing; }
@@ -802,22 +834,53 @@
   .b-stars { letter-spacing: 1px; }
   .b-text a { color: inherit; }
 
-  /* Calculator desk accessory */
-  /* Writing: one piece at a time, set for reading */
-  #writing { left: clamp(60px, 26vw, 460px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 56px); width: 540px; max-height: calc(100vh - var(--bar) - 96px); max-height: calc(100dvh - var(--bar) - 96px); }
-  .wr-body { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
-  .wr-read { flex: 1 1 auto; min-height: 0; padding: 30px 34px 34px; }
-  .wr-read h3 { font-size: 22px; font-weight: 600; letter-spacing: -0.015em; line-height: 1.25; text-wrap: balance; }
-  .wr-kind { margin-top: 4px; color: var(--graphite); font-size: 13px; }
-  .wr-read .body { max-width: 60ch; margin-top: 18px; font-size: 16px; line-height: 1.65; text-wrap: pretty; }
-  .wr-read .body + .body { margin-top: 1em; }
-  .wr-read.is-new > * { animation: wk-cap-in .6s cubic-bezier(.22, 1, .36, 1) both; }
-  .wr-read.is-new > :nth-child(2) { animation-delay: .04s; }
-  .wr-read.is-new > :nth-child(n + 3) { animation-delay: .08s; }
-  .wr-nav { flex: none; display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-top: 1px solid var(--edge); font-size: 12px; }
-  .wr-count { color: var(--graphite); font-variant-numeric: tabular-nums; }
+  /* Writing: a reader in two panes, the list beside the piece, the way
+     a notes app sits next to what you're reading. Mono for the facts,
+     the body set at 16 on a 600px measure. */
+  #writing { left: max(24px, calc(50vw - 440px)); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 44px); width: 880px; max-width: calc(100vw - 48px); height: min(680px, calc(100vh - var(--bar) - 88px)); height: min(680px, calc(100dvh - var(--bar) - 88px)); }
+  .wr { position: relative; flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 248px minmax(0, 1fr); }
+  .wr-side { display: flex; flex-direction: column; min-height: 0; padding: 14px 10px; border-right: 1px solid var(--divider); }
+  .wr-group { padding: 2px 12px 8px; font: 400 11px/16px var(--mono); letter-spacing: .06em; color: var(--graphite); }
+  .wr-list { display: grid; gap: 2px; margin: 0; padding: 0; list-style: none; }
+  .wr-item { display: grid; gap: 3px; width: 100%; padding: 10px 12px 11px; border-radius: 10px; text-align: left; cursor: default; transition: background-color .25s ease; }
+  .wr-item:hover { background: var(--sel); }
+  .wr-item[aria-current="true"] { background: var(--sel-strong); }
+  .wr-t { font-size: 13px; font-weight: 600; line-height: 18px; letter-spacing: -0.005em; }
+  .wr-d { display: flex; gap: 7px; min-width: 0; font-size: 12px; line-height: 16px; color: var(--graphite); }
+  .wr-d time { flex: none; color: var(--ink); opacity: .72; font-variant-numeric: tabular-nums; }
+  .wr-d span { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+  .wr-about { margin-top: auto; padding: 18px 12px 2px; font-size: 12px; line-height: 1.5; color: var(--graphite); text-wrap: pretty; }
+  .wr-main { position: relative; min-width: 0; min-height: 0; display: flex; flex-direction: column; background: color-mix(in srgb, var(--paper) 92%, transparent); }
+  .wr-progress { position: absolute; left: 0; right: 0; top: 0; z-index: 1; height: 1px; background: var(--ink); opacity: .45; transform: scaleX(var(--p, 0)); transform-origin: 0 50%; pointer-events: none; }
+  .wr-read { flex: 1 1 auto; min-height: 0; padding: 34px clamp(24px, 6%, 64px) 64px; }
+  .wr-doc { max-width: 600px; margin: 0 auto; }
+  .wr-meta { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 28px; margin: 0; padding-bottom: 14px; border-bottom: 1px solid var(--divider); font: 400 11px/16px var(--mono); }
+  .wr-meta dt { color: var(--graphite); letter-spacing: .06em; text-transform: uppercase; }
+  .wr-meta dd { margin: 0; color: var(--ink); }
+  .wr-doc h3 { margin-top: 30px; font-size: 30px; font-weight: 600; line-height: 1.12; letter-spacing: -0.028em; text-wrap: balance; }
+  .wr-cover { margin: 24px 0 8px; aspect-ratio: 1200 / 654; border-radius: 10px; overflow: hidden; background: var(--paper-2); outline: 1px solid var(--divider); outline-offset: -1px; }
+  .wr-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .wr-doc p { margin-top: 1.05em; font-size: 16px; line-height: 1.7; text-wrap: pretty; }
+  .wr-doc h4 { margin-top: 2.1em; font-size: 16px; font-weight: 600; line-height: 1.4; letter-spacing: -0.01em; }
+  .wr-doc h4 + p { margin-top: .45em; }
+  .wr-end { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; margin-top: 48px; padding-top: 14px; border-top: 1px solid var(--divider); font-size: 12px; color: var(--graphite); }
+  .wr-end span { font: 400 11px/16px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+  .wr-end button { color: var(--ink); font-size: 13px; font-weight: 500; cursor: default; transition: opacity .2s ease; }
+  .wr-end button:hover { opacity: .6; }
+  .wr-read.is-new .wr-doc > * { animation: wr-in .8s cubic-bezier(.22, 1, .36, 1) both; animation-delay: calc(min(var(--n, 6), 6) * 45ms); }
+  @keyframes wr-in { from { opacity: 0; transform: translateY(8px); } }
   .chip:disabled { opacity: .35; pointer-events: none; }
-  @media (max-width: 720px) { .wr-read { padding: 22px 22px 26px; } .wr-read h3 { font-size: 20px; } }
+  @media (max-width: 860px) { .wr { grid-template-columns: 208px minmax(0, 1fr); } }
+  @media (max-width: 720px) {
+    #writing { max-width: none; }
+    .wr { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+    .wr-side { padding: 6px; border-right: 0; border-bottom: 1px solid var(--divider); overflow: visible; }
+    .wr-group, .wr-about, .wr-d span { display: none; }
+    .wr-list { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+    .wr-item { padding: 8px 10px; }
+    .wr-read { padding: 24px 20px 44px; }
+    .wr-doc h3 { font-size: 25px; }
+  }
   #notes { left: clamp(40px, 14vw, 260px); top: calc(var(--bar) + env(safe-area-inset-top, 0px) + 80px); width: 300px; }
   .notes-body { padding: 0; }
   .notes-body textarea {
@@ -924,19 +987,23 @@
   .welcome svg { width: 32px; height: 32px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.25; stroke-linecap: round; stroke-linejoin: round; }
   .power.is-on .welcome { animation: appear 0s linear .25s both; }
 
-  /* Screen saver */
-  /* The screen saver: the time, full screen, and nothing else */
-  .saver { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: #000; color: #fff; cursor: none; animation: sv-in 1.2s ease both; }
+  /* The screen saver: a small watch on black. Two hands, twelve
+     marks, and a hairline that draws the minute round the face, then
+     rubs it out again the next minute, so it never jumps. */
+  .saver { position: fixed; inset: 0; z-index: 90; display: grid; place-items: center; background: #000; color: #fff; cursor: none; animation: sv-in 1.6s ease both; }
   @keyframes sv-in { from { opacity: 0; } }
-  .sv-time {
-    margin: 0;
-    font-size: min(30vw, 52vh); font-weight: 300; line-height: 1; letter-spacing: -0.055em;
-    font-variant-numeric: tabular-nums; font-feature-settings: "tnum", "ss01";
-    white-space: nowrap;
-  }
-  .sv-colon { animation: sv-tick 2s steps(1, end) infinite; }
-  @keyframes sv-tick { 50% { opacity: .25; } }
-  .sv-time .ap { margin-left: .12em; font-size: .18em; font-weight: 400; letter-spacing: 0; vertical-align: .2em; opacity: .5; }
+  .sv-watch { display: grid; justify-items: center; gap: 18px; animation: sv-rise 1.8s cubic-bezier(.22, 1, .36, 1) both; }
+  @keyframes sv-rise { from { opacity: 0; transform: translateY(6px) scale(.98); } }
+  .sv-face { display: block; width: min(176px, 42vmin); height: auto; overflow: visible; }
+  .sv-face line { stroke: #fff; stroke-linecap: round; }
+  .sv-tick { stroke-width: 1.2; opacity: .28; }
+  .sv-tick.is-q { opacity: .6; }
+  .sv-h { stroke-width: 4; }
+  .sv-m { stroke-width: 2; }
+  .sv-run { fill: none; stroke: #fff; stroke-width: 1; opacity: .5; }
+  .sv-s { fill: #fff; }
+  .sv-pin { fill: #000; stroke: #fff; stroke-width: 1.6; }
+  .sv-date { font: 400 11px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: rgb(255 255 255 / .38); }
 
   /* ------------------------------------------------------------
      Alert
@@ -960,6 +1027,185 @@
   /* Zoom rectangles */
   .zoom { position: fixed; inset: 0; z-index: 45; pointer-events: none; }
   .zoom i { position: absolute; border: 1px solid var(--graphite); border-radius: var(--radius-s); }
+
+  /* ------------------------------------------------------------
+     Glass, from Editor Lab's design system, fitted to the desk.
+     Surfaces are frosted (blur 28, saturate 1.4) with a hairline
+     edge and a little light along the top; controls are raised out
+     of recessed tracks; selection is a soft fill instead of an
+     inversion. Still no drop shadows: depth comes from the blur.
+  ------------------------------------------------------------ */
+  :root {
+    --glass: rgb(250 250 251 / .8);
+    --glass-pop: rgb(251 251 252 / .88);
+    --glass-bar: rgb(240 240 241 / .7);
+    --glass-edge: rgb(0 0 0 / .08);
+    --glass-hi: rgb(255 255 255 / .85);
+    --glass-filter: blur(28px) saturate(1.4);
+    --raised: rgb(255 255 255 / .92);
+    --raised-hover: #ffffff;
+    --raised-ring: rgb(23 23 26 / .08);
+    --thumb: #ffffff;
+    --knob: #ffffff;
+    --track: rgb(23 23 26 / .055);
+    --track-in: inset 0 1px 2px rgb(23 23 26 / .07);
+    --sel: rgb(23 23 26 / .055);
+    --sel-strong: rgb(23 23 26 / .09);
+    --divider: rgb(23 23 26 / .08);
+    --radius: 16px;
+    --radius-s: 8px;
+    --r-pop: 14px;
+  }
+  :root[data-theme="graphite"] {
+    --glass: rgb(46 46 48 / .74);
+    --glass-pop: rgb(42 42 45 / .88);
+    --glass-bar: rgb(33 33 33 / .66);
+    --glass-edge: rgb(255 255 255 / .1);
+    --glass-hi: rgb(255 255 255 / .07);
+    --raised: rgb(255 255 255 / .08);
+    --raised-hover: rgb(255 255 255 / .12);
+    --raised-ring: rgb(255 255 255 / .05);
+    --thumb: rgb(255 255 255 / .14);
+    --knob: rgb(255 255 255 / .85);
+    --track: rgb(255 255 255 / .06);
+    --track-in: inset 0 1px 2px rgb(0 0 0 / .35);
+    --sel: rgb(255 255 255 / .06);
+    --sel-strong: rgb(255 255 255 / .11);
+    --divider: rgb(255 255 255 / .08);
+  }
+  :root[data-theme="black"] {
+    --glass: rgb(16 16 19 / .7);
+    --glass-pop: rgb(20 20 24 / .86);
+    --glass-bar: rgb(0 0 0 / .62);
+    --glass-edge: rgb(255 255 255 / .12);
+    --glass-hi: rgb(255 255 255 / .06);
+    --raised: rgb(255 255 255 / .08);
+    --raised-hover: rgb(255 255 255 / .12);
+    --raised-ring: rgb(255 255 255 / .05);
+    --thumb: rgb(255 255 255 / .14);
+    --knob: rgb(255 255 255 / .85);
+    --track: rgb(255 255 255 / .06);
+    --track-in: inset 0 1px 2px rgb(0 0 0 / .5);
+    --sel: rgb(255 255 255 / .06);
+    --sel-strong: rgb(255 255 255 / .11);
+    --divider: rgb(255 255 255 / .09);
+  }
+  /* A little light falls on the desk from above, so the glass has something to catch */
+  body { background: radial-gradient(120% 70% at 50% -20%, color-mix(in srgb, var(--desk-ink) 6%, transparent), transparent 70%) fixed, var(--desk-color); }
+
+  /* The menu bar: frosted. The glass is on a layer of its own, so the
+     menus that hang from it can frost what's under them too. */
+  .menubar { background: none; border-bottom-color: var(--divider); }
+  .menubar::before { content: ""; position: absolute; inset: 0; z-index: -1; background: var(--glass-bar); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter); }
+  .mb-title, .theme-btn, .sfx, .mb-clock { height: auto; margin-block: 3px; border-radius: 7px; transition: background-color .18s ease; }
+  .mb-left { gap: 1px; }
+  .sfx { align-self: stretch; }
+  .mb-title:hover, .theme-btn:hover, .sfx:hover, .mb-clock:hover { background: var(--sel); }
+  .mb-title[aria-expanded="true"], button.mb-title:active, a.mb-title:active, .mb-clock[aria-expanded="true"], .theme-btn:active, .sfx:active {
+    background: var(--sel-strong); color: var(--bar-ink); --under: var(--bar-bg);
+  }
+  .theme-btn:active .m-cursor { fill: var(--accent); }
+  .mb-title.is-here { background: var(--sel); }
+
+  /* Menus and popovers: thicker glass */
+  .menu {
+    margin-top: 4px; padding: 6px;
+    background: var(--glass-pop); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+    border-color: var(--glass-edge); border-radius: var(--r-pop);
+    box-shadow: inset 0 1px 0 var(--glass-hi);
+  }
+  .mi { height: 28px; border-radius: 7px; transition: background-color .12s ease; }
+  .mi:hover, .mi:focus-visible, .mi.is-lit { background: var(--sel-strong); color: var(--menu-ink); }
+  .sep { margin: 5px 10px; background: var(--divider); }
+  .cal-btn:hover, .cal-btn:focus-visible { background: var(--sel-strong); color: inherit; }
+  .cal-grid .today { background: var(--ink); color: var(--paper); }
+  .wk-card, .balloon, .alert, .welcome {
+    background: var(--glass-pop); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+    border-color: var(--glass-edge); border-radius: var(--r-pop);
+    box-shadow: inset 0 1px 0 var(--glass-hi);
+  }
+  .wk-card { background-clip: border-box; }
+  .b-tail .t-fill { fill: var(--glass-pop); }
+  .b-tail .t-ink { fill: var(--glass-edge); }
+  .b-item { border-radius: 6px; }
+  .b-item:hover, .b-item:focus-visible { background: var(--sel-strong); color: inherit; }
+  .peek { border-radius: 10px; outline-color: var(--glass-edge); }
+
+  /* Windows: frosted panes with a hairline and a top light */
+  .window {
+    background: var(--glass); -webkit-backdrop-filter: var(--glass-filter); backdrop-filter: var(--glass-filter);
+    border-color: var(--glass-edge);
+    box-shadow: inset 0 1px 0 var(--glass-hi);
+  }
+  .titlebar { height: 34px; border-bottom-color: var(--divider); }
+  .wtitle { background: none; line-height: 33px; }
+  .closebox { top: 11px; left: 12px; }
+  .wk-bar, .puzzle-bar, .notes-foot, .wr-nav { border-top-color: var(--divider); }
+  .scroll { scrollbar-color: var(--divider) transparent; }
+
+  /* Controls: raised out of the glass */
+  .chip, .btn, .mini, .dogear, .b-chip {
+    border: 0;
+    background: var(--raised); color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--raised-ring), inset 0 1px 0 var(--glass-hi);
+    transition: background-color .16s ease, color .16s ease, transform .16s ease;
+  }
+  button.chip:hover, .btn:hover, .mini:hover, .dogear:hover, .b-chip:hover, .b-chip:focus-visible { background: var(--raised-hover); color: var(--ink); }
+  button.chip:active, .btn:active, .mini:active, .dogear:active, .b-chip:active { background: var(--raised-hover); color: var(--ink); transform: scale(.97); }
+  .btn { height: 28px; border-radius: var(--radius-s); }
+  .btn-sm { height: 24px; border-radius: 7px; }
+  .mini, .dogear { border-radius: 6px; }
+  .b-chip { border-radius: 999px; }
+  .chip.is-on, button.chip.is-on:hover, .btn.is-default, .btn.is-default:hover { background: var(--ink); color: var(--paper); box-shadow: none; }
+  .btn.is-default:hover { opacity: .88; }
+
+  /* Segmented controls: a recessed track with a raised thumb */
+  .games, .wk-views, .displays {
+    display: flex; width: max-content; max-width: 100%;
+    padding: 2px; gap: 2px; border-radius: 999px;
+    background: var(--track); box-shadow: var(--track-in);
+  }
+  .game, .wk-views button, .disp {
+    height: 24px; padding: 0 12px; border: 0; border-radius: 999px;
+    background: none; color: var(--graphite);
+    font: 500 12px/1 var(--font); white-space: nowrap; cursor: default;
+    transition: background-color .25s ease, color .25s ease, box-shadow .25s ease;
+  }
+  .wk-views button { width: 28px; padding: 0; height: 22px; }
+  .disp { height: 22px; padding: 0 10px; font-size: 11px; }
+  .game:hover, .wk-views button:hover, .disp:hover { color: var(--ink); }
+  .game[aria-pressed="true"], .wk-views button[aria-checked="true"], .disp[aria-pressed="true"] {
+    background: var(--thumb); color: var(--ink);
+    box-shadow: inset 0 0 0 1px var(--raised-ring), inset 0 1px 0 var(--glass-hi);
+  }
+
+  /* Switches, radios and the volume slider, Editor Lab style */
+  .checkbox .box { position: relative; width: 28px; height: 16px; border: 0; border-radius: 999px; background: var(--track); box-shadow: var(--track-in); transition: background-color .25s ease; }
+  .checkbox .box svg { display: none; }
+  .checkbox .box::after { content: ""; position: absolute; left: 2px; top: 2px; width: 12px; height: 12px; border-radius: 50%; background: var(--knob); box-shadow: inset 0 0 0 1px var(--raised-ring); transition: transform .3s var(--ease), background-color .25s ease; }
+  .checkbox input:checked + .box { background: var(--ink); box-shadow: none; }
+  .checkbox input:checked + .box::after { transform: translateX(12px); background: var(--paper); }
+  .radio .dot { width: 14px; height: 14px; border: 0; background: var(--track); box-shadow: var(--track-in); transition: background-color .2s ease; }
+  .radio input:checked + .dot { background: var(--ink); box-shadow: none; }
+  .radio .dot::after { width: 6px; height: 6px; background: var(--paper); }
+  .vol input[type="range"] { height: 16px; padding: 0; border: 0; background: none; }
+  .vol input[type="range"]::-webkit-slider-runnable-track { height: 4px; border-radius: 999px; background: var(--track); box-shadow: var(--track-in); }
+  .vol input[type="range"]::-moz-range-track { height: 4px; border-radius: 999px; background: var(--track); }
+  .vol input[type="range"]::-webkit-slider-thumb { width: 14px; height: 14px; margin-top: -5px; border: 0; border-radius: 50%; background: var(--knob); box-shadow: inset 0 0 0 1px var(--raised-ring); }
+  .vol input[type="range"]::-moz-range-thumb { width: 14px; height: 14px; border: 0; border-radius: 50%; background: var(--knob); }
+  .displays { flex-wrap: nowrap; }
+  .tune input[type="text"], .tune select, .b-ask input {
+    border: 0; border-radius: 7px; background: var(--track); box-shadow: var(--track-in);
+  }
+  .notes-body textarea { background: repeating-linear-gradient(to bottom, transparent 0 21px, var(--divider) 21px 22px) 0 11px / 100% 22px, transparent; }
+
+  /* Desktop icons: a soft tile behind the art, a pill under the name */
+  .icon-art { border-radius: 10px; transition: background-color .3s var(--ease); }
+  .icon:hover .icon-art, .icon:focus-visible .icon-art { background: var(--icon-tile); }
+  .icon.is-selected .icon-art, .icon.is-drop .icon-art { background: var(--icon-tile-on); }
+  .icon-label { border-radius: 6px; transition: background-color .2s ease; }
+  .icon.is-selected .icon-label { background: var(--sel-strong); color: var(--desk-ink); }
+  :root { --icon-tile: color-mix(in srgb, var(--desk-ink) 7%, var(--desk-color)); --icon-tile-on: color-mix(in srgb, var(--desk-ink) 12%, var(--desk-color)); }
 
   /* ------------------------------------------------------------
      Responsive + motion preferences
@@ -1002,7 +1248,7 @@
   @media (max-width: 520px) {
     .theme-name { display: none; }
     .mb-title { padding: 0 8px; }
-    .mb-apps { display: none; }
+    .mb-apps, .mb-contact { display: none; }
     .mi.only-narrow { display: flex; }
     .sep.only-narrow { display: block; }
   }
@@ -1018,7 +1264,7 @@
     .wk-slide > img, .wk-slide > video, .wk-card, .wk-card.is-closing, .wk-title.is-new { animation: none; }
     .chip svg, .peek, .wk-slide > img, .wk-slide > video, .wk-arrow { transition: none; }
     .lg.is-playing path { animation: none !important; }
-    .saver, .sv-colon { animation: none; }
+    .saver, .sv-watch { animation: none; }
     .bez .bez-me { animation: none !important; }
     .jig-piece.is-placed { transition: none; }
     .power.is-off::before, .power.is-off::after { animation: none; transform: none; }
@@ -1047,6 +1293,7 @@
         <li role="none"><button class="mi" role="menuitem" type="button" data-work>Selected Work</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="writing">Writing</button></li>
         <li role="none"><button class="mi only-narrow" role="menuitem" type="button" data-win="apps">Apps</button></li>
+        <li role="none"><a class="mi only-narrow" role="menuitem" href="mailto:hello@adiel.design">Contact</a></li>
         <li role="separator" class="sep"></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-win="panel">Control Panel</button></li>
         <li role="none"><button class="mi" role="menuitem" type="button" data-bez>Ask Bez <span class="shortcut" aria-hidden="true">?</span></button></li>
@@ -1072,7 +1319,8 @@
       </ul>
     </div>
     <a class="mb-title" href="#work" data-work-link>Work</a>
-    <a class="mb-title" href="mailto:hello@adiel.design">Contact</a>
+    <a class="mb-title" href="#writing" data-writing-link>Writing</a>
+    <a class="mb-title mb-contact" href="mailto:hello@adiel.design">Contact</a>
   </nav>
   <div class="mb-right">
     <button class="theme-btn" id="theme-btn" type="button" title="Switch display (T)">
@@ -1118,9 +1366,8 @@
     <div class="meta-block">
       <p class="meta">Writing</p>
       <ol class="list" aria-label="Writing">
-        <li><a href="#writing" data-note="0"><span>Concept first</span><span>Process</span></a></li>
-        <li><a href="#writing" data-note="1"><span>Useful and distinctive</span><span>Principles</span></a></li>
-        <li><a href="#writing" data-note="2"><span>Making my own tools</span><span>Tools</span></a></li>
+        <li><a href="#writing" data-note="0"><span>Clarity Over Trends</span><span>Feb 2026</span></a></li>
+        <li><a href="#writing" data-note="1"><span>The Inspiration Trap</span><span>Jan 2026</span></a></li>
       </ol>
     </div>
     <div class="peek" id="peek" aria-hidden="true"></div>
@@ -1247,18 +1494,21 @@
 
 
 <!-- Writing -->
-<section class="window is-float" id="writing" data-min-w="340" data-min-h="260" tabindex="-1" aria-labelledby="writing-title" hidden>
+<section class="window is-float" id="writing" data-min-w="560" data-min-h="380" tabindex="-1" aria-labelledby="writing-title" hidden>
   <header class="titlebar">
     <button class="closebox" type="button" aria-label="Close Writing"><svg aria-hidden="true"><use href="#i-burst"/></svg></button>
     <h2 class="wtitle" id="writing-title">Writing</h2>
   </header>
-  <div class="wr-body">
-    <article class="wr-read scroll" id="wr-read" aria-live="polite"></article>
-    <footer class="wr-nav">
-      <button class="chip" type="button" id="wr-prev">Previous</button>
-      <span class="wr-count" id="wr-count"></span>
-      <button class="chip" type="button" id="wr-next">Next</button>
-    </footer>
+  <div class="wr">
+    <nav class="wr-side scroll" aria-label="All writing">
+      <p class="wr-group">2026</p>
+      <ol class="wr-list" id="wr-list"></ol>
+      <p class="wr-about">A personal archive of what I’m building and learning, from design process and creative thoughts to my latest experiments with AI.</p>
+    </nav>
+    <div class="wr-main">
+      <span class="wr-progress" id="wr-progress" aria-hidden="true"></span>
+      <article class="wr-read scroll" id="wr-read"></article>
+    </div>
   </div>
 </section>
 
@@ -1421,15 +1671,15 @@
 
 <nav class="icons" aria-label="Desktop">
   <button class="icon" id="icon-work" type="button" data-open="work" aria-label="Work">
-    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 7.2V17a1.6 1.6 0 0 0 1.6 1.6h13.8a1.6 1.6 0 0 0 1.6-1.6V9.6A1.6 1.6 0 0 0 18.9 8h-7l-1.6-2a1.6 1.6 0 0 0-1.25-.6H5.1a1.6 1.6 0 0 0-1.6 1.6z"/><path d="M3.5 10.5h17"/></svg></span>
+    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 17V7a1.6 1.6 0 0 1 1.6-1.6h3.95c.48 0 .94.22 1.25.6l1.6 2h7a1.6 1.6 0 0 1 1.6 1.6V17"/><rect class="f-sheet f-sheet-2" x="7.5" y="10.8" width="10" height="6" rx=".8"/><rect class="f-sheet" x="6" y="10.8" width="11" height="6" rx=".8"/><path class="f-front" d="M3.5 10.5h17v6.9a1.6 1.6 0 0 1-1.6 1.6H5.1a1.6 1.6 0 0 1-1.6-1.6z"/></svg></span>
     <span class="icon-label" aria-hidden="true">Work</span>
   </button>
   <button class="icon" id="icon-apps" type="button" data-open="apps" aria-label="Apps">
-    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg></span>
+    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="a-tile a1" x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect class="a-tile a2" x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect class="a-tile a3" x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect class="a-tile a4" x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg></span>
     <span class="icon-label" aria-hidden="true">Apps</span>
   </button>
   <button class="icon" id="icon-trash" type="button" data-open="trash" aria-label="Trash">
-    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M9.5 7V5.3a1.3 1.3 0 0 1 1.3-1.3h2.4a1.3 1.3 0 0 1 1.3 1.3V7M6.6 7l.8 11.2a1.6 1.6 0 0 0 1.6 1.5h6a1.6 1.6 0 0 0 1.6-1.5L17.4 7M10 10.5v6M14 10.5v6"/></svg></span>
+    <span class="icon-art"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="t-lid" d="M5 7h14M9.5 7V5.3a1.3 1.3 0 0 1 1.3-1.3h2.4a1.3 1.3 0 0 1 1.3 1.3V7"/><path d="M6.6 7l.8 11.2a1.6 1.6 0 0 0 1.6 1.5h6a1.6 1.6 0 0 0 1.6-1.5L17.4 7M10 10.5v6M14 10.5v6"/></svg></span>
     <span class="icon-label" aria-hidden="true">Trash</span>
   </button>
 </nav>
@@ -1467,7 +1717,19 @@
 </div>
 
 <div class="deskpat" aria-hidden="true"></div>
-<div class="saver" id="saver" aria-hidden="true" hidden><p class="sv-time" id="sv-time"></p></div>
+<div class="saver" id="saver" aria-hidden="true" hidden>
+  <div class="sv-watch">
+    <svg class="sv-face" viewBox="-100 -100 200 200" aria-hidden="true">
+      <g id="sv-ticks"></g>
+      <circle class="sv-run" id="sv-run" r="96" pathLength="60" transform="rotate(-90)"/>
+      <line class="sv-h" id="sv-h" y1="7" y2="-46"/>
+      <line class="sv-m" id="sv-m" y1="9" y2="-74"/>
+      <circle class="sv-s" id="sv-s" cy="-96" r="2.6"/>
+      <circle class="sv-pin" r="3.4"/>
+    </svg>
+    <p class="sv-date" id="sv-date"></p>
+  </div>
+</div>
 
 <script>
 (() => {
@@ -2847,7 +3109,9 @@
     const win = W.hoops;
     const canvas = $('#court');
     const g = canvas.getContext('2d');
-    const CW = 200, CH = 140;                    // court units, as the physics has them
+    const CW = canvas.width, CH = canvas.height;
+    const img = g.createImageData(CW, CH);
+    const px = new Uint8Array(CW * CH);
     const statsEl = $('#h-stats'), statusEl = $('#hoops-status'), hintEl = $('#hoops-hint');
     const gameBtns = $$('.game', win);
     const KEY = 'adiel-hoops-best', CLOCK_KEY = 'adiel-hoops-clock', HORSE_KEY = 'adiel-hoops-horse';
@@ -3404,138 +3668,133 @@
       if (down || quick || rest > 0.3 || shot.t > 7) shotEnd();
     }
 
-    /* Drawing: the same court, in lines, at the screen's own density.
-       Court units stay 200 × 140; the canvas fits its box. */
-    let S = 2, INK = '#000', DIM = '#888', FAINT = '#ddd', PAPER = '#fff', FONT = 'sans-serif';
-    function fit() {
-      const r = canvas.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1);
-      const w = Math.round(clamp((r.width || 402) * dpr, 200, 2400));
-      if (canvas.width !== w) { canvas.width = w; canvas.height = Math.round((w * CH) / CW); }
-      S = canvas.width / CW;
+    /* Drawing, one pixel at a time */
+    const set = (x, y, v = 1) => {
+      x = Math.round(x); y = Math.round(y);
+      if (x >= 0 && y >= 0 && x < CW && y < CH) px[y * CW + x] = v;
+    };
+    const fill = ([x0, y0, x1, y1], v = 1) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) set(x, y, v); };
+    function line(x0, y0, x1, y1) {
+      x0 = Math.round(x0); y0 = Math.round(y0); x1 = Math.round(x1); y1 = Math.round(y1);
+      const dx = Math.abs(x1 - x0), dy = -Math.abs(y1 - y0), sx = x0 < x1 ? 1 : -1, sy = y0 < y1 ? 1 : -1;
+      let err = dx + dy;
+      for (let n = 0; n < 64; n++) {
+        set(x0, y0);
+        if (x0 === x1 && y0 === y1) break;
+        const e2 = 2 * err;
+        if (e2 >= dy) { err += dy; x0 += sx; }
+        if (e2 <= dx) { err += dx; y0 += sy; }
+      }
     }
-    const css = () => Math.min(2, devicePixelRatio || 1) / S;   // one CSS pixel, in court units
-    function seg(x0, y0, x1, y1) { g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
-    function dot(x, y, r) { g.beginPath(); g.arc(x, y, r, 0, Math.PI * 2); g.fill(); }
-    function label(str, x, y, size, alpha = 1) {
-      g.save();
-      g.globalAlpha = alpha;
-      g.font = '600 ' + size + 'px ' + FONT;
-      g.textAlign = 'center';
-      g.textBaseline = 'top';
-      g.lineJoin = 'round';
-      g.lineWidth = css() * 4;
-      g.strokeStyle = PAPER;
-      g.strokeText(str, x, y);                // a paper halo keeps it legible over the net
-      g.fillStyle = INK;
-      g.fillText(str, x, y);
-      g.restore();
+    // A 5-pixel-high font for the scoreboard bits; most letters are 3 wide, M, N and W need more.
+    const FONT = {
+      0: '111101101101111', 1: '010110010010111', 2: '111001111100111', 3: '111001011001111', 4: '101101111001001',
+      5: '111100111001111', 6: '111100111101111', 7: '111001010010010', 8: '111101111101111', 9: '111101111001111',
+      '+': '000010111010000', '!': '11101', ' ': '0000000000', A: '010101111101101', B: '110101110101110',
+      D: '110101101101110', E: '111100110100111', G: '011100101101011', H: '101101111101101', I: '111010010010111',
+      M: '1000111011101011000110001', N: '10011101101110011001', O: '010101101101010', R: '110101110101101',
+      S: '011100010001110', T: '111010010010010', U: '101101101101111', V: '101101101101010',
+      W: '1000110001101011010101010', Y: '101101010010010', Z: '111001010100111',
+    };
+    function text(str, x, y, k = 1) {
+      const glyphs = [...str].map((ch) => FONT[ch] || FONT[' ']);
+      const w = glyphs.reduce((n, gl) => n + (gl.length / 5 + 1) * k, -k);
+      for (const ink of [0, 1]) {
+        let gx0 = Math.round(x - w / 2);
+        glyphs.forEach((gl) => {
+          const gw = gl.length / 5;
+          for (let i = 0; i < gl.length; i++) {
+            if (gl[i] !== '1') continue;
+            const gx = gx0 + (i % gw) * k, gy = y + Math.floor(i / gw) * k;
+            if (ink) fill([gx, gy, gx + k - 1, gy + k - 1], 1);
+            else fill([gx - 1, gy - 1, gx + k, gy + k], 0); // a paper outline keeps it legible
+          }
+          gx0 += (gw + 1) * k;
+        });
+      }
     }
     function drawBall() {
-      const q = ball.sq, nx = ball.nx, ny = ball.ny, turn = Math.atan2(ny, nx);
-      g.save();
-      g.translate(ball.x - nx * q * R, ball.y - ny * q * R);
-      g.rotate(turn);
-      g.scale(1 - q, 1 + q * 0.6);             // squashed along the last thing it hit
-      g.beginPath();
-      g.arc(0, 0, R, 0, Math.PI * 2);
-      g.fillStyle = PAPER;
-      g.fill();
-      g.save();
-      g.clip();
-      g.rotate(ball.a - turn);                 // the seams turn with the ball
-      g.strokeStyle = DIM;
-      g.lineWidth = css();
-      seg(-R, 0, R, 0);
-      seg(0, -R, 0, R);
-      g.beginPath(); g.arc(-R * 1.25, 0, R * 0.8, -1, 1); g.stroke();
-      g.beginPath(); g.arc(R * 1.25, 0, R * 0.8, Math.PI - 1, Math.PI + 1); g.stroke();
-      g.restore();
-      g.beginPath();
-      g.arc(0, 0, R, 0, Math.PI * 2);
-      g.strokeStyle = INK;
-      g.lineWidth = css() * 1.25;
-      g.stroke();
-      g.restore();
-    }
-    // The aim: the first moment of the arc as a row of fading dots, or all of it.
-    function aimDots(vx, vy) {
-      const b = { x: ball.x, y: ball.y, vx: 0, vy: 0, w: 0, a: 0 };
-      kick(b, vx, vy);
-      const n = assist ? 1200 : 210;
-      g.fillStyle = INK;
-      for (let i = 1; i <= n; i++) {
-        step(b, H, null, false);
-        if (i % 24 === 0) { g.globalAlpha = 0.85 * (1 - i / (n + 40)); dot(b.x, b.y, 0.75); }
-        if (i > 60 && b.y >= FLOOR - R) break;
+      const q = ball.sq, nx = ball.nx, ny = ball.ny, ka = 1 / (1 - q), kb = 1 / (1 + q * 0.6);
+      const cx = Math.round(ball.x - nx * q * R), cy = Math.round(ball.y - ny * q * R);
+      const c = Math.cos(ball.a), s = Math.sin(ball.a);
+      for (let j = -R - 2; j <= R + 2; j++) {
+        for (let i = -R - 2; i <= R + 2; i++) {
+          // squashed along the last thing it hit, a little wider across
+          const al = (i * nx + j * ny) * ka, ac = (j * nx - i * ny) * kb;
+          const x = al * nx - ac * ny, y = al * ny + ac * nx, d = x * x + y * y;
+          if (d > R * R + 3) continue;
+          let v = 0;
+          if (d > (R - 1) * (R - 1) + 2) v = 1;                    // outline
+          else if (Math.abs(x * c + y * s) < 0.6 || Math.abs(y * c - x * s) < 0.6) v = 1; // seams
+          else if (x + y > 1 && ((i + j) & 1) === 0) v = 1;          // shade
+          set(cx + i, cy + j, v);
+        }
       }
-      g.globalAlpha = 1;
     }
-    function draw() {
-      tick++;
-      fit();
-      const { ink, paper } = Colors.get();
-      const mix = (k) => 'rgb(' + ink.map((c, i) => Math.round(c * k + paper[i] * (1 - k))).join(' ') + ')';
-      INK = rgb(ink); PAPER = rgb(paper); DIM = mix(0.42); FAINT = mix(0.12);
-      g.setTransform(S, 0, 0, S, 0, 0);
-      g.clearRect(0, 0, CW, CH);
-      g.lineCap = 'round';
-      g.lineJoin = 'round';
-      // the floor, and a tick for the three-point line
-      g.strokeStyle = INK;
-      g.lineWidth = css();
-      seg(0, FLOOR + 0.5, CW, FLOOR + 0.5);
-      g.strokeStyle = DIM;
-      seg(THREE, FLOOR + 3, THREE, FLOOR + 7);
-      // the hoop: base, pole, arm and board, in plain shapes
-      g.strokeStyle = INK;
-      g.beginPath();
-      g.rect(183.5, FLOOR - 4.5, 10, 5);
-      g.stroke();
-      g.fillStyle = INK;
-      g.fillRect(POLE[0] + 0.5, POLE[1], POLE[2] - POLE[0], POLE[3] - POLE[1] + 1);
-      g.fillRect(ARM[0], ARM[1] + 0.5, ARM[2] - ARM[0] + 1, ARM[3] - ARM[1]);
-      g.lineWidth = css() * 1.25;
-      g.beginPath();
-      g.rect(BOARD[0] + 0.5, BOARD[1] + 0.5, BOARD[2] - BOARD[0], BOARD[3] - BOARD[1]);
-      g.fillStyle = PAPER;
-      g.fill();
-      g.stroke();
-      // the shadow, smaller the higher the ball
-      const sw = R * (1 - clamp((FLOOR - R - ball.y) / 90, 0, 0.8));
-      g.fillStyle = FAINT;
-      g.beginPath();
-      g.ellipse(ball.x, FLOOR + 1.6, sw, 1, 0, 0, Math.PI * 2);
-      g.fill();
-      // on fire: the ball leaves a fading trail
-      g.fillStyle = DIM;
-      trail.forEach(([tx, ty], n) => { g.globalAlpha = (n + 1) / (trail.length + 1) * 0.6; dot(tx, ty, 1 + n * 0.32); });
-      g.globalAlpha = 1;
-      drawBall();
-      // rim and net sit in front of the ball; the rim shudders when it's hit hard
-      const o = rimOff();
-      g.strokeStyle = INK;
-      g.lineWidth = css() * 1.8;
-      seg(RIM_F - 1, RIM_Y + 0.5 + o, BOARD[0], RIM_Y + 0.5 + o);
-      g.strokeStyle = DIM;
-      g.lineWidth = css() * 0.9;
-      g.beginPath();
+    function drawNet() {
       for (let i = 0; i < NS - 1; i++) {
         for (let k = 0; k < NK; k++) {
           const a = knot(i, k), b = knot(i + 1, k + 1), c = knot(i + 1, k), d = knot(i, k + 1);
-          g.moveTo(a.x, a.y); g.lineTo(b.x, b.y);
-          g.moveTo(c.x, c.y); g.lineTo(d.x, d.y);
+          line(a.x, a.y, b.x, b.y);
+          line(c.x, c.y, d.x, d.y);
         }
       }
-      for (const i of [0, NS - 1]) for (let k = 0; k < NK; k++) { g.moveTo(knot(i, k).x, knot(i, k).y); g.lineTo(knot(i, k + 1).x, knot(i, k + 1).y); }
-      g.stroke();
-      if (aim) aimDots(aim.vx, aim.vy);
-      else if (showKey && state === 'ready') aimDots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
-      g.fillStyle = INK;
-      sparks.forEach((p) => { g.globalAlpha = clamp(p.life * 2.5, 0, 1); dot(p.x, p.y, p.life > 0.3 ? 0.9 : 0.6); });
-      g.globalAlpha = 1;
-      pops.forEach((p) => label(p.text, p.x, p.y - p.t * 16, 7, p.t < 0.75 ? 1 : (1 - p.t) * 4));
-      if (game === 'clock' && clock.phase !== 'count') label(String(Math.ceil(clock.left)), 16, 6, 13);
-      if (banner) label(banner.text, 90, 30, banner.text.length > 8 ? 13 : 18, clamp(banner.t * 8, 0, 1));
+      for (const i of [0, NS - 1]) for (let k = 0; k < NK; k++) line(knot(i, k).x, knot(i, k).y, knot(i, k + 1).x, knot(i, k + 1).y);
+    }
+    // Aim dots: the first moment of the arc, or all of it with the full arc on.
+    function dots(vx, vy) {
+      const b = { x: ball.x, y: ball.y, vx: 0, vy: 0, w: 0, a: 0 };
+      kick(b, vx, vy);
+      for (let i = 1; i <= (assist ? 1200 : 210); i++) {
+        step(b, H, null, false);
+        if (i % 30 === 0) { set(b.x, b.y); set(b.x + 1, b.y); set(b.x, b.y + 1); set(b.x + 1, b.y + 1); }
+        if (i > 60 && b.y >= FLOOR - R) break;
+      }
+    }
+    function draw() {
+      tick++;
+      px.fill(0);
+      // floor: a line over a light dither, and the three-point line
+      for (let x = 0; x < CW; x++) {
+        set(x, FLOOR);
+        for (let y = FLOOR + 2; y < CH; y++) if ((((y & 1) ? 0x22 : 0x88) >> (7 - (x & 7))) & 1) set(x, y);
+      }
+      for (let y = FLOOR + 1; y < CH; y++) { set(THREE - 1, y, 0); set(THREE, y); set(THREE + 1, y, 0); }
+      // the stanchion
+      fill([183, FLOOR - 5, 193, FLOOR - 1]);
+      fill([184, FLOOR - 4, 192, FLOOR - 2], 0);
+      for (let x = 184; x <= 192; x++) if (x & 1) set(x, FLOOR - 3);
+      fill(POLE);
+      fill(ARM);
+      fill(BOARD);
+      fill([BOARD[0] + 1, BOARD[1] + 1, BOARD[2] - 1, BOARD[3] - 1], 0);
+      // shadow, smaller the higher the ball
+      const sw = Math.round(R * (1 - clamp((FLOOR - R - ball.y) / 90, 0, 0.8)));
+      for (let i = -sw; i <= sw; i++) { set(ball.x + i, FLOOR + 1); if (!(i & 1)) set(ball.x + i, FLOOR + 2); }
+      // on fire: the ball leaves a flickering trail
+      trail.forEach(([tx, ty], n) => {
+        const r = 1 + n * 0.35;
+        for (let j = -3; j <= 3; j++) for (let i = -3; i <= 3; i++) {
+          if (i * i + j * j <= r * r && ((i + j + tick) & 3) === 0) set(tx + i, ty + j);
+        }
+      });
+      drawBall();
+      // rim and net sit in front of the ball; the rim shudders when it's hit hard
+      const o = rimOff();
+      fill([RIM_F - 1, RIM_Y + o, BOARD[0] - 1, RIM_Y + 1 + o]);
+      drawNet();
+      if (aim) dots(aim.vx, aim.vy);
+      else if (showKey && state === 'ready') dots(Math.cos(keyA) * keyP * VMAX, -Math.sin(keyA) * keyP * VMAX);
+      sparks.forEach((p) => {
+        if (p.life < 0.15 && tick & 1) return;
+        set(p.x, p.y);
+        if (p.life > 0.3) { set(p.x - 1, p.y); set(p.x + 1, p.y); set(p.x, p.y - 1); set(p.x, p.y + 1); }
+      });
+      pops.forEach((p) => { if (p.t < 0.8 || tick & 2) text(p.text, p.x, Math.round(p.y - p.t * 16)); });
+      if (game === 'clock' && clock.phase !== 'count') text(String(Math.ceil(clock.left)), 14, 6, 2);
+      if (banner && (banner.t > 0.12 || tick & 2)) text(banner.text, 84, 34, banner.text.length > 8 ? 2 : 3);
+      const { ink, paper } = Colors.get();
+      blit(g, img, px, ink, paper);
     }
 
     function frame(t) {
@@ -3567,7 +3826,6 @@
     function build() {
       if (built) return;
       built = true;
-      FONT = getComputedStyle(document.body).fontFamily;
       sync();
       draw();
     }
@@ -4276,7 +4534,23 @@
       e.preventDefault();
       return true;
     }
-    function play() { if (Space.mode === 'slider') media(); }
+    function play() { if (Space.mode === 'slider') media(); else Space.resume(); }
+    // Straight to a piece, no glide and no grow, for the space to land on.
+    function jumpTo(n) {
+      const el = slides[n].firstElementChild;
+      el.style.transition = 'none';
+      place(n, 0);
+      setCurrent(n, true);
+      void el.offsetWidth;
+      requestAnimationFrame(() => requestAnimationFrame(() => { el.style.transition = ''; }));
+    }
+    // How big a piece is drawn in the slider.
+    function slideBox(n) {
+      const el = slides[n] && slides[n].firstElementChild;
+      if (el && el.offsetWidth) return [el.offsetWidth, el.offsetHeight];
+      const s = SLIDES[n], w = Math.min(stage.clientWidth * 0.7, stage.clientHeight * 0.8 * (s.w / s.h));
+      return [w, w * (s.h / s.w)];
+    }
     function pause() { $$('video', track).forEach((v) => v.pause()); }
     // Bring it forward, or open it again if it was closed.
     function show(focus = true) {
@@ -4303,22 +4577,32 @@
       const canvas = document.createElement('canvas');
       canvas.className = 'wk-space';
       canvas.setAttribute('aria-hidden', 'true');
+      // A small label that rides the corner of the piece under the cursor
+      const tag = document.createElement('div');
+      tag.className = 'wk-tag';
+      tag.setAttribute('aria-hidden', 'true');
       let gl = null, prog = null, L = {}, ok = false;
       let mode = 'slider', raf = 0, last = 0;
       const COPIES = 3;                     // the sphere shows each piece three times
-      const tiles = [];                     // { n, img, tex, ar, ... }
-      let W = 0, H = 0, D = 0, dpr = 1, proj = null;
-      // morph: 0 grid → 1 sphere; vis: 0 hidden → 1 shown
-      let m = 0, mTo = 0, vis = 0, visTo = 0;
-      let yaw = 0.4, pitch = -0.18, vy = 0, vp = 0, zoom = 1, hover = -1, tilt = [0, 0], tiltTo = [0, 0];
-      let fill = [0.08, 0.08, 0.08];
+      const tiles = [];                     // { n, tex, vid, ar, g, gs, s, ss, from, raw, cur, h, dl }
+      let W = 0, H = 0, D = 0, R = 1, dpr = 1, proj = null;
+      let yaw = 0.4, pitch = -0.18, vy = 0, vp = 0, zoom = 1, hover = -1, focus = 0, tilt = [0, 0], tiltTo = [0, 0];
+      let fill = [0.08, 0.08, 0.08], bg = [0, 0, 0];
+      // The move in progress: where every tile is headed, since when, for how long.
+      let target = 'grid', T0 = 0, DUR = 1, bump = 0, landing = -1, landTimer = 0;
+      const now = () => performance.now() / 1000;
+      const hash = (i) => { const x = Math.sin(i * 12.9898 + 4.1) * 43758.5453; return x - Math.floor(x); };
+      const outQuart = (p) => 1 - Math.pow(1 - p, 4);
 
       const VS = 'attribute vec2 aC; uniform vec3 uC; uniform vec2 uS; uniform mat4 uP; varying vec2 vUv; varying vec2 vL;' +
         'void main(){ vUv = vec2(aC.x + .5, .5 - aC.y); vL = aC * uS; gl_Position = uP * vec4(uC + vec3(aC * uS, 0.), 1.); }';
-      const FS = 'precision highp float; uniform sampler2D uT; uniform float uHas, uA, uR, uSoft; uniform vec2 uS; uniform vec3 uF; varying vec2 vUv; varying vec2 vL;' +
+      // A rounded card: the picture over its paper, then fogged toward the
+      // stage the further back it sits.
+      const FS = 'precision highp float; uniform sampler2D uT; uniform float uHas, uA, uR, uSoft, uFog; uniform vec2 uS; uniform vec3 uF, uBg; varying vec2 vUv; varying vec2 vL;' +
         'float sd(vec2 p, vec2 b, float r){ vec2 q = abs(p) - b + r; return length(max(q, 0.)) + min(max(q.x, q.y), 0.) - r; }' +
         'void main(){ float d = sd(vL, uS * .5, uR); float a = (1. - smoothstep(-uSoft, uSoft, d)) * uA;' +
-        ' vec3 c = uHas > .5 ? texture2D(uT, vUv).rgb : uF; gl_FragColor = vec4(c * a, a); }';
+        ' vec4 t = uHas > .5 ? texture2D(uT, vUv) : vec4(0.); vec3 c = t.rgb + uF * (1. - t.a); c = mix(uBg, c, uFog);' +
+        ' gl_FragColor = vec4(c * a, a); }';
 
       function compile(type, src) {
         const s = gl.createShader(type);
@@ -4328,7 +4612,7 @@
         return s;
       }
       function init() {
-        stage.append(canvas);
+        stage.append(canvas, tag);
         try {
           gl = canvas.getContext('webgl', { alpha: true, premultipliedAlpha: true, antialias: true });
           if (!gl) return;
@@ -4344,41 +4628,79 @@
           const aC = gl.getAttribLocation(prog, 'aC');
           gl.enableVertexAttribArray(aC);
           gl.vertexAttribPointer(aC, 2, gl.FLOAT, false, 0, 0);
-          ['uC', 'uS', 'uP', 'uT', 'uHas', 'uA', 'uR', 'uSoft', 'uF'].forEach((k) => { L[k] = gl.getUniformLocation(prog, k); });
+          ['uC', 'uS', 'uP', 'uT', 'uHas', 'uA', 'uR', 'uSoft', 'uF', 'uBg', 'uFog'].forEach((k) => { L[k] = gl.getUniformLocation(prog, k); });
           gl.enable(gl.BLEND);
           gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
           gl.disable(gl.DEPTH_TEST);
           ok = true;
         } catch (e) { ok = false; console.warn('WebGL view unavailable:', e && e.message); return; }
-        canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); ok = false; set('slider'); views.hidden = true; });
-        // One tile per piece, then the copies the sphere needs.
+        canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); ok = false; mode = 'slider'; stage.classList.remove('is-space', 'is-sphere'); views.hidden = true; });
+        // One tile per piece (its still, mipmapped so it never shimmers,
+        // and its video when it has one), then the copies the sphere needs.
+        const POT = Math.min(screen.width, screen.height) < 700 ? 512 : 1024;
         SLIDES.forEach((s, n) => {
           const img = new Image();
           img.decoding = 'async';
           img.src = 'work/' + s.id + '.webp';
-          const tile = { n, img, tex: null, ar: s.w / s.h };
-          img.onload = () => { tile.tex = upload(img); dirty = true; };
+          const tile = { n, tex: null, vid: s.video ? $('video', slides[n]) : null, vt: -1, vtex: null, ar: s.w / s.h, h: 0 };
+          img.onload = () => { if (ok) tile.tex = upload(img, POT); };
           tiles.push(tile);
         });
-        for (let c = 1; c < COPIES; c++) SLIDES.forEach((s, n) => tiles.push({ n, ref: tiles[n], ar: s.w / s.h, copy: true }));
+        for (let c = 1; c < COPIES; c++) SLIDES.forEach((s, n) => tiles.push({ n, ref: tiles[n], ar: s.w / s.h, copy: true, h: 0 }));
         views.hidden = false;
         $$('button', views).forEach((b) => b.addEventListener('click', () => set(b.dataset.view)));
         pointer();
-        if ('ResizeObserver' in window) new ResizeObserver(() => { if (mode !== 'slider') { size(); dirty = true; } }).observe(stage);
+        if ('ResizeObserver' in window) new ResizeObserver(() => { if (mode !== 'slider' || raf) size(); }).observe(stage);
       }
-      function upload(img) {
-        const tx = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, tx);
-        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+      function texParams(mip) {
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, mip ? gl.LINEAR_MIPMAP_LINEAR : gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+      }
+      function upload(img, pot) {
+        const tx = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, tx);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+        const cv = document.createElement('canvas');
+        cv.width = cv.height = pot;
+        const c2 = cv.getContext('2d');
+        c2.imageSmoothingQuality = 'high';
+        c2.drawImage(img, 0, 0, pot, pot);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, cv);
+        gl.generateMipmap(gl.TEXTURE_2D);
+        texParams(true);
         return tx;
       }
+      // The moving pieces: each new frame of a playing video goes up to its tile.
+      function videos() {
+        tiles.forEach((tl) => {
+          const v = tl.vid;
+          if (!v || v.readyState < 2 || v.currentTime === tl.vt) return;
+          tl.vt = v.currentTime;
+          if (!tl.vtex) { tl.vtex = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, tl.vtex); texParams(false); }
+          else gl.bindTexture(gl.TEXTURE_2D, tl.vtex);
+          gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+          try { gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, v); tl.live = true; } catch (e) { tl.live = false; }
+        });
+      }
+      function playAll(on) {
+        tiles.forEach((tl) => {
+          if (!tl.vid) return;
+          if (on && !reduced.matches) { tl.vid.preload = 'auto'; tl.vid.play().catch(() => {}); } else tl.vid.pause();
+        });
+      }
 
-      // The camera sits so that the z = 0 plane is drawn at one unit per CSS pixel.
+      // The camera sits so that the z = -D plane is drawn at one unit per CSS pixel.
+      function rgbOf(str) {
+        const cx = document.createElement('canvas').getContext('2d');
+        cx.fillStyle = '#000';
+        cx.fillStyle = str || '#000';
+        const s = cx.fillStyle;
+        if (s[0] === '#') return [1, 3, 5].map((i) => parseInt(s.slice(i, i + 2), 16) / 255).concat(1);
+        const m = s.match(/[\d.]+/g).map(Number);
+        return [m[0] / 255, m[1] / 255, m[2] / 255, m.length > 3 ? m[3] : 1];
+      }
       function size() {
         dpr = Math.min(2, devicePixelRatio || 1);
         W = stage.clientWidth; H = stage.clientHeight;
@@ -4386,85 +4708,112 @@
         canvas.height = Math.max(1, Math.round(H * dpr));
         const fov = 35 * Math.PI / 180, f = 1 / Math.tan(fov / 2), near = 10, far = 8000;
         D = (H / 2) * f;
+        R = Math.min(W, H) * 0.41;
         proj = new Float32Array([f / (W / H), 0, 0, 0, 0, f, 0, 0, 0, 0, (far + near) / (near - far), -1, 0, 0, (2 * far * near) / (near - far), 0]);
         layout();
-        const c = getComputedStyle(win).getPropertyValue('--paper-2').trim();
-        const cv = document.createElement('canvas').getContext('2d');
-        cv.fillStyle = c || '#141414';
-        const m = cv.fillStyle.match(/[\da-f]{2}/gi);
-        if (m && cv.fillStyle[0] === '#') fill = m.slice(0, 3).map((h) => parseInt(h, 16) / 255);
+        // the paper behind a picture, and the stage the far side fogs into
+        const cs = getComputedStyle(win);
+        fill = rgbOf(cs.getPropertyValue('--paper-2').trim()).slice(0, 3);
+        const g = rgbOf(cs.getPropertyValue('--glass').trim()), d = rgbOf(cs.getPropertyValue('--desk-color').trim());
+        bg = [0, 1, 2].map((k) => g[k] * g[3] + d[k] * (1 - g[3]));
       }
-      // Grid: every piece once, fitted into even cells. Sphere: every copy,
-      // spread evenly over the surface (a Fibonacci lattice).
+      // Grid: a masonry wall, every piece once at its own shape, as many
+      // columns as make the pieces largest. Sphere: every copy spread
+      // evenly over the surface (a Fibonacci lattice).
       function layout() {
-        const N = SLIDES.length, cols = W > H * 1.15 ? 4 : 3, rows = Math.ceil(N / cols);
-        const pad = Math.max(28, Math.min(W, H) * 0.07), gap = Math.max(14, W * 0.02);
-        const cw = (W - pad * 2 - gap * (cols - 1)) / cols, ch = (H - pad * 2 - gap * (rows - 1)) / rows;
-        const R = Math.min(W, H) * 0.4, base = R * 0.3, total = tiles.length;
-        tiles.forEach((tl, i) => {
-          if (i < N) {
-            const c = i % cols, r = Math.floor(i / cols);
-            let w = cw, h = cw / tl.ar;
-            if (h > ch) { h = ch; w = ch * tl.ar; }
-            tl.g = [-W / 2 + pad + c * (cw + gap) + cw / 2, H / 2 - pad - r * (ch + gap) - ch / 2, 0];
-            tl.gs = [w, h];
+        const N = SLIDES.length;
+        const pad = clamp(Math.min(W, H) * 0.07, 20, 56), gap = clamp(Math.min(W, H) * 0.022, 10, 18);
+        let best = null;
+        for (let cols = 2; cols <= 6; cols++) {
+          const cw = (W - pad * 2 - gap * (cols - 1)) / cols;
+          if (cw < 56) break;
+          const hs = new Array(cols).fill(0), at = [];
+          for (let i = 0; i < N; i++) {
+            let c = 0;
+            for (let k = 1; k < cols; k++) if (hs[k] < hs[c] - 0.5) c = k;
+            at.push([c, hs[c]]);
+            hs[c] += cw / tiles[i].ar + gap;
           }
+          const tall = Math.max(...hs) - gap, s = Math.min(1, (H - pad * 2) / tall);
+          const even = 1 - 0.12 * (Math.max(...hs) - Math.min(...hs)) / tall;
+          const score = cw * s * even;
+          if (!best || score > best.score) best = { cols, cw, at, tall, s, score };
+        }
+        const { cols, cw, at, tall, s } = best;
+        const w = cw * s, gp = gap * s, x0 = -(cols * w + (cols - 1) * gp) / 2, y0 = (tall * s) / 2;
+        for (let i = 0; i < N; i++) {
+          const [c, y] = at[i], h = w / tiles[i].ar;
+          tiles[i].g = [x0 + c * (w + gp) + w / 2, y0 - y * s - h / 2];
+          tiles[i].gs = [w, h];
+        }
+        const total = tiles.length, base = R * 0.31;
+        tiles.forEach((tl, i) => {
           const k = i + 0.5, phi = Math.acos(1 - (2 * k) / total), th = Math.PI * (1 + Math.sqrt(5)) * k;
           tl.s = [R * Math.sin(phi) * Math.cos(th), R * Math.cos(phi), R * Math.sin(phi) * Math.sin(th)];
           tl.ss = [base * Math.sqrt(tl.ar), base / Math.sqrt(tl.ar)];
-          tl.h = tl.h || 0;
         });
       }
 
-      const ease = (x) => (x < 0.5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
-      let dirty = true;
-      // Where each tile is this frame, in camera space, and how strong.
-      function solve() {
+      // Where a tile wants to be in each arrangement: centre, size, opacity, fog.
+      function turned(p) {
         const cy = Math.cos(yaw), sy = Math.sin(yaw), cp = Math.cos(pitch), sp = Math.sin(pitch);
-        const tx = tilt[0], ty = tilt[1], N = SLIDES.length, e = ease(m), z = 1 / zoom;
+        const x1 = p[0] * cy + p[2] * sy, z1 = -p[0] * sy + p[2] * cy;
+        return [x1, p[1] * cp - z1 * sp, p[1] * sp + z1 * cp];
+      }
+      function goal(tl, i, kind) {
+        const N = SLIDES.length;
+        if (kind === 'grid') {
+          const o = i < N ? tl : tiles[i % N];
+          return { c: [o.g[0], o.g[1], -D + o.g[0] * tilt[0] + o.g[1] * tilt[1]], sz: i < N ? o.gs : [o.gs[0] * 0.8, o.gs[1] * 0.8], a: i < N ? 1 : 0, f: 1 };
+        }
+        if (kind === 'sphere') {
+          const q = turned(tl.s), front = clamp((q[2] / R + 1) / 2, 0, 1);
+          return { c: [q[0], q[1], q[2] - D / zoom], sz: tl.ss, a: 1, f: 0.2 + 0.8 * Math.pow(front, 1.2) };
+        }
+        // The slider: the piece it's on sits exactly where the slide shows it.
+        const box = slideBox(tl.n);
+        if ((kind === 'deck' && i === cur) || (kind === 'slide' && i === landing)) return { c: [0, 0, -D], sz: box, a: 1, f: 1 };
+        if (kind === 'deck') return { c: [0, 0, -D - 40], sz: [box[0] * 0.5, box[1] * 0.5], a: 0, f: 1 };
+        const fr = tl.from || { c: [0, 0, -D], sz: box, a: 0, f: 1 };
+        return { c: [fr.c[0] * 0.94, fr.c[1] * 0.94, fr.c[2] - 60], sz: [fr.sz[0] * 0.9, fr.sz[1] * 0.9], a: 0, f: fr.f };
+      }
+      // Every tile travels on its own clock, from where it was to where it's
+      // going, lifting toward you a little on the way.
+      function solve(t) {
         tiles.forEach((tl, i) => {
-          // the sphere point, turned
-          let [x, y, zz] = tl.s;
-          const x1 = x * cy + zz * sy, z1 = -x * sy + zz * cy;
-          const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
-          const sph = [x1, y2, z2], front = Math.pow((z2 / (Math.min(W, H) * 0.4) + 1) / 2, 1.4);
-          let pos, sz, a;
-          if (i < N) {
-            const g = [tl.g[0], tl.g[1], tl.g[0] * tx + tl.g[1] * ty];   // the grid leans a little toward the cursor
-            pos = [g[0] + (sph[0] - g[0]) * e, g[1] + (sph[1] - g[1]) * e, g[2] + (sph[2] - g[2]) * e];
-            sz = [tl.gs[0] + (tl.ss[0] - tl.gs[0]) * e, tl.gs[1] + (tl.ss[1] - tl.gs[1]) * e];
-            a = 1 - e * (1 - (0.1 + 0.9 * front));
-          } else {
-            const k = Math.max(0, (e - 0.35) / 0.65);
-            pos = sph;
-            sz = [tl.ss[0] * (0.6 + 0.4 * k), tl.ss[1] * (0.6 + 0.4 * k)];
-            a = k * (0.1 + 0.9 * front);
-          }
-          // the entrance: everything rises a little and fades in
-          const st = Math.min(1, Math.max(0, vis * 1.6 - (i % N) * 0.05));
-          tl.cur = {
-            c: [pos[0], pos[1] - (1 - st) * 24, pos[2] - D * z],
-            sz: [sz[0] * (1 + tl.h * 0.06), sz[1] * (1 + tl.h * 0.06)],
-            a: a * st,
+          const to = goal(tl, i, target), fr = tl.from || to;
+          const p = reduced.matches ? 1 : clamp((t - T0 - (tl.dl || 0)) / DUR, 0, 1), e = outQuart(p);
+          const raw = {
+            c: [fr.c[0] + (to.c[0] - fr.c[0]) * e, fr.c[1] + (to.c[1] - fr.c[1]) * e, fr.c[2] + (to.c[2] - fr.c[2]) * e + Math.sin(Math.PI * e) * bump],
+            sz: [fr.sz[0] + (to.sz[0] - fr.sz[0]) * e, fr.sz[1] + (to.sz[1] - fr.sz[1]) * e],
+            a: fr.a + (to.a - fr.a) * e,
+            f: fr.f + (to.f - fr.f) * e,
           };
+          tl.raw = raw;
+          const up = 1 + tl.h * 0.07;
+          tl.cur = { c: raw.c, sz: [raw.sz[0] * up, raw.sz[1] * up], a: raw.a, f: (raw.f + (1 - raw.f) * tl.h) * (1 - 0.2 * focus * (1 - tl.h)) };
         });
       }
+      function snapshot() { tiles.forEach((tl) => { tl.from = tl.raw ? { c: tl.raw.c.slice(), sz: tl.raw.sz.slice(), a: tl.raw.a, f: tl.raw.f } : null; }); }
       function draw() {
         gl.viewport(0, 0, canvas.width, canvas.height);
         gl.clearColor(0, 0, 0, 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniformMatrix4fv(L.uP, false, proj);
         gl.uniform3fv(L.uF, fill);
-        const order = tiles.filter((tl) => tl.cur.a > 0.01).sort((p, q) => p.cur.c[2] - q.cur.c[2]);
+        gl.uniform3fv(L.uBg, bg);
+        const order = tiles.filter((tl) => tl.cur && tl.cur.a > 0.01).sort((p, q) => (p.cur.c[2] + p.h * 8) - (q.cur.c[2] + q.h * 8));
         order.forEach((tl) => {
-          const src = tl.copy ? tl.ref : tl;
-          gl.uniform3fv(L.uC, tl.cur.c);
-          gl.uniform2fv(L.uS, tl.cur.sz);
-          gl.uniform1f(L.uA, tl.cur.a);
-          gl.uniform1f(L.uR, Math.min(6, tl.cur.sz[0] * 0.03));
-          gl.uniform1f(L.uSoft, 0.9 * (-tl.cur.c[2] / D));
-          gl.uniform1f(L.uHas, src.tex ? 1 : 0);
-          if (src.tex) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, src.tex); gl.uniform1i(L.uT, 0); }
+          const src = tl.copy ? tl.ref : tl, tex = src.live ? src.vtex : src.tex;
+          const c = tl.cur, k = -c.c[2] / D;
+          gl.uniform3fv(L.uC, c.c);
+          gl.uniform2fv(L.uS, c.sz);
+          gl.uniform1f(L.uA, c.a);
+          gl.uniform1f(L.uFog, c.f);
+          gl.uniform1f(L.uR, clamp(Math.min(c.sz[0], c.sz[1]) * 0.03, 2, 5));
+          gl.uniform1f(L.uSoft, (0.75 * k) / dpr);
+          gl.uniform1f(L.uHas, tex ? 1 : 0);
+          if (tex) { gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, tex); gl.uniform1i(L.uT, 0); }
           gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         });
       }
@@ -4480,39 +4829,57 @@
         });
         return best;
       }
+      function tagAt() {
+        const tl = hover > -1 ? tiles[hover] : null;
+        const on = !!tl && mode !== 'slider' && tl.cur.a > 0.6;
+        tag.classList.toggle('is-on', on);
+        if (!on) return;
+        if (tag.dataset.n !== String(tl.n)) {
+          const s = SLIDES[tl.n];
+          tag.innerHTML = '<b>' + PROJECTS[s.k].name + '</b><span>' + s.title + '</span>';
+          tag.dataset.n = tl.n;
+        }
+        const c = tl.cur, k = D / -c.c[2];
+        const x = W / 2 + (c.c[0] - c.sz[0] / 2) * k, y = H / 2 - (c.c[1] + c.sz[1] / 2) * k;
+        tag.style.transform = 'translate(' + Math.round(clamp(x, 8, W - tag.offsetWidth - 8)) + 'px, ' + Math.round(clamp(y - tag.offsetHeight - 8, 8, H - tag.offsetHeight - 8)) + 'px)';
+      }
 
-      function frame(now) {
-        const dt = Math.min(0.05, (now - (last || now)) / 1000);
-        last = now;
+      function frame() {
+        if (win.hidden) { raf = 0; last = 0; return; }
+        const t = now(), dt = Math.min(0.05, t - (last || t));
+        last = t;
         const k = reduced.matches ? 1 : 1 - Math.pow(0.0015, dt);   // the same feel at any frame rate
-        m += (mTo - m) * (reduced.matches ? 1 : 1 - Math.pow(0.02, dt));
-        vis += (visTo - vis) * (reduced.matches ? 1 : 1 - Math.pow(0.004, dt));
         tilt[0] += (tiltTo[0] - tilt[0]) * k; tilt[1] += (tiltTo[1] - tilt[1]) * k;
+        focus += ((hover > -1 ? 1 : 0) - focus) * k;
         if (!drag) {
           yaw += vy * dt; pitch += vp * dt;
           vy *= Math.pow(0.08, dt); vp *= Math.pow(0.08, dt);
-          if (mode === 'sphere' && !reduced.matches && Math.abs(vy) < 0.12) vy += (0.12 - vy) * (1 - Math.pow(0.3, dt)); // a slow drift when left alone
+          if (mode === 'sphere' && !reduced.matches && Math.abs(vy) < 0.1) vy += (0.1 - vy) * (1 - Math.pow(0.3, dt)); // a slow drift when left alone
           pitch += (-0.18 - pitch) * (1 - Math.pow(0.4, dt)) * (Math.abs(vp) < 0.05 ? 1 : 0);
         }
         pitch = clamp(pitch, -1.1, 1.1);
         tiles.forEach((tl, i) => { tl.h += ((i === hover ? 1 : 0) - tl.h) * k; });
-        solve();
+        videos();
+        solve(t);
         draw();
-        const settled = mode === 'slider' && vis < 0.002;
-        if (settled) { raf = 0; last = 0; canvas.hidden = true; return; }
+        tagAt();
+        if (mode === 'slider' && t - T0 > DUR + 0.9) { raf = 0; last = 0; canvas.hidden = true; playAll(false); media(); return; }
         raf = requestAnimationFrame(frame);
       }
-      function run() { if (!raf) { canvas.hidden = false; raf = requestAnimationFrame(frame); } }
+      function run() { if (!raf) { canvas.hidden = false; last = 0; raf = requestAnimationFrame(frame); } }
 
       // Turn the sphere by dragging; click a piece to see it in the slider.
       let drag = null;
       function pointer() {
         canvas.addEventListener('pointerdown', (e) => {
-          if (e.button !== 0) return;
-          drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: e.timeStamp, moved: false, id: e.pointerId };
+          if (e.button !== 0 || mode === 'slider') return;
+          // the piece you press is the one that opens, even if the sphere drifts on
+          const r = canvas.getBoundingClientRect();
+          drag = { x: e.clientX, y: e.clientY, lx: e.clientX, ly: e.clientY, t: e.timeStamp, moved: false, id: e.pointerId, h: pick(e.clientX - r.left, e.clientY - r.top) };
           if (mode === 'sphere') { canvas.setPointerCapture(e.pointerId); canvas.classList.add('is-grabbing'); }
         });
         canvas.addEventListener('pointermove', (e) => {
+          if (mode === 'slider') return;
           const r = canvas.getBoundingClientRect(), px = e.clientX - r.left, py = e.clientY - r.top;
           if (drag && mode === 'sphere') {
             const dx = e.clientX - drag.lx, dy = e.clientY - drag.ly, dt = Math.max(1, e.timeStamp - drag.t) / 1000;
@@ -4520,16 +4887,12 @@
             yaw += dx * 0.006; pitch += dy * 0.006;
             vy = (dx * 0.006) / dt * 0.5; vp = (dy * 0.006) / dt * 0.5;
             drag.lx = e.clientX; drag.ly = e.clientY; drag.t = e.timeStamp;
-            return;
+            if (drag.moved) { hover = -1; return; }
           }
           if (drag && Math.abs(e.clientX - drag.x) + Math.abs(e.clientY - drag.y) > 4) drag.moved = true;
-          if (mode === 'grid') tiltTo = [(px / W - 0.5) * 0.06, (py / H - 0.5) * 0.06];
-          const h = pick(px, py);
-          if (h !== hover) {
-            hover = h;
-            if (h > -1) { const s = SLIDES[tiles[h].n]; titleEl.textContent = PROJECTS[s.k].name + ', ' + s.title; }
-            else hint();
-          }
+          if (mode === 'grid') tiltTo = [(px / W - 0.5) * 0.05, (py / H - 0.5) * 0.05];
+          hover = pick(px, py);
+          canvas.style.cursor = hover > -1 ? 'pointer' : '';
         });
         const end = (e) => {
           if (!drag) return;
@@ -4537,12 +4900,12 @@
           drag = null;
           canvas.classList.remove('is-grabbing');
           if (d.moved || e.type === 'pointercancel') return;
-          const r = canvas.getBoundingClientRect(), h = pick(e.clientX - r.left, e.clientY - r.top);
-          if (h > -1) { const n = tiles[h].n; set('slider'); requestAnimationFrame(() => go(n)); Sound.play('up'); }
+          const r = canvas.getBoundingClientRect(), h = d.h > -1 ? d.h : pick(e.clientX - r.left, e.clientY - r.top);
+          if (h > -1) set('slider', h);
         };
         canvas.addEventListener('pointerup', end);
         canvas.addEventListener('pointercancel', end);
-        canvas.addEventListener('pointerleave', () => { hover = -1; tiltTo = [0, 0]; if (mode !== 'slider') hint(); });
+        canvas.addEventListener('pointerleave', () => { hover = -1; tiltTo = [0, 0]; canvas.style.cursor = ''; });
         canvas.addEventListener('wheel', (e) => {
           if (mode !== 'sphere' || isDocked(win)) return;
           e.preventDefault();
@@ -4551,31 +4914,48 @@
       }
       function hint() { titleEl.textContent = mode === 'sphere' ? 'Drag to turn, click a piece to open it' : 'Click a piece to open it'; }
 
-      // Switch views. The slider fades out under the space, or back.
-      function set(v) {
+      // Switch views. Leaving the slider, the pieces fly out of the one on
+      // screen; coming back, the chosen piece lands exactly on its slide.
+      function set(v, land = -1) {
         if (!ok || v === mode) return;
-        const was = mode;
+        const was = mode, t = now(), N = SLIDES.length;
         mode = v;
         $$('button', views).forEach((b) => b.setAttribute('aria-checked', String(b.dataset.view === v)));
-        stage.classList.toggle('is-space', v !== 'slider');
-        stage.classList.toggle('is-sphere', v === 'sphere');
+        clearTimeout(landTimer);
         if (v === 'slider') {
-          visTo = 0;
+          landing = land > -1 ? land : Math.max(0, cur);
           hover = -1;
-          setCurrent(-1 === cur ? 0 : cur, true);
-          media();
+          snapshot();
+          target = 'slide'; T0 = t; DUR = 0.85; bump = 0;
+          tiles.forEach((tl, i) => { tl.dl = i === landing ? 0 : hash(i) * 0.12; });
+          jumpTo(tiles[landing].n);
+          landTimer = setTimeout(() => stage.classList.remove('is-space', 'is-sphere'), reduced.matches ? 0 : 640);
+          run();
         } else {
-          if (was === 'slider') { size(); vis = 0; m = v === 'sphere' ? 1 : 0; }
-          visTo = 1;
-          mTo = v === 'sphere' ? 1 : 0;
+          if (was === 'slider' && !raf) {
+            size();
+            tiles.forEach((tl, i) => { tl.from = goal(tl, i, 'deck'); tl.raw = null; });
+            vy = v === 'sphere' ? 0.7 : 0;
+          } else snapshot();
+          stage.classList.add('is-space');
+          stage.classList.toggle('is-sphere', v === 'sphere');
+          target = v; T0 = t;
+          DUR = v === 'sphere' ? 1.3 : 1.05;
+          bump = was === 'slider' ? 0 : 90;
           if (v === 'sphere' && was === 'grid') vy = 0.9;   // set it spinning as it rounds
-          pause();
+          const far = Math.hypot(W, H) / 2 || 1;
+          tiles.forEach((tl, i) => {
+            if (v === 'grid') tl.dl = i < N ? (Math.hypot(tl.g[0], tl.g[1]) / far) * 0.26 + hash(i) * 0.05 : hash(i) * 0.15;
+            else tl.dl = hash(i) * 0.3 + (i < N ? 0 : 0.12);
+          });
+          playAll(true);
           hint();
           run();
         }
         Sound.play('up');
       }
-      return { init, set, get mode() { return mode; } };
+      function resume() { if (mode !== 'slider') { playAll(true); run(); } }
+      return { init, set, resume, get mode() { return mode; } };
     })();
     function find(q) { return Math.max(0, PROJECTS.findIndex((pr) => q.includes(pr.name.toLowerCase()))); }
     // On a phone it is simply there; on a desk it opens from its icon.
@@ -5031,20 +5411,27 @@
      is drawn on a coarse pixel grid. Any input wakes the desk.
   ========================================================== */
   const Saver = (() => {
-    const el = $('#saver'), time = $('#sv-time');
+    const el = $('#saver');
+    const hEl = $('#sv-h'), mEl = $('#sv-m'), sEl = $('#sv-s'), run = $('#sv-run'), dateEl = $('#sv-date');
     const IDLE = 90 * 1000;
-    let on = false, timer = 0, lastInput = performance.now(), startedAt = 0, anchor = null;
+    let on = false, timer = 0, raf = 0, lastInput = performance.now(), startedAt = 0, anchor = null;
+    $('#sv-ticks').innerHTML = Array.from({ length: 12 }, (_, i) => '<line class="sv-tick' + (i % 3 ? '' : ' is-q') + '" y1="-84" y2="' + (i % 3 ? -88 : -90) + '" transform="rotate(' + i * 30 + ')"/>').join('');
 
-    // Hours and minutes, large and light; the colon keeps the seconds.
+    // The hands sweep; the minute's hairline grows one minute and is rubbed out the next.
     function draw() {
-      const d = new Date(), h24 = Prefs.get('clock24');
-      let h = d.getHours();
-      const ap = h < 12 ? 'am' : 'pm';
-      if (!h24) h = h % 12 || 12;
-      const hh = h24 ? String(h).padStart(2, '0') : String(h);
-      time.innerHTML = hh + '<span class="sv-colon">:</span>' + String(d.getMinutes()).padStart(2, '0') + (h24 ? '' : '<span class="ap">' + ap + '</span>');
-      time.setAttribute('aria-label', d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
+      const d = new Date();
+      const s = d.getSeconds() + d.getMilliseconds() / 1000, m = d.getMinutes() + s / 60, h = (d.getHours() % 12) + m / 60;
+      hEl.setAttribute('transform', 'rotate(' + (h * 30).toFixed(3) + ')');
+      mEl.setAttribute('transform', 'rotate(' + (m * 6).toFixed(3) + ')');
+      sEl.setAttribute('transform', 'rotate(' + (s * 6).toFixed(3) + ')');
+      const even = d.getMinutes() % 2 === 0;
+      run.style.strokeDasharray = (even ? s : 60 - s).toFixed(3) + ' 60';
+      run.style.strokeDashoffset = even ? '0' : (-s).toFixed(3);
+      dateEl.textContent = d.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short' });
+      el.setAttribute('aria-label', d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
     }
+    const still = matchMedia('(prefers-reduced-motion: reduce)');
+    function loop() { draw(); raf = still.matches ? 0 : requestAnimationFrame(loop); }
     function start() {
       if (on) return;
       on = true;
@@ -5054,16 +5441,15 @@
       Work.pause();
       startedAt = performance.now();
       anchor = null;
-      draw();
       el.hidden = false;
-      // On the minute, every minute.
-      const tick = () => { draw(); timer = setTimeout(tick, 60000 - (Date.now() % 60000) + 20); };
-      timer = setTimeout(tick, 60000 - (Date.now() % 60000) + 20);
+      loop();
+      if (still.matches) timer = setInterval(draw, 1000);
     }
     function stop() {
       if (!on) return;
       on = false;
-      clearTimeout(timer);
+      clearInterval(timer);
+      cancelAnimationFrame(raf);
       el.hidden = true;
       lastInput = performance.now();
       Work.play();
@@ -6089,7 +6475,7 @@
         answer('<p>The Control Panel: desktop pattern, display, volume, blinking and the clock. Draw your own pattern in the little grid.</p>');
       } else if (has(q, /writing|essays?|blog|articles?|thoughts|read something/)) {
         Writing.open(0);
-        answer('<p>Writing is open: short pieces on how the work gets made. ← and → move between them.</p>');
+        answer('<p>Adiel’s writing is open: Clarity Over Trends and The Inspiration Trap, from the old Thoughts page. ← and → move between them.</p>');
       } else if (has(q, /\bnotes?\b|note ?pad|write|memo|jot/)) {
         openWin(W.notes, { scroll: true });
         answer('<p>Note Pad’s open. Eight pages, and they stay in this browser.</p>');
@@ -6336,35 +6722,188 @@
      reading. Each is a title, a kind and its paragraphs.
   ========================================================== */
   const Writing = (() => {
-    const win = W.writing, read = $('#wr-read'), count = $('#wr-count'), prev = $('#wr-prev'), next = $('#wr-next');
+    const win = W.writing, list = $('#wr-list'), read = $('#wr-read'), bar = $('#wr-progress');
+    // From Adiel's Thoughts, newest first. Each piece: paragraphs ('p') and subheads ('h').
     const NOTES = [
-      { title: 'Concept first', kind: 'Process', body: ['I care about work that has its own character. A lot of design today feels generic, so I work concept-first: find the one idea a brand can own, then make every choice deliberate, from the type to the motion to the smallest detail.'] },
-      { title: 'Useful and distinctive', kind: 'Principles', body: ['What I’m after is the balance between useful and distinctive. Brands and websites that do their job well, and that people remember not just for what they do, but for how they look and feel.'] },
-      { title: 'Making my own tools', kind: 'Tools', body: ['I also build my own generative tools and AI workflows, because sometimes the right tool for a brand doesn’t exist yet.'] },
+      {
+        "id": "clarity-over-trends",
+        "title": "Clarity Over Trends",
+        "date": "2026-02-10",
+        "cover": "writing/clarity-over-trends.webp",
+        "body": [
+          [
+            "p",
+            "It’s surprisingly easy to fall into the trend trap, especially when it seems like everyone else is doing it too. A new design trend emerges, and it seems like everyone on Twitter is talking about it. Then you’re re-designing something that didn’t need to be re-designed, just to fit the current trend. But I ask myself, How do design trends help when you really need clarity?"
+          ],
+          [
+            "h",
+            "The Real Work"
+          ],
+          [
+            "p",
+            "Let’s be honest with ourselves here. If you’re having trouble understanding who you are and what you want to represent, how will copying the current design trend help you figure it out? your client don’t need to be like everyone else; they need to be clear about who they are. That’s when the real design work begins, strategy is not about looking trendy. It’s about creating clarity. And clarity is what makes a brand or any kind of design really stand out."
+          ],
+          [
+            "h",
+            "Purpose Over Polish"
+          ],
+          [
+            "p",
+            "Trends are the easy way out. We get to skip the real work of creating something authentic. Why bother trying to understand the client issues when we can just use what’s popular?"
+          ],
+          [
+            "p",
+            "The problem with trends is that we end up creating work that looks like every other piece of work out there. Work that’s been created without any real basis for existence. Work that’s going to have to be reworked the minute the next trend comes along."
+          ],
+          [
+            "p",
+            "Real work is created with understanding. It’s seeing the world as it is and as it should be. It’s making decisions based on real knowledge, not based on what’s going to get the most likes right now."
+          ],
+          [
+            "h",
+            "The Long Game"
+          ],
+          [
+            "p",
+            "Clarity is what will stand the long game. When we create something with a real understanding of who the client is, what the real issue is, what’s really important, it’s not going to become irrelevant the minute the next trend appear."
+          ],
+          [
+            "p",
+            "So next time you’re tempted to follow a design trend, pause and ask yourself: am I creating something with purpose? because how’s a trend going to help explain who they are? So trends are unhelpful, they’re just not efficient."
+          ]
+        ]
+      },
+      {
+        "id": "the-inspiration-trap",
+        "title": "The Inspiration Trap",
+        "date": "2026-01-31",
+        "cover": "writing/the-inspiration-trap.webp",
+        "body": [
+          [
+            "p",
+            "Let’s talk about something we all do but rarely admit: we use “finding inspiration” as the world’s most sophisticated form of procrastination."
+          ],
+          [
+            "p",
+            "You know that old excuse of “I’ll just check Twitter real quick to see what’s out there“? After three hours, you’ve saved hundreds of projects, gathered references, and your design project remains blank."
+          ],
+          [
+            "p",
+            "The uncomfortable truth is that we’ve convinced ourselves consuming other people’s work is the same as doing our own. It’s not."
+          ],
+          [
+            "h",
+            "The Comfort of the Scroll"
+          ],
+          [
+            "p",
+            "There’s something incredibly safe about scrolling. When you’re browsing Pinterest or refreshing your Twitter feed, you feel productive. You’re researching. It feels like “doing work” without any of the risk of actually making something."
+          ],
+          [
+            "p",
+            "Gathering inspiration feels like progress because it requires no vulnerability. You’re not putting anything out there to be judged. You’re not making decisions that could be wrong. You’re just looking. You become a spectator, not a creator."
+          ],
+          [
+            "h",
+            "The Paradox"
+          ],
+          [
+            "p",
+            "Here’s what took me way too long to realize: the more time you spend looking for inspiration, the less inspired you actually become."
+          ],
+          [
+            "p",
+            "All those perfect, polished projects? They’re not inspiring you to create. Instead, they paralyze you with comparison."
+          ],
+          [
+            "p",
+            "Real inspiration doesn’t come from seeing the finished work of others. It comes from the act of making something yourself. From opening that blank canvas and stumbling through those awkward first attempts. From that unexpected moment when you’re deep in the process and accidentally discover something you weren’t even looking for."
+          ],
+          [
+            "h",
+            "Breaking the Pattern"
+          ],
+          [
+            "p",
+            "Think about the designers you admire most. Do you think they got there by endlessly scrolling? No. They got there by making things. Lots of things. Many of them bad. But they made them anyway."
+          ],
+          [
+            "p",
+            "So what’s the solution? It’s deceptively simple: close the tabs and start making."
+          ],
+          [
+            "p",
+            "I’m not saying you should never look at other work, but make it intentional. Set a timer, find three references, then close it all and get to work."
+          ],
+          [
+            "p",
+            "When you catch yourself in the scroll, ask one honest question: am I looking for inspiration, or am I avoiding the work? Most of the time, if you’re honest, it’s the latter."
+          ],
+          [
+            "p",
+            "The beautiful irony is that once you start making things, inspiration finds you in the problems you’re solving. Inspiration rewards action, not observation."
+          ],
+          [
+            "p",
+            "Creating things is scary. It’s vulnerable. It requires making decisions without certainty, putting something out there that might not be perfect. Scrolling requires none of that courage."
+          ],
+          [
+            "p",
+            "But the truth is that progress only happens when you’re willing to be uncomfortable. Every project you admire started as a blank canvas. Every designer you look up to had to create their first terrible draft."
+          ],
+          [
+            "p",
+            "The only difference is that they pushed through the discomfort and made something anyway."
+          ],
+          [
+            "p",
+            "You don’t need more inspiration. You need more action."
+          ]
+        ]
+      }
     ];
+    const fmt = (iso, o) => new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', o);
+    const day = (n) => fmt(n.date, { day: 'numeric', month: 'short', year: 'numeric' });
+    const mins = (n) => Math.max(1, Math.round(n.body.reduce((c, b) => c + b[1].split(/\s+/).length, 0) / 220));
     let at = 0;
+    list.innerHTML = NOTES.map((n, i) => '<li><button class="wr-item" type="button" data-i="' + i + '"><span class="wr-t">' + n.title + '</span><span class="wr-d"><time datetime="' + n.date + '">' + fmt(n.date, { day: 'numeric', month: 'short' }) + '</time><span>' + n.body.find((b) => b[0] === 'p')[1] + '</span></span></button></li>').join('');
+    const items = $$('.wr-item', list);
     function render() {
-      const n = NOTES[at];
-      read.innerHTML = '<h3>' + n.title + '</h3><p class="wr-kind">' + n.kind + '</p>' + n.body.map((x) => '<p class="body">' + x + '</p>').join('');
+      const n = NOTES[at], next = NOTES[(at + 1) % NOTES.length];
+      const parts = [
+        '<dl class="wr-meta"><dt>Published</dt><dd>' + day(n) + '</dd><dt>Reading</dt><dd>' + mins(n) + ' min</dd><dt>Author</dt><dd>Adiel Vásquez</dd></dl>',
+        '<h3>' + n.title + '</h3>',
+        '<figure class="wr-cover"><img src="' + n.cover + '" alt="" width="1200" height="654" decoding="async"></figure>',
+        ...n.body.map((b) => (b[0] === 'h' ? '<h4>' + b[1] + '</h4>' : '<p>' + b[1] + '</p>')),
+        NOTES.length > 1 ? '<footer class="wr-end"><span>Next</span><button type="button" data-next>' + next.title + ' →</button></footer>' : '',
+      ];
+      read.innerHTML = '<div class="wr-doc">' + parts.join('') + '</div>';
+      [...read.firstChild.children].forEach((el, i) => el.style.setProperty('--n', i));
       read.classList.remove('is-new');
       void read.offsetWidth;
       read.classList.add('is-new');
       read.scrollTop = 0;
-      count.textContent = (at + 1) + ' of ' + NOTES.length;
-      prev.disabled = at === 0;
-      next.disabled = at === NOTES.length - 1;
+      progress();
+      items.forEach((b, i) => b.setAttribute('aria-current', i === at ? 'true' : 'false'));
+      const nb = $('[data-next]', read);
+      if (nb) nb.addEventListener('click', () => { go(at + 1); Sound.play('up'); });
     }
-    function go(i) { at = clamp(i, 0, NOTES.length - 1); render(); }
+    function progress() {
+      const max = read.scrollHeight - read.clientHeight;
+      bar.style.setProperty('--p', max > 0 ? (read.scrollTop / max).toFixed(4) : 0);
+    }
+    read.addEventListener('scroll', progress, { passive: true });
+    function go(i) { at = (i + NOTES.length) % NOTES.length; render(); }
     function open(i = at) { go(i); openWin(win); }
-    prev.addEventListener('click', () => { go(at - 1); Sound.play('up'); });
-    next.addEventListener('click', () => { go(at + 1); Sound.play('up'); });
+    items.forEach((b) => b.addEventListener('click', () => { if (+b.dataset.i !== at) { go(+b.dataset.i); Sound.play('up'); } }));
     $$('[data-note]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); open(+a.dataset.note); }));
+    $$('[data-writing-link]').forEach((a) => a.addEventListener('click', (e) => { e.preventDefault(); closeMenu(); open(); }));
     render();
     function keydown(e) {
       if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return false;
       e.preventDefault();
-      const i = at + (e.key === 'ArrowRight' ? 1 : -1);
-      if (i >= 0 && i < NOTES.length) { go(i); Sound.play('up'); }
+      go(at + (e.key === 'ArrowRight' ? 1 : -1));
+      Sound.play('up');
       return true;
     }
     return { open, keydown, get active() { return !win.hidden && win.classList.contains('is-active'); } };
