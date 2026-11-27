@@ -1446,7 +1446,7 @@
         <li><a href="#work" data-project="1" data-peek="work/ataraxis-reel-peek.mp4" data-poster="work/ataraxis-reel.webp" data-ar="16 / 9"><span>Ataraxis</span><span>Rebrand, 2026</span></a></li>
         <li><a href="#work" data-project="2" data-peek="work/vorflux-blip.mp4" data-poster="work/vorflux-blip.webp" data-ar="16 / 9"><span>Vorflux</span><span>Brand system</span></a></li>
         <li><a href="#work" data-project="3" data-peek="work/magicpath-states.mp4" data-poster="work/magicpath-states.webp" data-ar="16 / 9"><span>MagicPath</span><span>Identity</span></a></li>
-        <li><a href="#work" data-project="6" data-peek="" data-poster="work/talon-peek.webp" data-ar="16 / 9"><span>Talon</span><span>Campaign</span></a></li>
+        <li><a href="#work" data-project="7" data-peek="" data-poster="work/talon-peek.webp" data-ar="16 / 9"><span>Talon</span><span>Campaign</span></a></li>
       </ol>
     </div>
     <div class="meta-block">
@@ -4424,6 +4424,11 @@
           { id: 'magicpath-states', title: 'Mascot states', video: true, w: 1920, h: 1080 },
           { id: 'magicpath-pair', title: 'App icon and tee', w: 2837, h: 1498, pair: ['magicpath-icon', 'magicpath-tee'] },
         ] },
+      { name: 'Moda', kind: 'Identity',
+        text: 'An identity for Moda. The mark is a tesseract, a cube inside a cube, drawn flat in one line weight. In motion it turns through the fourth dimension and comes back to rest as the logo.',
+        pieces: [
+          { id: 'moda-mark', title: 'Logo animation', video: true, w: 1080, h: 1080 },
+        ] },
       { name: 'Serveo', kind: 'Identity',
         text: 'An identity for Serveo, from the mark down to the merch.',
         pieces: [
@@ -6686,11 +6691,11 @@
         answer('<p>The best way to reach Adiel is email: <a href="mailto:hello@adiel.design">hello@adiel.design</a>.</p>', [['Copy email', copyEmail], ['Back', () => home(true)]]);
       } else if (has(q, /\b(x|twitter|social|cosmos|savee|instagram|linkedin|follow)\b/)) {
         answer('<p>Adiel is on <a href="https://x.com/adieldesign" target="_blank" rel="noopener">X</a>, <a href="https://www.cosmos.so/adiell" target="_blank" rel="noopener">Cosmos</a> and <a href="https://savee.com/theadielv_/" target="_blank" rel="noopener">Savee</a>.</p>');
-      } else if (has(q, /dessn|ataraxis|vorflux|magic ?path|serveo|cipher|talon|semantic/)) {
+      } else if (has(q, /dessn|ataraxis|vorflux|magic ?path|\bmoda\b|serveo|cipher|talon|semantic/)) {
         hush();
         Work.open(Work.find(q));
       } else if (has(q, /\b(work|projects?|case stud|clients?|portfolio|snippets?)\b/)) {
-        answer('<p>Eight projects in the Work window: <b>Dessn</b>, <b>Ataraxis</b>, <b>Vorflux</b>, <b>MagicPath</b>, <b>Serveo</b>, <b>Cipher</b>, <b>Talon</b> and <b>Semantic</b>. Use ← and → to step through the pieces.</p>', ['Dessn', 'Ataraxis', 'Vorflux', 'MagicPath', 'Serveo', 'Cipher', 'Talon', 'Semantic'].map((name, k) => [name, () => { hush(); Work.open(k); }]));
+        answer('<p>Nine projects in the Work window: <b>Dessn</b>, <b>Ataraxis</b>, <b>Vorflux</b>, <b>MagicPath</b>, <b>Moda</b>, <b>Serveo</b>, <b>Cipher</b>, <b>Talon</b> and <b>Semantic</b>. Use ← and → to step through the pieces.</p>', ['Dessn', 'Ataraxis', 'Vorflux', 'MagicPath', 'Moda', 'Serveo', 'Cipher', 'Talon', 'Semantic'].map((name, k) => [name, () => { hush(); Work.open(k); }]));
       } else if (has(q, /hex/)) {
         answer('<p>Adiel is a brand designer at <a href="https://hex.inc" target="_blank" rel="noopener">HEX</a>.</p>');
       } else if (has(q, /adiel|who (made|built|designed|is)|about (you|this|the)|designer|\bowner\b/)) {
